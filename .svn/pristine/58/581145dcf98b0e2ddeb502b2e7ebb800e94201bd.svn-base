@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="ledgerPoorPeopleComprehensive">
+
+	<typeAlias alias="ledgerPoorPeople"
+		type="com.tianque.plugin.account.domain.LedgerPoorPeople" />
+	<typeAlias alias="BaseWork"
+		type="com.tianque.plugin.account.domain.BaseWorking" />
+
+	<typeAlias alias="ledgerPoorPeopleVo"
+		type="com.tianque.plugin.account.vo.LedgerPoorPeopleVo" />
+	<resultMap id="ledgerPoorPeopleFullVoResult" class="ledgerPoorPeopleVo">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="birthDay" column="birthDay" />
+		<result property="owner" column="ISOWNER" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="serialNumber" column="serialnumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurdate" />
+		<result property="occurOrg.id" column="occurorg" />
+		<result property="sourceKind.id" column="sourcekind" />
+		<result property="createUser" column="CREATEUSER" />
+		<result property="createOrg.id" column="createOrg" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="createTableType.id" column="createTableType" />
+		<result property="currentOrg.id" column="CURRENTORG" />
+		<result property="targetOrg.id" column="targetOrg" />
+		<result property="lastdealDate" column="lastdealdate" />
+		<result property="stepId" column="stepId" />
+		<result property="superviseLevel" column="superviseLevel" />
+		<result property="delayState" column="delayState" />
+		<result property="stateCode" column="stateCode" />
+		<result property="state" column="state" />
+		<result property="requiredType" column="REQUIREDTYPE" />
+		<result property="securityType.id" column="SECURITYTYPE" />
+	</resultMap>
+
+	<resultMap class="BaseWork" id="simpleBaseWork">
+		<result property="id" column="id" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="occurOrg.orgInternalCode" column="occurOrgInternalCode" />
+		<result property="createOrg.id" column="orgId" />
+		<result property="createOrg.orgInternalCode" column="orgInternalCode" />
+		<result property="occurDate" column="occurDate" />
+		<result property="status" column="status" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="ledgerId" column="ledgerId" />
+		<result property="ledgerType" column="ledgerType" />
+	</resultMap>
+
+
+	<sql id="sql_poorPeople_select">
+		<dynamic>
+			<isNotNull property="poorType">  
+				<![CDATA[   and lpp.POORTYPE like '%'||#poorType#||'%' ]]>
+			</isNotNull>
+			
+			<isNotNull property="permanentAddress">  
+				<![CDATA[   and lpp.permanentAddress like  '%'||#permanentAddress#||'%' ]]>
+			</isNotNull>
+			
+			<isNotNull property="beginCreateDate">  
+				<![CDATA[   and lpp.createDate > #beginCreateDate# ]]>
+			</isNotNull> 
+			
+			<isNotNull property="endCreateDate">  
+				<![CDATA[   and lpp.createDate < #endCreateDate# ]]>
+			</isNotNull> 
+		</dynamic>
+	</sql>
+
+	<sql id="sql_findJurisdictions_leaderView">
+		<dynamic>
+			<isPropertyAvailable property="issueType"
+				prepend=" and ">
+				cstep.ledgerType = #issueType#
+			</isPropertyAvailable>
+			<isEqual property="seachValue" compareValue="all">
+			  <!--   <![CDATA[  and cstep.targetinternalcode like #orgCode#||'%' ]]>-->
+			  		<iterate  prepend=" and " conjunction="or" property="orgCode" open="(" close=")">
+						cstep.targetinternalcode like #orgCode[]#||'%'
+					</iterate>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="present">
+			   <!--  <![CDATA[    and cstep.targetinternalcode = #orgCode#  ]]> -->
+			  		<iterate property="orgCode" open="and cstep.targetinternalcode in (" conjunction="," close=")">  
+                     	#orgCode[]#  
+                   </iterate>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and cstep.target in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+			</isEqual>
+		</dynamic>
+	</sql>
+
+
+	<sql id="sql_findJurisdictions_result">
+		select
+		lpp.name,lpp.ISOWNER,lpp.mobileNumber,lpp.birthDay,lpp.securityType,
+		lpp.id,
+		lpp.serialnumber,
+		lpp.subject,
+		lpp.status,
+		lpp.occurdate,
+		lpp.occurOrg as occurorg,
+		lpp.sourcekind,
+		lpp.CREATEUSER,
+		lpp.orgId as createOrg,
+		lpp.hours,
+		lpp.minute,
+		lpp.createTableType,
+		lpp.REQUIREDTYPE,
+		lpp.SECURITYTYPE,
+		cstep.source currentOrg,
+		cstep.target targetOrg,
+		cstep.lastdealdate,
+		cstep.id as stepId,
+		cstep.superviselevel,
+		cstep.statecode,
+		cstep.state,
+		cstep.delayState
+	</sql>
+
+	<sql id="sqlResult">
+		select
+		lpp.name,lpp.ISOWNER,lpp.mobileNumber,lpp.birthDay,lpp.securityType,
+		lpp.id,
+		lpp.serialnumber,
+		lpp.subject,
+		lpp.status,
+		lpp.occurdate,
+		lpp.occurOrg as occurorg,
+		lpp.sourcekind,
+		lpp.CREATEUSER,
+		lpp.orgId as createOrg,
+		lpp.hours,
+		lpp.minute,
+		lpp.createTableType,
+		lpp.REQUIREDTYPE,
+		lpp.SECURITYTYPE,
+		istep.source currentOrg,
+		istep.target targetOrg,
+		istep.lastdealdate,
+		istep.id as stepId,
+		istep.superviselevel,
+		istep.statecode,
+		istep.state,
+		istep.delayState
+    </sql>
+
+	<!-- 待办事件列表  -->
+	<select id="findJurisdictionsNeedDo" parameterClass="map"
+		resultMap="ledgerPoorPeopleFullVoResult">
+		<include refid="sql_findJurisdictions_result" />
+       	from platformAccountSteps cstep,ledgerPoorPeople lpp where lpp.id=cstep.ledgerId  
+		<include refid="sql_findJurisdictions_leaderView" />
+		<![CDATA[ 
+			and cstep.stateCode<#completeCode# and cstep.isSupported=#isSupported#
+			]]>
+		<include refid="sql_poorPeople_select" />
+	</select>
+
+	<!-- 待办事件数量 -->
+	<select id="countfindJurisdictionsNeedDo" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from platformAccountSteps cstep,ledgerPoorPeople lpp where lpp.id=cstep.ledgerId ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+		<![CDATA[ 	and cstep.stateCode<#completeCode#   ]]>
+		<isPropertyAvailable property="isSupported">
+			<isNotNull property="isSupported" >
+				and cstep.isSupported = #isSupported#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isNotPropertyAvailable property="isSupported">
+			and cstep.isSupported = 0
+		</isNotPropertyAvailable>
+		<include refid="sql_poorPeople_select" />
+	</select>
+
+<sql id="_sql_findJurisdictions_leaderView">
+		<dynamic>
+			<isPropertyAvailable property="issueType"
+				prepend=" and ">
+				plat.ledgerType = #issueType#
+			</isPropertyAvailable>
+			<isEqual property="seachValue" compareValue="all">
+			  <!-- <![CDATA[  and targetinternalcode like #orgCode#||'%' ]]> -->
+			  		<iterate  prepend=" and " conjunction="or" property="orgCode" open="(" close=")">
+						plat.targetinternalcode like #orgCode[]#||'%'
+					</iterate>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="present">
+			  <!-- <![CDATA[    and targetinternalcode = #orgCode#  ]]> -->
+			  	<iterate property="orgCode" open="and plat.targetinternalcode in (" conjunction="," close=")">  
+                     	#orgCode[]#  
+                   </iterate>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and plat.target in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+			</isEqual>
+		</dynamic>
+	</sql>
+	
+	<!-- 已办事件列表 -->
+	<select id="findJurisdictionsDone" parameterClass="map"
+		resultMap="ledgerPoorPeopleFullVoResult">
+		<include refid="sql_findJurisdictions_result" />
+		<![CDATA[	
+	   from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId order by cstep.id desc ) as rnk
+                        from platformAccountSteps cstep
+	                 where cstep.stateCode = #completeCode# and cstep.isFeedBack=1 ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  cstep,ledgerPoorPeople lpp 
+ 		 where cstep.ledgerId = lpp.id  ]]>
+ 		 
+ 		 <![CDATA[ and cstep.ledgerid not in(select ledgerid from platformaccountsteps p where dealType = #complete# and ledgerid in 
+ 		 (select ledgerid from platformaccountsteps plat where stateCode = #completeCode# or stateCode = #substanceCode# and isFeedBack=1 ]]>  
+        		<include refid="_sql_findJurisdictions_leaderView" />        
+                <![CDATA[ group by ledgerid) and p.ledgertype = #issueType#) ]]>
+ 		 
+		<isPropertyAvailable property="sourceType">
+			<isNotNull property="sourceType" prepend=" and ">
+				iu.sourceKind=#sourceType#
+			</isNotNull>
+		</isPropertyAvailable>
+		<include refid="sql_poorPeople_select" />
+	</select>
+	
+	<!-- 已办台账数量 -->
+	<select id="countfindJurisdictionsDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId
+	          from platformAccountSteps
+	         where id in
+	               (select max(id)
+	                  from platformAccountSteps cstep
+	                 where cstep.stateCode = #completeCode# and cstep.isFeedBack=1 ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	     <![CDATA[ group by ledgerId)) istep,ledgerPoorPeople lpp where istep.ledgerId=lpp.id ]]>
+	     
+	     <![CDATA[ and istep.ledgerid not in(select ledgerid from platformaccountsteps p where dealType = #complete# and ledgerid in 
+ 		 (select ledgerid from platformaccountsteps plat where stateCode = #completeCode# or stateCode = #substanceCode# and isFeedBack=1 ]]>  
+        		<include refid="_sql_findJurisdictions_leaderView" />        
+                <![CDATA[ group by ledgerid) and p.ledgertype = #issueType#) ]]>
+                <include refid="sql_poorPeople_select" />
+	</select>
+
+
+	<!-- 待反馈台账列表 -->
+	<select id="findJurisdictionsFeedBack" parameterClass="map"
+		resultMap="ledgerPoorPeopleFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[	
+			   from (select * from platformAccountSteps where id in (select max(cstep.id) from platformAccountSteps cstep where  1=1
+		]]>
+		<isPropertyAvailable property="issueType" prepend=" and ">
+			cstep.ledgerType = #issueType#
+		</isPropertyAvailable>
+		<![CDATA[ group by cstep.ledgerId,cstep.ledgerType)) istep, ledgerPoorPeople lpp where istep.ledgerId= lpp.id   and lpp.isCanFeedBack=0 
+		]]>
+		<isEqual property="seachValue" compareValue="all">
+			  <!-- <![CDATA[  and lpp.orginternalcode like #orgCode#||'%' ]]>-->
+			  <iterate  prepend=" and " conjunction="or" property="orgCode" open="(" close=")">
+						lpp.orginternalcode like #orgCode[]#||'%'
+			  </iterate>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="present">
+			<!--  <![CDATA[    and lpp.orgId = #orgId#  ]]>-->
+			  <iterate property="orgId" open="and lpp.orgId in (" conjunction="," close=")">  
+                    #orgId[]#  
+              </iterate>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and lpp.orgId in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</isEqual>
+		<include refid="sql_poorPeople_select" />
+	</select>
+
+	<!-- 待反馈台账数量 -->
+	<select id="countfindJurisdictionsFeedBack" parameterClass="map"
+		resultClass="java.lang.Integer">
+	<![CDATA[select count(0) from (select ledgerId,ledgerType, stateCode, id from platformaccountsteps where id in (select max(cstep.id)
+				  from platformaccountsteps cstep left join ledgerfeedback on cstep.id = ledgerfeedback.stepid where 1=1
+		]]>
+		<isPropertyAvailable property="issueType"
+			prepend=" and ">
+			cstep.ledgerType = #issueType#
+		</isPropertyAvailable>
+		<![CDATA[  group by cstep.ledgerId,cstep.ledgerType) ) istep,ledgerPoorPeople lpp  where istep.ledgerId=lpp.id and lpp.isCanFeedBack=0 ]]>
+		<isEqual property="seachValue" compareValue="all">
+				   <!-- <![CDATA[  and lpp.orginternalcode like #orgCode#||'%' ]]>-->
+			  <iterate  prepend=" and " conjunction="or" property="orgCode" open="(" close=")">
+						lpp.orginternalcode like #orgCode[]#||'%'
+			  </iterate>		  
+		</isEqual>
+		<isEqual property="seachValue" compareValue="present">
+			  <!--  <![CDATA[    and lpp.orgId = #orgId#  ]]>-->
+			  <iterate property="orgId" open="and lpp.orgId in (" conjunction="," close=")">  
+                    #orgId[]#  
+              </iterate>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and lpp.orgId in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</isEqual>
+		<include refid="sql_poorPeople_select" />
+	</select>
+
+	<!-- 上报台账列表 -->
+	<select id="findJurisdictionsSubmit" parameterClass="map"
+		resultMap="ledgerPoorPeopleFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep
+	          where  cstep.submit =#submit# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerPoorPeople lpp 
+	 		where istep.ledgerId = lpp.id   ]]>
+		<include refid="sql_poorPeople_select" />
+	</select>
+
+	<!-- 上报台账数量 -->
+	<select id="countfindJurisdictionsSubmit" parameterClass="map"
+		resultClass="java.lang.Integer">
+		select count(0) 	
+		<![CDATA[ from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep
+	          where  cstep.submit =#submit# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerPoorPeople lpp 
+	 		where istep.ledgerId = lpp.id   ]]>
+	 	<include refid="sql_poorPeople_select" />
+	</select>
+	
+	<!-- 已办事件列表 -->
+	<select id="findJurisdictionsPeriodDone" parameterClass="map"
+		resultMap="ledgerPoorPeopleFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep
+	          where cstep.stateCode = #completeCode# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerPoorPeople lpp 
+	 		where istep.ledgerId = lpp.id   ]]>
+		<include refid="sql_poorPeople_select" />
+	</select>
+
+
+	<!-- 下辖实质已办台账数量 -->
+	<select id="countfindJurisdictionsPeriodDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId from platformAccountSteps where id in (select max(id) from platformAccountSteps cstep
+	                 where cstep.stateCode = #completeCode# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ group by ledgerId)) istep,ledgerPoorPeople lpp where istep.ledgerId=lpp.id ]]>
+	    <include refid="sql_poorPeople_select" />
+	</select>
+
+
+	<!-- 上级交办台账列表 -->
+	<select id="findJurisdictionsAssgin" parameterClass="map"
+		resultMap="ledgerPoorPeopleFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep
+	          where cstep.assign = #assgin# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerPoorPeople lpp 
+	 		where istep.ledgerId = lpp.id   ]]>
+		<include refid="sql_poorPeople_select" />
+	</select>
+
+	<!-- 上级交办台账数量 -->
+	<select id="countfindJurisdictionsAssgin" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[ select count(0) from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep
+	          where cstep.assign = #assgin# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerPoorPeople lpp 
+	 		where istep.ledgerId = lpp.id   ]]>
+		<include refid="sql_poorPeople_select" />	 		
+	</select>
+
+	<sql id="sql_findJurisdictions_leaderView_">
+		<dynamic>
+			<isEqual property="seachValue" compareValue="all">
+			   <!--  <![CDATA[  and pl.targetinternalcode like #orgCode#||'%' ]]> -->
+			  		<iterate  prepend=" and " conjunction="or" property="orgCode" open="(" close=")">
+						pl.targetinternalcode like #orgCode[]#||'%'
+					</iterate>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="present">
+			   <!--  <![CDATA[    and pl.targetinternalcode = #orgCode#  ]]> -->
+			 		<iterate property="orgCode" open="and pl.targetinternalcode in (" conjunction="," close=")">  
+                     	#orgCode[]#  
+                    </iterate>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and pl.target in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+			</isEqual>
+		</dynamic>
+	</sql>
+	
+	<!-- 实质性办结台账列表(只要经过了此部门，台账实质性办结后都显示在此部门的实质性办结中) -->
+	<select id="findJurisdictionsSubstanceDone" parameterClass="map"
+		resultMap="ledgerPoorPeopleFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select * from (select pl.*,row_number()over(partition by pl.ledgerid order by pl.id desc) as rn from platformaccountsteps pl 
+		where pl.ledgerid in (select ledgerid from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk 
+		from platformAccountSteps cstep  where cstep.stateCode = #completeCode# and cstep.ledgerType = #issueType#) where rnk = 1) and pl.ledgertype = #issueType#]]>
+		<include refid="sql_findJurisdictions_leaderView_" />
+	    <![CDATA[ ) where rn=1)  istep,ledgerpoorpeople lpp 
+ 			where istep.ledgerId = lpp.id ]]>
+		<include refid="sql_poorPeople_select" />
+	</select>
+	
+	<!-- 实质性办结台账数量 -->
+	<select id="countfindJurisdictionsSubstanceDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select * from (select pl.*,row_number()over(partition by pl.ledgerid order by pl.id desc) as rn from platformaccountsteps pl 
+		where pl.ledgerid in (select ledgerid from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk 
+    	from platformAccountSteps cstep  where cstep.stateCode = #completeCode# and cstep.ledgerType = #issueType#) where rnk = 1) and pl.ledgertype = #issueType#  ]]>
+		<include refid="sql_findJurisdictions_leaderView_" />
+	     <![CDATA[ ) where rn = 1)  istep,ledgerpoorpeople lpp where istep.ledgerId = lpp.id  ]]>
+	     <include refid="sql_poorPeople_select" />
+	</select>
+	
+	<!-- 下辖阶段已办和新建台账列表 -->
+	<select id="findJurisdictionsCreateAndDone" parameterClass="map"
+		resultMap="ledgerPoorPeopleFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep
+	          where cstep.stateCode in (500,600,700,120) ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerPoorPeople lpp 
+	 		where istep.ledgerId = lpp.id   ]]>
+		<include refid="sql_poorPeople_select" />
+	</select>
+
+
+	<!-- 下辖实质已办和新建台账数量 -->
+	<select id="countfindJurisdictionsCreateAndDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId from platformAccountSteps where id in (select max(id)
+	                  from platformAccountSteps cstep where cstep.stateCode in (500,600,700,120) ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ group by ledgerId)) istep,ledgerPoorPeople lpp where istep.ledgerId=lpp.id ]]>
+	    <include refid="sql_poorPeople_select" />
+	</select>
+	
+</sqlMap>

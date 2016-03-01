@@ -1,0 +1,1918 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<!--村级累计建账-->
+<sqlMap namespace="accountReport">
+	<typeAlias alias="AccountReportResult" type="com.tianque.plugin.account.report.util.AccountReportResult" />
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+	
+	<resultMap id="accountResult" class="AccountReportResult">
+		<result property="y" column="y" />
+		<result property="ledgerType" column="ledgerType" />
+		<result property="sum" column="sum" />
+	</resultMap>
+	
+	<resultMap id="organizationResult" class="Organization">
+		<result property="id" column="id" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="orgName" column="orgName" />
+		<result property="orgType.id" column="orgType" />
+		<result property="orgLevel.id" column="orgLevel" />
+		<result property="contactWay" column="contactWay" />
+		<result property="departmentNo" column="departmentNo" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="subCount" column="subCount" />
+		<result property="subCountFun" column="subCountFun" />
+		<result property="parentOrg.id" column="parentId" />
+		<result property="parentFunOrg.id" column="parentFunOrgId" />
+		<result property="maxCode" column="maxCode" />
+		<result property="seq" column="seq" />
+		<result property="remark" column="remark" />
+		<result property="gisInfo.buildingId" column="buildingId"/>
+		<result property="gisInfo.centerX" column="centerX"/>
+		<result property="gisInfo.centerY" column="centerY"/>
+		<result property="functionalOrgType.id" column="functionalOrgType"/>
+	</resultMap>
+	
+	<!--得到当前用户的直属上级或者所有下级-->
+	<select id="queryAllChildOrgByorgInternalCode" parameterClass="java.util.Map" resultMap="organizationResult">
+		<![CDATA[select * from organizations o where o.orgInternalCode like #orgInternalCode# || '%']]>
+	</select>
+	
+	<select id="findLxAndxW" parameterClass="java.util.Map" resultMap="organizationResult">
+		<![CDATA[
+		select * from organizations where (departmentNo like '%'||#lxNo# or departmentNo like '%'||#xwNo#) and orgType = #funOrgId#
+		]]>
+	</select>
+	
+	
+<select	id="queryVillageData" parameterClass="java.util.Map" resultMap="accountResult">
+<![CDATA[ 
+select 1 as y,ledgerType,sum(sum) as sum from(
+       select ledgerType,count as sum from account_$year$ where orgId = #orgId#  and dataType = 99 and month = #month# union all
+       select ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId#  and dataType = 2 and month <= #month# group by ledgerType) group by ledgerType union all
+select 2 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId#  and dataType = 99 and month = #month# union all
+select 3 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId#  and dataType in(100,101,102) and month = #month# group by ledgerType union all
+select 4 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId#  and dataType = 100 and month = #month# union all
+select 5 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId#  and dataType = 101 and month = #month# union all
+select 6 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId#  and dataType = 102 and month = #month# union all
+select 7 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId#  and dataType = 103 and month = #month# union all
+select 8 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId#  and dataType = 1 and month = #lastMonth# union all
+select 9 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId#  and dataType = 2 and month = #month# group by ledgerType union all
+select 10 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId#  and dataType in(3,4,5) and month = #month# group by ledgerType union all
+select 11 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId#  and dataType = 3 and month = #month# union all
+select 12 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId#  and dataType = 4 and month = #month# union all
+select 13 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId#  and dataType = 5 and month = #month# union all
+select 14 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId#  and dataType = 6 and month = #month# union all
+select 15 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId#  and dataType = 1 and month = #month#
+]]>
+</select>
+
+<sql id="childOrgIds">
+		<dynamic>
+			   <isNotNull property="childOrgIds">  
+			       <iterate property="childOrgIds" open=" orgid in (" conjunction="," close=")">  
+                     #childOrgIds[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</dynamic>
+	</sql>
+
+<select id="queryTownData" parameterClass="java.util.Map" resultMap="accountResult">
+<![CDATA[ 
+select 1 as y,ledgerType,sum(sum) as sum from(
+       select ledgerType,sum(count) as sum from account_$year$ where]]>
+       			<include refid="childOrgIds" /> 
+       			<![CDATA[ and dataType = 99 and month = #month# group by ledgerType union all
+       select ledgerType,sum(count) as sum from account_$year$ where]]> 
+       		<include refid="childOrgIds" /> 
+       		<![CDATA[ and dataType = 2 and month <= #month# group by ledgerType) group by ledgerType union all
+select 2 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType = 99 and month = #month# group by ledgerType union all
+select 3 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType in(100,101,102) and month = #month# group by ledgerType union all
+select 4 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType = 100 and month = #month# group by ledgerType union all
+select 5 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType = 101 and month = #month# group by ledgerType union all
+select 6 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType = 102 and month = #month# group by ledgerType union all
+select 7 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType = 103 and month = #month# group by ledgerType union all
+select 8 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType = 1 and month = #lastMonth# group by ledgerType union all
+select 9 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType = 2 and month = #month# group by ledgerType union all
+select 10 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType in(3,4,5) and month = #month# group by ledgerType union all
+select 11 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType = 3 and month = #month# group by ledgerType union all
+select 12 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType = 4 and month = #month# group by ledgerType union all
+select 13 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType = 5 and month = #month# group by ledgerType union all
+select 14 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType = 6 and month = #month# group by ledgerType union all
+select 15 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="childOrgIds" /> 
+	<![CDATA[ and dataType = 1 and month = #month# group by ledgerType union all
+select 16 as y,ledgerType,sum(sum) as sum from( 
+       select ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType in(7,8) group by ledgerType union all
+       select ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 104 and month = #month# and countType = #submitCode# union all
+       select ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and month <= #month# group by ledgerType) group by ledgerType union all
+select 17 as y,ledgerType,sum(sum) as sum from (
+       select ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 7 and month = #month# union all
+       select ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 104 and month = #month# and countType = #submitCode#) group by ledgerType union all
+select 18 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 7 and month = #month# union all
+select 19 as y,ledgerType,sum(sum) as sum from(
+       select 20 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 8 and month = #month# union all
+       select 19 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and month <= #month# group by ledgerType) group by ledgerType union all       
+select 20 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 8 and month = #month# union all
+select 21 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #newCreate# and month <= #month# group by ledgerType union all
+select 22 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #counrtyPartyTurn# and month <= #month# group by ledgerType union all
+select 23 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #counrtyPeopleTurn# and month <= #month# group by ledgerType union all
+select 24 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #counrtyCPPTurn# and month <= #month# group by ledgerType union all
+select 25 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType in(11,108,109,110) and month = #month# group by ledgerType union all
+select 26 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType in(108,109,110) and month = #month# group by ledgerType union all
+select 27 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 11 and month = #month# union all
+select 28 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 108 and month = #month# union all
+select 29 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 109 and month = #month# union all
+select 30 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 110 and month = #month# union all
+select 31 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 105 and month = #month# union all
+select 32 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 12 and month = #month# union all
+select 33 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 13 and month = #lastMonth# union all
+select 34 as y,ledgerType,sum(sum) as sum from(
+       select 35 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 9 and month = #month# and countType = #submitCode# union all
+       select 36 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and month = #month# group by ledgerType) group by ledgerType union all
+select 35 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 9 and month = #month# and countType = #submitCode# union all
+select 36 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and month = #month# group by ledgerType union all
+select 37 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #newCreate# and month = #month# union all
+select 38 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #counrtyPartyTurn# and month = #month# union all
+select 39 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #counrtyPeopleTurn# and month = #month# union all
+select 40 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #counrtyCPPTurn# and month = #month# union all
+select 41 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType in (14,15,16,106) and month = #month# group by ledgerType union all
+select 42 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType in (14,15,16) and month = #month# group by ledgerType union all
+select 43 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 106 and month = #month# union all
+select 44 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 14 and month = #month# union all
+select 45 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 15 and month = #month# union all
+select 46 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 16 and month = #month# union all
+select 47 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 10 and month = #month# union all
+select 48 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 107 and month = #month# union all
+select 49 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 13 and month = #month#
+]]>
+</select>
+
+
+<select id="queryJgData" parameterClass="java.util.Map" resultMap="accountResult">
+<![CDATA[ 
+select 1 as y,ledgerType,sum(sum) as sum from(
+       select 2 as y,ledgerType,count as sum from account_$year$ where orgId = #jgOrgId# and dataType = 18 and countType = #submitCode# and month = #month# union all
+       select 3 as y,ledgerType,count as sum from account_$year$ where orgId = #lxOrgId# and dataType = 18 and countType = #declareCode# and month = #month# union all
+       select 4 as y,ledgerType,count as sum from account_$year$ where orgId = #xwOrgId# and dataType = 18 and countType = #declareCode# and month = #month#) group by ledgerType union all
+select 2 as y,ledgerType,count as sum from account_$year$ where orgId = #jgOrgId# and dataType = 18 and countType = #submitCode# and month = #month# union all
+select 3 as y,ledgerType,count as sum from account_$year$ where orgId = #lxOrgId# and dataType = 18 and countType = #declareCode# and month = #month# union all
+select 4 as y,ledgerType,count as sum from account_$year$ where orgId = #xwOrgId# and dataType = 18 and countType = #declareCode# and month = #month# union all
+select 5 as y,ledgerType,sum(sum) as sum from(
+       select 6 as y,ledgerType,count as sum from account_$year$ where orgId = #jgOrgId# and dataType = 20 and countType = #turnCode# and month = #month# union all
+       select 7 as y,ledgerType,count as sum from account_$year$ where orgId = #lxOrgId# and dataType = 20 and countType = #assignCode# and month = #month# union all
+       select 8 as y,ledgerType,count as sum from account_$year$ where orgId = #xwOrgId# and dataType = 20 and countType = #assignCode# and month = #month#) group by ledgerType union all
+select 6 as y,ledgerType,count as sum from account_$year$ where orgId = #jgOrgId# and dataType = 20 and countType = #turnCode# and month = #month# union all
+select 7 as y,ledgerType,count as sum from account_$year$ where orgId = #lxOrgId# and dataType = 20 and countType = #assignCode# and month = #month# union all
+select 8 as y,ledgerType,count as sum from account_$year$ where orgId = #xwOrgId# and dataType = 20 and countType = #assignCode# and month = #month# union all
+select 9 as y,ledgerType,sum(sum) as sum from(
+       select 10 as y,ledgerType,count as sum from account_$year$ where orgId = #lxOrgId# and dataType = 13 and month = #lastMonth# union all
+       select 11 as y,ledgerType,count as sum from account_$year$ where orgId = #xwOrgId# and dataType = 13 and month = #lastMonth# union all
+       select 12 as y,ledgerType,sum(count) as sum from account_$year$ where dataType = 21 and month = #lastMonth# group by ledgerType) group by ledgerType union all
+select 10 as y,ledgerType,count as sum from account_$year$ where orgId = #lxOrgId# and dataType = 13 and month = #lastMonth# union all
+select 11 as y,ledgerType,count as sum from account_$year$ where orgId = #xwOrgId# and dataType = 13 and month = #lastMonth# union all
+select 12 as y,ledgerType,sum(count) as sum from account_$year$ where dataType = 21 and month = #lastMonth# group by ledgerType union all
+select 13 as y,ledgerType,sum(sum) as sum from(
+       select 14 as y,ledgerType,count as sum from account_$year$ where orgId = #jgOrgId# and dataType = 112 and countType = #submitCode# and month = #month# union all
+       select 15 as y,ledgerType,count as sum from account_$year$ where orgId = #lxOrgId# and dataType = 112 and countType = #declareCode# and month = #month# union all
+       select 16 as y,ledgerType,count as sum from account_$year$ where orgId = #xwOrgId# and dataType = 112 and countType = #declareCode# and month = #month#) group by ledgerType union all
+select 14 as y,ledgerType,count as sum from account_$year$ where orgId = #jgOrgId# and dataType = 112 and countType = #submitCode# and month = #month# union all
+select 15 as y,ledgerType,count as sum from account_$year$ where orgId = #lxOrgId# and dataType = 112 and countType = #declareCode# and month = #month# union all
+select 16 as y,ledgerType,count as sum from account_$year$ where orgId = #xwOrgId# and dataType = 112 and countType = #declareCode# and month = #month# union all
+select 17 as y,ledgerType,sum(sum) as sum from(
+       select 18 as y,ledgerType,count as sum from account_$year$ where orgId = #jgOrgId# and dataType = 114 and countType = #turnCode# and month = #month# union all
+       select 19 as y,ledgerType,count as sum from account_$year$ where orgId = #lxOrgId# and dataType = 114 and countType = #assignCode# and month = #month# union all
+       select 20 as y,ledgerType,count as sum from account_$year$ where orgId = #xwOrgId# and dataType = 114 and countType = #assignCode# and month = #month#) group by ledgerType union all
+select 18 as y,ledgerType,count as sum from account_$year$ where orgId = #jgOrgId# and dataType = 114 and countType = #turnCode# and month = #month# union all
+select 19 as y,ledgerType,count as sum from account_$year$ where orgId = #lxOrgId# and dataType = 114 and countType = #assignCode# and month = #month# union all
+select 20 as y,ledgerType,count as sum from account_$year$ where orgId = #xwOrgId# and dataType = 114 and countType = #assignCode# and month = #month# union all
+select 21 as y,ledgerType,sum(sum) as sum from(
+       select 22 as y,ledgerType,count as sum from account_$year$ where orgId = #lxOrgId# and dataType = 13 and month = #month# union all
+       select 23 as y,ledgerType,count as sum from account_$year$ where orgId = #xwOrgId# and dataType = 13 and month = #month# union all
+       select 24 as y,ledgerType,sum(count) as sum from account_$year$ where dataType = 21 and month = #month# group by ledgerType) group by ledgerType union all
+select 22 as y,ledgerType,count as sum from account_$year$ where orgId = #lxOrgId# and dataType = 13 and month = #month# union all
+select 23 as y,ledgerType,count as sum from account_$year$ where orgId = #xwOrgId# and dataType = 13 and month = #month# union all
+select 24 as y,ledgerType,sum(count) as sum from account_$year$ where dataType = 21 and month = #month# group by ledgerType
+]]>
+</select>
+
+
+<select id="queryFunData" parameterClass="java.util.Map" resultMap="accountResult">
+<![CDATA[ 
+select 1 as y,ledgerType,sum(sum) as sum from(
+       select ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType in (7,8) group by ledgerType union all
+       select ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 104 and month = #month# and countType = #turnCode# union all
+       select ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and month = #month# group by ledgerType) group by ledgerType union all
+select 2 as y,ledgerType,sum(sum) as sum from(
+       select ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 7 and month = #month# union all
+       select ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 104 and month = #month# and countType = #turnCode#) group by ledgerType union all
+select 3 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 7 and month = #month# union all
+select 4 as y,ledgerType,sum(sum) as sum from(
+       select ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 8 and month = #month# union all
+       select ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and month <= #month# group by ledgerType) group by ledgerType union all
+select 5 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 8 and month = #month# union all
+select 6 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #newCreate# and month <= #month# group by ledgerType union all
+select 7 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #counrtySuperTurn# and month <= #month# group by ledgerType union all
+select 8 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #counrtyPeopleTurn# and month <= #month# group by ledgerType union all
+select 9 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #counrtyCPPTurn# and month <= #month# group by ledgerType union all
+select 10 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType in(11,108,109,110) and month = #month# group by ledgerType union all
+select 11 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType in(108,109,110) and month = #month# group by ledgerType union all
+select 12 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 11 and month = #month# union all
+select 13 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 108 and month = #month# union all
+select 14 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 109 and month = #month# union all
+select 15 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 110 and month = #month# union all
+select 16 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 17 and month = #month# and countType = #lxOrgId# union all
+select 17 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 17 and month = #month# and countType = #xwOrgId# union all
+select 18 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 13 and month = #lastMonth# union all
+select 19 as y,ledgerType,sum(sum) as sum from(
+       select 20 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 9 and month = #month# and countType = #turnCode# union all
+       select 21 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and month = #month# group by ledgerType) group by ledgerType union all
+select 20 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 9 and month = #month# and countType = #turnCode# union all
+select 21 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType = 2 and month = #month# group by ledgerType union all
+select 22 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #newCreate# and month = #month# union all
+select 23 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #counrtySuperTurn# and month = #month# union all
+select 24 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #counrtyPeopleTurn# and month = #month# union all
+select 25 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 2 and countType = #counrtyCPPTurn# and month = #month# union all
+select 26 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType in(106,14,15,16) and month = #month# group by ledgerType union all
+select 27 as y,ledgerType,sum(count) as sum from account_$year$ where orgId = #orgId# and dataType in(14,15,16) and month = #month# group by ledgerType union all
+select 28 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 106 and month = #month# union all
+select 29 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 14 and month = #month# union all
+select 30 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 15 and month = #month# union all
+select 31 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 16 and month = #month# union all
+select 32 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 111 and month = #month# and countType = #lxOrgId# union all
+select 33 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 111 and month = #month# and countType = #xwOrgId# union all
+select 34 as y,ledgerType,count as sum from account_$year$ where orgId = #orgId# and dataType = 13 and month = #month#
+]]>
+</select>
+
+<sql id="allVillageOrgIds">
+		<dynamic>
+			   <isNotNull property="allVillage">  
+			       <iterate property="allVillage" open=" orgid in (" conjunction="," close=")">  
+                     #allVillage[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</dynamic>
+	</sql>
+	
+	<sql id="allTownOrgIds">
+		<dynamic>
+			   <isNotNull property="allTown">  
+			       <iterate property="allTown" open=" orgid in (" conjunction="," close=")">  
+                     #allTown[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</dynamic>
+	</sql>
+	
+	<sql id="allFunOrgIds">
+		<dynamic>
+			   <isNotNull property="allFun">  
+			       <iterate property="allFun" open=" orgid in (" conjunction="," close=")">  
+                     #allFun[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</dynamic>
+	</sql>
+
+<sql id="turnAllVillageOrgIds">
+		<dynamic>
+			   <isNotNull property="allVillage">  
+			       <iterate property="allVillage" open=" turnOrg in (" conjunction="," close=")">  
+                     #allVillage[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</dynamic>
+	</sql>
+	
+	<sql id="turnAllTownOrgIds">
+		<dynamic>
+			   <isNotNull property="allTown">  
+			       <iterate property="allTown" open=" turnOrg in (" conjunction="," close=")">  
+                     #allTown[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</dynamic>
+	</sql>
+	
+	<sql id="turnAallFunOrgIds">
+		<dynamic>
+			   <isNotNull property="allFun">  
+			       <iterate property="allFun" open=" turnOrg in (" conjunction="," close=")">  
+                     #allFun[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</dynamic>
+	</sql>
+
+<select id="queryAllData" parameterClass="java.util.Map" resultMap="accountResult">
+<![CDATA[ 
+select 1 as y,ledgerType,count(newLedgerId) as sum from threeRecordsYearTurn where year = #year# group by ledgerType union all
+select 2 as y,ledgerType,count(newLedgerId) as sum from threeRecordsYearTurn where]]>
+	<include refid="turnAllVillageOrgIds" />
+	<![CDATA[ and year = #year#  group by ledgerType union all
+select 3 as y,ledgerType,count(newLedgerId) as sum from threeRecordsYearTurn where]]> 
+	<include refid="turnAllTownOrgIds" /> 
+	<![CDATA[ and year = #year#  group by ledgerType union all
+select 4 as y,ledgerType,count(newLedgerId) as sum from threeRecordsYearTurn where]]> 
+	<include refid="turnAallFunOrgIds" /> 
+	<![CDATA[ and year = #year#  group by ledgerType union all
+select 5 as y,ledgerType,sum(count) as sum from account_$year$ where]]>
+	 <include refid="allVillageOrgIds" />
+	 <![CDATA[ and dataType = 2 and month <= #month# group by ledgerType union all
+select 6 as y,ledgerType,sum(count) as sum from account_$year$ where ]]>
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 2 and month <= #month# group by ledgerType union all
+select 7 as y,ledgerType,sum(count) as sum from account_$year$ where]]>
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 2 and countType = #counrtyPartyTurn# and month <= #month# group by ledgerType union all
+select 8 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 2 and countType = #counrtyPeopleTurn# and month <= #month# group by ledgerType union all
+select 9 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 2 and countType = #counrtyCPPTurn# and month <= #month# group by ledgerType union all
+select 10 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 2 and month <= #month# group by ledgerType union all
+select 11 as y,ledgerType,sum(count) as sum from account_$year$ where ]]>
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 2 and countType = #counrtySuperTurn# and month <= #month# group by ledgerType union all
+select 12 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 2 and countType = #counrtyPeopleTurn# and month <= #month# group by ledgerType union all
+select 13 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 2 and countType = #counrtyCPPTurn# and month <= #month# group by ledgerType union all
+select 14 as y,ledgerType,sum(count) as sum from account_$year$ where
+		dataType in(115,116,117) and month = #month# group by ledgerType union all
+select 15 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allVillageOrgIds" /> 
+	<![CDATA[and dataType in(115,116,117) and month = #month# group by ledgerType union all
+select 16 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allVillageOrgIds" /> 
+	<![CDATA[and dataType = 115 and month = #month# group by ledgerType union all
+select 17 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allVillageOrgIds" /> 
+	<![CDATA[and dataType = 116 and month = #month# group by ledgerType union all
+select 18 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allVillageOrgIds" /> 
+	<![CDATA[and dataType = 117 and month = #month# group by ledgerType union all
+select 19 as y,ledgerType,sum(count) as sum from account_$year$ where]]>
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType in(115,116,117) and month = #month# group by ledgerType union all
+select 20 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 115 and month = #month# group by ledgerType union all
+select 21 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 116 and month = #month# group by ledgerType union all
+select 22 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 117 and month = #month# group by ledgerType union all
+select 23 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType in(115,116,117) and month = #month# group by ledgerType union all
+select 24 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 115 and month = #month# group by ledgerType union all
+select 25 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 116 and month = #month# group by ledgerType union all
+select 26 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 117 and month = #month# group by ledgerType union all
+select 27 as y,ledgerType,sum(count) as sum from account_$year$ where
+		dataType = 25 and month = #lastMonth# group by ledgerType union all
+select 28 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allVillageOrgIds" /> 
+	<![CDATA[and dataType = 25 and month = #lastMonth# group by ledgerType union all
+select 29 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 25 and month = #lastMonth# group by ledgerType union all
+select 30 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 25 and month = #lastMonth# group by ledgerType union all
+select 31 as y,ledgerType,sum(count) as sum from account_$year$ where
+		dataType = 2 and month = #month# group by ledgerType union all
+select 32 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allVillageOrgIds" /> 
+	<![CDATA[and dataType = 2 and month = #month# group by ledgerType union all
+select 33 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 2 and month = #month# group by ledgerType union all
+select 34 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 2 and countType = #counrtyPartyTurn# and month = #month# group by ledgerType union all
+select 35 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 2 and countType = #counrtyPeopleTurn# and month = #month# group by ledgerType union all
+select 36 as y,ledgerType,sum(count) as sum from account_$year$ where]]>
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 2 and countType = #counrtyCPPTurn# and month = #month# group by ledgerType union all
+select 37 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 2 and month = #month# group by ledgerType union all
+select 38 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 2 and countType = #counrtySuperTurn# and month = #month# group by ledgerType union all
+select 39 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 2 and countType = #counrtyPeopleTurn# and month = #month# group by ledgerType union all
+select 40 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 2 and countType = #counrtyCPPTurn# and month = #month# group by ledgerType union all
+select 41 as y,ledgerType,sum(count) as sum from account_$year$ where
+		dataType in(22,23,24) and month = #month# group by ledgerType union all
+select 42 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allVillageOrgIds" /> 
+	<![CDATA[and dataType in(22,23,24) and month = #month# group by ledgerType union all
+select 43 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allVillageOrgIds" /> 
+	<![CDATA[and dataType = 22 and month = #month# group by ledgerType union all
+select 44 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allVillageOrgIds" /> 
+	<![CDATA[and dataType = 23 and month = #month# group by ledgerType union all
+select 45 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allVillageOrgIds" /> 
+	<![CDATA[and dataType = 24 and month = #month# group by ledgerType union all
+select 46 as y,ledgerType,sum(count) as sum from account_$year$ where]]>
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType in(22,23,24) and month = #month# group by ledgerType union all
+select 47 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 22 and month = #month# group by ledgerType union all
+select 48 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 23 and month = #month# group by ledgerType union all
+select 49 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" /> 
+	<![CDATA[and dataType = 24 and month = #month# group by ledgerType union all
+select 50 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType in(22,23,24) and month = #month# group by ledgerType union all
+select 51 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 22 and month = #month# group by ledgerType union all
+select 52 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 23 and month = #month# group by ledgerType union all
+select 53 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 24 and month = #month# group by ledgerType union all
+select 54 as y,ledgerType,sum(count) as sum from account_$year$ where
+		dataType = 25 and month = #month# group by ledgerType union all
+select 55 as y,ledgerType,sum(count) as sum from account_$year$ where]]>
+	<include refid="allVillageOrgIds" /> 
+	<![CDATA[and dataType = 25 and month = #month# group by ledgerType union all
+select 56 as y,ledgerType,sum(count) as sum from account_$year$ where]]> 
+	<include refid="allTownOrgIds" />
+	<![CDATA[and dataType = 25 and month = #month# group by ledgerType union all
+select 57 as y,ledgerType,sum(count) as sum from account_$year$ where]]>
+	<include refid="allFunOrgIds" /> 
+	<![CDATA[and dataType = 25 and month = #month# group by ledgerType
+]]>
+</select>
+
+    
+
+    <!--删除历史数据-->
+    <delete id="deleteAccountReport" parameterClass="java.lang.String">
+        delete from $tableName$
+    </delete>
+
+
+<insert id="insertCurrenMonthAccount">	
+insert into account_$year$(month,orgid,ledgerType,countType,count,dataType)
+<!--各部门上年转接数-->
+<![CDATA[ select #month# as month,turnOrg as orgId,ledgerType,null as countType,count(newLedgerId) as num,99 as dataType from threeRecordsYearTurn where year = #year#  group by turnOrg, ledgerType
+
+union all]]>
+<!--民生建表(本年新建)-->
+<![CDATA[ select #month# as month,orgId,ledgerType,createTableType as countType,count(id) as num, 2 as dataType from ledgerPeopleAspirations where 
+createDate >= #currentMonthBegin# and createDate < #currentMonthEnd# and createTableType <> #lastYearTurn#
+group by orgId,ledgerType,createTableType
+
+union all]]>
+<!--困难建表-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,countType,sum(num) as num,2 as dataType from (
+select orgid,counttype,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from 
+(select orgid,counttype,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from  
+
+(select orgId,createTableType as countType,count(id) as num, poorType from ledgerpoorpeople where 
+createDate>=#currentMonthBegin# and createDate <  #currentMonthEnd#  and createTableType <> #lastYearTurn#
+ group by orgId,createTableType,poorType)
+
+) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt 
+  ) group by orgid,counttype,poortype
+
+union all]]>
+<!--稳定建表-->
+<![CDATA[ select #month# as month, orgId,steadyWorkType as ledgerType,createTableType as countType,count(id) as num,2 as dataType from ledgersteadywork where steadyWorkType is not null and
+createDate>=#currentMonthBegin# and createDate <  #currentMonthEnd# and createTableType <> #lastYearTurn#
+ group by orgId,createTableType,steadyWorkType
+ 
+union all]]>
+<!--民生,本月,实质办结-->
+<![CDATA[ select #month# as month,istep.target as orgId,istep.ledgerType,null as countType, count(istep.id) as num, 3 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType not in (2,3)) where rnk=1)  istep,ledgerPeopleAspirations lpa 
+ 			where istep.ledgerId = lpa.id 
+       and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+       and istep.ledgerid in (select id from ledgerpeopleaspirations where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+                      union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType not in(2,3) and turnOrg = istep.target group by newLedgerId)
+       group by istep.target,istep.ledgerType
+                      
+union all]]>
+<!--民生,累计,实质办结-->
+<![CDATA[ select #month# as month,istep.target as orgId,istep.ledgerType,null as countType, count(istep.id) as num, 100 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType not in (2,3)) where rnk=1)  istep,ledgerPeopleAspirations lpa 
+ 			where istep.ledgerId = lpa.id 
+      and istep.lastdealdate <  #currentMonthEnd# 
+       and istep.ledgerid in (select id from ledgerpeopleaspirations where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+                      union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType not in(2,3) and turnOrg = istep.target group by newLedgerId)
+      group by istep.target,istep.ledgerType
+
+union all]]>                  
+<!--困难,本月,实质办结-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 3 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select istep.target as orgId,lpa.poorType,count(istep.id) as num from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType = 2) where rnk=1)  istep,ledgerpoorpeople lpa 
+ 			where istep.ledgerId = lpa.id
+       and istep.lastdealdate >= #currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+       and istep.ledgerid in (select id from ledgerpoorpeople where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+                      union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 2 and turnOrg = istep.target group by newLedgerId)
+       group by istep.target,lpa.poorType
+                      
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+ 
+union all]]>                   
+<!--困难,累计,实质办结-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 100 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select istep.target as orgId,lpa.poorType,count(istep.id) as num from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType = 2) where rnk=1)  istep,ledgerpoorpeople lpa 
+ 			where istep.ledgerId = lpa.id
+            and istep.lastdealdate <  #currentMonthEnd# 
+       and istep.ledgerid in (select id from ledgerpoorpeople where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+                      union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 2 and turnOrg = istep.target group by newLedgerId)
+        group by istep.target,lpa.poorType
+                      
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+ 
+union all]]>
+<!--稳定,本月,实质办结-->
+<![CDATA[ select #month# as month,istep.target as orgId,lpa.steadyWorkType,null as countType, count(istep.id) as num, 3 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType = 3) where rnk=1)  istep,ledgersteadywork lpa 
+ 			where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null
+            and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+       and istep.ledgerid in (select id from ledgersteadywork where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+                      union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 3 and turnOrg = istep.target group by newLedgerId)
+       group by istep.target,lpa.steadyWorkType
+                      
+
+union all]]>
+<!--稳定,累计,实质办结-->
+<![CDATA[ select #month# as month,istep.target as orgId,lpa.steadyWorkType,null as countType, count(istep.id) as num, 100 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType = 3) where rnk=1)  istep,ledgersteadywork lpa 
+ 			where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null
+            and istep.lastdealdate < #currentMonthEnd# 
+       and istep.ledgerid in (select id from ledgersteadywork where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+                      union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 3 and turnOrg = istep.target group by newLedgerId)
+       group by istep.target,lpa.steadyWorkType
+                                
+union all]]>
+<!--民生,本月,阶段办结-->
+<![CDATA[ select #month# as month,istep.target as orgId,istep.ledgerType,null as countType, count(istep.id) as num, 4 as dataType from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType not in(2,3)) where rnk=1)  istep,ledgerPeopleAspirations lpa
+              where istep.ledgerId = lpa.id
+                    and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+                    and istep.ledgerId in (select id from ledgerpeopleaspirations where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+                    union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType not in(2,3) and turnOrg = istep.target group by newLedgerId) 
+               group by istep.target,istep.ledgerType
+
+union all]]>
+<!--民生,累计,阶段办结-->
+<![CDATA[ select #month# as month,istep.target as orgId,istep.ledgerType,null as countType, count(istep.id) as num, 101 as dataType from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType not in(2,3)) where rnk=1)  istep,ledgerPeopleAspirations lpa
+              where istep.ledgerId = lpa.id
+                    and istep.lastdealdate <  #currentMonthEnd# 
+                    and istep.ledgerId in (select id from ledgerpeopleaspirations where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+                    union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType not in(2,3) and turnOrg = istep.target group by newLedgerId) 
+              group by istep.target,istep.ledgerType
+
+union all]]>
+<!--困难,本月,阶段办结-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 4 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select istep.target as orgId,lpa.poorType, count(istep.id) as num from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType = 2) where rnk=1)  istep,ledgerpoorpeople lpa
+              where istep.ledgerId = lpa.id
+                    and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+                    and istep.ledgerId in (select id from ledgerpoorpeople where createTableType <> #lastYearTurn# and serialnumber like '151'||'%' and orgId = istep.target 
+                    union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 2 and turnOrg = istep.target group by newLedgerId) 
+              group by istep.target,lpa.poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+ 
+union all]]>
+<!--困难-累计-阶段办结-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 101 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select istep.target as orgId,lpa.poorType, count(istep.id) as num from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType = 2) where rnk=1)  istep,ledgerpoorpeople lpa
+              where istep.ledgerId = lpa.id
+                    and istep.lastdealdate <  #currentMonthEnd# 
+                    and istep.ledgerId in (select id from ledgerpoorpeople where createTableType <> #lastYearTurn# and serialnumber like '151'||'%' and orgId = istep.target 
+                    union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 2 and turnOrg = istep.target group by newLedgerId) 
+              group by istep.target,lpa.poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>
+<!--稳定-本月-阶段办结-->
+<![CDATA[ select  12 as month,istep.target as orgId,lpa.steadyWorkType as ledgerType,null as countType, count(istep.id) as num, 4 as dataType from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType = 3) where rnk=1)  istep,ledgersteadywork lpa
+              where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null
+                    and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+                    and istep.ledgerId in (select id from ledgersteadywork where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+                    union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 3 and turnOrg = istep.target group by newLedgerId) 
+              group by istep.target,lpa.steadyWorkType
+
+union all]]>
+<!--稳定-累计-阶段办结-->
+<![CDATA[ select #month# as month,istep.target as orgId,lpa.steadyWorkType as ledgerType,null as countType, count(istep.id) as num, 101 as dataType from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType = 3) where rnk=1)  istep,ledgersteadywork lpa
+              where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null
+                    and istep.lastdealdate <  #currentMonthEnd# 
+                    and istep.ledgerId in (select id from ledgersteadywork where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+                    union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 3 and turnOrg = istep.target group by newLedgerId) 
+              group by istep.target,lpa.steadyWorkType
+
+union all]]>
+<!--民生-本月-程序办结-->
+<![CDATA[ select #month# as month,istep.target as orgId,istep.ledgerType,null as countType,count(istep.ledgerid) as num,5 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.isFeedBack=1 and cstep.ledgerType not in (2,3)
+				   ) where rnk=1)  istep,ledgerPeopleAspirations lpa  
+ 		     where istep.ledgerId = lpa.id and istep.stateCode = #programCode#
+         and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd#
+         and istep.ledgerId in (select id from ledgerpeopleaspirations where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType not in(2,3) and turnOrg = istep.target group by newLedgerId)
+         group by istep.target,istep.ledgerType
+         
+union all]]>
+<!--民生-累计-程序办结-->
+<![CDATA[ select #month# as month,istep.target as orgId,istep.ledgerType,null as countType,count(istep.ledgerid) as num,102 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.isFeedBack=1 and cstep.ledgerType not in (2,3)
+				   ) where rnk=1)  istep,ledgerPeopleAspirations lpa  
+ 		     where istep.ledgerId = lpa.id and istep.stateCode = #programCode#
+               and istep.lastdealdate <  #currentMonthEnd# 
+         and istep.ledgerId in (select id from ledgerpeopleaspirations where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType not in(2,3) and turnOrg = istep.target group by newLedgerId)
+         group by istep.target,istep.ledgerType
+         
+union all]]>       
+<!--困难-本月-程序办结-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 5 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select istep.target as orgId,lpa.poorType,count(istep.ledgerid) as num from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.isFeedBack=1 and cstep.ledgerType = 2
+				   ) where rnk=1)  istep,ledgerpoorpeople lpa  
+ 		     where istep.ledgerId = lpa.id and istep.stateCode = #programCode#
+         and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd#
+         and istep.ledgerId in (select id from ledgerpoorpeople where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 2 and turnOrg = istep.target group by newLedgerId)
+         group by istep.target,lpa.poorType
+         
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>       
+<!--困难-累计-程序办结-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 102 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select istep.target as orgId,lpa.poorType,count(istep.ledgerid) as num from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.isFeedBack=1 and cstep.ledgerType = 2
+				   ) where rnk=1)  istep,ledgerpoorpeople lpa  
+ 		     where istep.ledgerId = lpa.id and istep.stateCode = #programCode#
+               and istep.lastdealdate <  #currentMonthEnd# 
+         and istep.ledgerId in (select id from ledgerpoorpeople where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 2 and turnOrg = istep.target group by newLedgerId)
+         group by istep.target,lpa.poorType
+         
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>
+<!--稳定-本月-程序办结-->
+<![CDATA[ select #month# as month,istep.target as orgId,lpa.steadyWorkType,null as countType,count(istep.ledgerid) as num,5 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.isFeedBack=1 and cstep.ledgerType = 3
+				   ) where rnk=1)  istep,ledgersteadywork lpa  
+ 		     where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null and istep.stateCode = #programCode#
+         and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd#
+         and istep.ledgerId in (select id from ledgersteadywork where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 3 and turnOrg = istep.target group by newLedgerId)
+         group by istep.target,lpa.steadyWorkType
+
+union all]]>
+<!--稳定-累计-程序办结-->
+<![CDATA[ select #month# as month,istep.target as orgId,lpa.steadyWorkType,null as countType,count(istep.ledgerid) as num,102 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.isFeedBack=1 and cstep.ledgerType = 3
+				   ) where rnk=1)  istep,ledgersteadywork lpa  
+ 		     where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null and istep.stateCode = #programCode#
+               and istep.lastdealdate <  #currentMonthEnd# 
+         and istep.ledgerId in (select id from ledgersteadywork where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = istep.target 
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 3 and turnOrg = istep.target group by newLedgerId)
+         group by istep.target,lpa.steadyWorkType         
+         
+union all]]>
+<!--民生-本月-呈报-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, ledgertype as ledgerType,null as countType,count(ledgerid) as num,6 as dataType from(
+select lg.dealOrgid, lg.ledgertype,lg.ledgerid from platformaccountlogs lg,ledgerpeopleaspirations lpp where lg.dealtype = #submitCode# and lg.ledgerType not in(2,3)
+ and lg.dealTime >=#currentMonthBegin# and lg.dealTime < #currentMonthEnd# 
+ and lg.ledgerid = lpp.id
+ and lg.ledgerId in (select id from ledgerpeopleaspirations where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = lg.dealOrgId
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType not in(2,3) and turnOrg = lg.dealOrgId group by newLedgerId)
+group by lg.dealorgid,lg.ledgertype,lg.ledgerid
+) group by dealorgid,ledgertype
+
+union all]]>
+<!--民生-累计-呈报-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, ledgertype as ledgerType,null as countType,count(ledgerid) as num,103 as dataType from(
+select lg.dealOrgid, lg.ledgertype,lg.ledgerid from platformaccountlogs lg,ledgerpeopleaspirations lpp where lg.dealtype = #submitCode# and lg.ledgerType not in(2,3)
+ and lg.ledgerid = lpp.id
+ and lg.dealTime <  #currentMonthEnd# 
+ and lg.ledgerId in (select id from ledgerpeopleaspirations where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = lg.dealOrgId
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType not in(2,3) and turnOrg = lg.dealOrgId group by newLedgerId)
+group by lg.dealorgid,lg.ledgertype,lg.ledgerid
+) group by dealorgid,ledgertype
+
+union all]]>
+<!--困难-本月-呈报-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 6 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select dealOrgid as orgid, poorType,null as countType,count(ledgerid) as num from(
+select lg.dealOrgid, lpp.poorType,lg.ledgerid from platformaccountlogs lg,ledgerpoorpeople lpp where lg.dealtype = #submitCode# and lg.ledgerType = 2
+ and lg.dealTime >=#currentMonthBegin# and lg.dealTime < #currentMonthEnd# 
+ and lg.ledgerid = lpp.id
+ and lg.ledgerId in (select id from ledgerpoorpeople where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = lg.dealOrgId
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 2 and turnOrg = lg.dealOrgId group by newLedgerId)
+group by lg.dealorgid,lpp.poorType,lg.ledgerid
+) group by dealorgid,poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>
+<!--困难-累计-呈报-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 103 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select dealOrgid as orgid, poorType,null as countType,count(ledgerid) as num from(
+select lg.dealOrgid, lpp.poorType,lg.ledgerid from platformaccountlogs lg,ledgerpoorpeople lpp where lg.dealtype = #submitCode# and lg.ledgerType = 2
+ and lg.ledgerid = lpp.id
+ and lg.dealTime <  #currentMonthEnd# 
+ and lg.ledgerId in (select id from ledgerpoorpeople where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = lg.dealOrgId
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 2 and turnOrg = lg.dealOrgId group by newLedgerId)
+group by lg.dealorgid,lpp.poorType,lg.ledgerid
+) group by dealorgid,poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>
+<!--稳定-本月-呈报-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, steadyWorkType as ledgerType,null as countType,count(ledgerid) as num,6 as dataType from(
+select lg.dealOrgid, lpp.steadyWorkType,lg.ledgerid from platformaccountlogs lg,ledgersteadywork lpp where lg.dealtype = #submitCode# and lg.ledgerType = 3
+ and lg.dealTime >=#currentMonthBegin# and lg.dealTime < #currentMonthEnd# 
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null
+ and lg.ledgerId in (select id from ledgersteadywork where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = lg.dealOrgId
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 3 and turnOrg = lg.dealOrgId group by newLedgerId)
+group by lg.dealorgid,lpp.steadyWorkType,lg.ledgerid
+) group by dealorgid,steadyWorkType
+
+union all]]>
+<!--稳定-累计-呈报-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, steadyWorkType as ledgerType,null as countType,count(ledgerid) as num,103 as dataType from(
+select lg.dealOrgid, lpp.steadyWorkType,lg.ledgerid from platformaccountlogs lg,ledgersteadywork lpp where lg.dealtype = #submitCode# and lg.ledgerType = 3
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null
+ and lg.dealTime <  #currentMonthEnd# 
+ and lg.ledgerId in (select id from ledgersteadywork where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = lg.dealOrgId
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 3 and turnOrg = lg.dealOrgId group by newLedgerId)
+group by lg.dealorgid,lpp.steadyWorkType,lg.ledgerid
+) group by dealorgid,steadyWorkType
+
+union all]]>
+<!--民生-本月办理中（村级、待办、今年本级收集）-->
+<![CDATA[ select #month# as month,target as orgId, cstep.ledgerType, null as countType, count(cstep.ledgerId) as num,1 as dataType from platformAccountSteps cstep,ledgerPeopleAspirations lpa 
+	   where lpa.id=cstep.ledgerId
+	   and cstep.stateCode < #programCode# and cstep.isSupported=0 and lpa.serialnumber like #yearBegin#||'%'  
+     and cstep.lastdealdate <  #currentMonthEnd# 
+     and cstep.ledgerId in (select id from ledgerpeopleaspirations where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = cstep.target 
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType not in(2,3) and turnOrg = cstep.target group by newLedgerId)
+     group by cstep.target,cstep.ledgerType
+
+union all]]>
+<!--困难-本月办理中（村级、待办、今年本级收集）-->     
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 1 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select target as orgId,lpa.poorType,count(cstep.ledgerId) as num from platformAccountSteps cstep,ledgerPoorPeople lpa 
+	   where lpa.id=cstep.ledgerId
+	   and cstep.stateCode < #programCode# and cstep.isSupported=0 and lpa.serialnumber like #yearBegin#||'%'
+          and cstep.lastdealdate < #currentMonthEnd# 
+     and cstep.ledgerId in (select id from ledgerpoorpeople where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = cstep.target 
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 2 and turnOrg = cstep.target group by newLedgerId)
+     group by cstep.target,lpa.poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>
+<!--稳定-本月办理中（村级、待办、今年本级收集）-->
+<![CDATA[ select #month# as month,target as orgId, lpa.steadyWorkType as ledgerType, null as countType, count(cstep.ledgerId) as num,1 as dataType from platformAccountSteps cstep,ledgersteadywork lpa 
+	   where lpa.id=cstep.ledgerId
+	   and cstep.stateCode < #programCode# and cstep.isSupported=0 and lpa.serialnumber like #yearBegin#||'%' and lpa.steadyWorkType is not null
+          and cstep.lastdealdate <  #currentMonthEnd# 
+     and cstep.ledgerId in (select id from ledgersteadywork where createTableType <> #lastYearTurn# and serialnumber like #yearBegin#||'%' and orgId = cstep.target 
+         union all select newLedgerId from threeRecordsYearTurn where year = #year# and ledgerType = 3 and turnOrg = cstep.target group by newLedgerId)
+     group by cstep.target,lpa.steadyWorkType
+
+union all]]>    
+<!--上年接转的村级呈报数-->
+<![CDATA[ select #month# as month,turnOrg as orgId,ledgerType,null as countType,count(newLedgerId) as num,7 as dataType from threeRecordsYearTurn where turnOrg <> createOrg and year = #year# group by turnOrg,ledgerType
+
+union all]]>
+<!--民生-累计-收到呈报、转办数-->
+<![CDATA[ select #month# as month, target as orgid, ledgertype as ledgerType,dealType as countType,count(ledgerid) as num,104 as dataType from(
+select lg.target, lg.ledgertype,lg.dealType,lg.ledgerid from platformaccountsteps lg,ledgerpeopleaspirations lpp where lg.ledgerType not in(2,3)
+ and lg.ledgerid = lpp.id and lpp.createTableType <> #lastYearTurn# and lpp.serialnumber like #yearBegin#||'%' and lpp.orgId <> lg.target and lg.dealType in (#submitCode#,#turnCode#)
+ and lg.lastdealdate <  #currentMonthEnd# 
+group by lg.target,lg.ledgertype,lg.ledgerid,lg.dealType
+) group by target,ledgertype,dealType
+
+union all]]>
+<!--民生-本月-收到呈报、转办数-->
+<![CDATA[ select #month# as month, target as orgid, ledgertype as ledgerType,dealtype as countType,count(ledgerid) as num,9 as dataType from(
+select lg.target, lg.ledgertype,lg.dealtype,lg.ledgerid from platformaccountsteps lg,ledgerpeopleaspirations lpp where lg.ledgerType not in(2,3)
+ and lg.ledgerid = lpp.id and lpp.createTableType <> #lastYearTurn# and lpp.orgId <> lg.target and lg.dealType in (#submitCode#,#turnCode#)
+ and lg.lastDealDate >=#currentMonthBegin# and lg.lastDealDate < #currentMonthEnd# 
+group by lg.target,lg.ledgertype,lg.ledgerid,lg.dealtype
+) group by target,ledgertype,dealtype
+
+union all]]>
+<!--困难-累计-村级呈报、转办数-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,countType,sum(num) as num, 104 as dataType from (
+select orgid,countType,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,countType,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select target as orgid, poorType,dealtype as countType,count(ledgerid) as num from(
+select lg.target, lpp.poorType,lg.dealtype,lg.ledgerid from platformaccountsteps lg,ledgerpoorpeople lpp where lg.ledgerType = 2
+ and lg.ledgerid = lpp.id and lpp.createTableType <> #lastYearTurn# and lpp.serialnumber like #yearBegin#||'%' and lpp.orgId <> lg.target and lg.dealType in (#submitCode#,#turnCode#)
+  and lg.lastDealDate <  #currentMonthEnd# 
+group by lg.target,lpp.poorType,lg.ledgerid,lg.dealtype
+) group by target,poorType,dealtype
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype,orgid,countType
+
+union all]]>
+<!--困难-本月-村级呈报、转办数-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,countType,sum(num) as num, 9 as dataType from (
+select orgid,countType,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,countType,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select target as orgid, poorType,dealtype as countType,count(ledgerid) as num from(
+select lg.target, lpp.poorType,lg.dealtype,lg.ledgerid from platformaccountsteps lg,ledgerpoorpeople lpp where lg.ledgerType = 2
+ and lg.ledgerid = lpp.id and lpp.createTableType <> #lastYearTurn# and lpp.orgId <> lg.target and lg.dealType in (#submitCode#,#turnCode#)
+  and lg.lastDealDate >=#currentMonthBegin# and lg.lastDealDate < #currentMonthEnd# 
+group by lg.target,lpp.poorType,lg.ledgerid,lg.dealtype
+) group by target,poorType,dealtype
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid,countType
+
+union all]]>
+<!--稳定-累计-收到呈报、转办数-->
+<![CDATA[ select #month# as month, target as orgid, steadyWorkType as ledgerType,dealtype as countType,count(ledgerid) as num,104 as dataType from(
+select lg.target, lpp.steadyWorkType,lg.dealtype,lg.ledgerid from platformaccountsteps lg,ledgersteadywork lpp where lg.ledgerType = 3
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null and lpp.createTableType <> #lastYearTurn# and lpp.serialnumber like #yearBegin#||'%' and lpp.orgId <> lg.target and lg.dealType in (#submitCode#,#turnCode#)
+  and lg.lastDealDate <  #currentMonthEnd# 
+group by lg.target,lpp.steadyWorkType,lg.ledgerid,lg.dealtype
+) group by target,steadyWorkType,dealtype
+
+union all]]>
+<!--稳定-本月-收到呈报、转办数-->
+<![CDATA[ select #month# as month, target as orgid, steadyWorkType as ledgerType,dealtype as countType,count(ledgerid) as num,9 as dataType from(
+select lg.target, lpp.steadyWorkType,lg.dealtype,lg.ledgerid from platformaccountsteps lg,ledgersteadywork lpp where lg.ledgerType = 3
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null and lpp.createTableType <> #lastYearTurn# and lpp.orgId <> lg.target and lg.dealType in (#submitCode#,#turnCode#)
+ and lg.lastDealDate >=#currentMonthBegin# and lg.lastDealDate < #currentMonthEnd# 
+group by lg.target,lpp.steadyWorkType,lg.ledgerid,lg.dealtype
+) group by target,steadyWorkType,dealtype
+
+union all]]>
+<!--上年接转的本级建账-->
+<![CDATA[ select #month# as month,turnOrg as orgId,ledgerType,null as countType,count(newLedgerId) as num,8 as dataType from threeRecordsYearTurn where turnOrg = createOrg and year = #year# group by turnOrg,ledgerType
+
+union all]]>
+<!--民生-本月-呈报（镇级、本级收集（包含上年接转的本级收集））-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, ledgertype as ledgerType,null as countType,count(ledgerid) as num,10 as dataType from(
+select lg.dealOrgid, lg.ledgertype,lg.ledgerid from platformaccountlogs lg,ledgerpeopleaspirations lpp where lg.dealtype = #submitCode# and lg.ledgerType not in(2,3)
+ and lg.dealTime >=#currentMonthBegin# and lg.dealTime < #currentMonthEnd# 
+ and lg.ledgerid = lpp.id and lpp.orgId = lg.dealOrgId
+group by lg.dealorgid,lg.ledgertype,lg.ledgerid
+) group by dealorgid,ledgertype
+
+union all]]>
+<!--民生-累计-呈报（镇级、本级收集(包含上年接转的本级收集)）-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, ledgertype as ledgerType,null as countType,count(ledgerid) as num,105 as dataType from(
+select lg.dealOrgid, lg.ledgertype,lg.ledgerid from platformaccountlogs lg,ledgerpeopleaspirations lpp where lg.dealtype = #submitCode# and lg.ledgerType not in(2,3)
+ and lg.ledgerid = lpp.id and lpp.serialnumber like #yearBegin#||'%' and lpp.orgId = lg.dealOrgId
+ and lg.dealTime <  #currentMonthEnd# 
+group by lg.dealorgid,lg.ledgertype,lg.ledgerid
+) group by dealorgid,ledgertype
+
+
+union all]]>
+<!--苦难-本月-呈报（镇级、本级收集（包含上年接转的本级收集））-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 10 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select dealOrgid as orgid, poorType,count(ledgerid) as num from(
+select lg.dealOrgid, lpp.poorType,lg.ledgerid from platformaccountlogs lg,ledgerpoorpeople lpp where lg.dealtype = #submitCode# and lg.ledgerType = 2
+ and lg.dealTime >=#currentMonthBegin# and lg.dealTime < #currentMonthEnd# 
+ and lg.ledgerid = lpp.id and lpp.orgId = lg.dealOrgId
+group by lg.dealorgid,lpp.poorType,lg.ledgerid
+) group by dealorgid,poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+
+union all]]>
+<!--困难-累计-呈报（镇级、本级收集(包含上年接转的本级收集)）-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 105 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select dealOrgid as orgid, poorType, count(ledgerid) as num from(
+select lg.dealOrgid, lpp.poorType,lg.ledgerid from platformaccountlogs lg,ledgerpoorpeople lpp where lg.dealtype = #submitCode# and lg.ledgerType = 2
+ and lg.ledgerid = lpp.id and lpp.serialnumber like #yearBegin#||'%' and lpp.orgId = lg.dealOrgId
+ and lg.dealTime <  #currentMonthEnd# 
+group by lg.dealorgid,lpp.poorType,lg.ledgerid
+) group by dealorgid,poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+  
+union all]]>
+<!--稳定-本月-呈报（镇级、本级收集（包含上年接转的本级收集））-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, steadyWorkType as ledgerType,null as countType,count(ledgerid) as num,10 as dataType from(
+select lg.dealOrgid, lpp.steadyWorkType,lg.ledgerid from platformaccountlogs lg,ledgersteadywork lpp where lg.dealtype = #submitCode# and lg.ledgerType = 3
+ and lg.dealTime >=#currentMonthBegin# and lg.dealTime < #currentMonthEnd# 
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null and lpp.orgId = lg.dealOrgId
+group by lg.dealorgid,lpp.steadyWorkType,lg.ledgerid
+) group by dealorgid,steadyWorkType
+
+union all]]>
+<!--稳定-累计-呈报（镇级、本级收集(包含上年接转的本级收集)）-->
+<![CDATA[ select #month# as month, dealOrgId as orgid, steadyWorkType as ledgerType,null as countType,count(ledgerid) as num,105 as dataType from(
+select lg.dealOrgid, lpp.steadyWorkType,lg.ledgerid from platformaccountlogs lg,ledgersteadywork lpp where lg.dealtype = #submitCode# and lg.ledgerType = 3
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null and lpp.serialnumber like #yearBegin#||'%' and lpp.orgId = lg.dealOrgId
+ and lg.dealTime <  #currentMonthEnd# 
+group by lg.dealorgid,lpp.steadyWorkType,lg.ledgerid
+) group by dealorgid,steadyWorkType
+
+
+union all]]>
+<!--民生-累计呈报件办结数(不是本级建账有办理方式的纳入统计)-->
+<![CDATA[ select #month# as month,orgId,ledgerType,null as countType,count(ledgerId) as num,11 as dataType from(
+select cstep.target as orgId,cstep.ledgerType,cstep.ledgerId from platformAccountSteps cstep,ledgerPeopleAspirations iu  where iu.id=cstep.ledgerId and cstep.ledgerType not in(2,3)
+and cstep.lastDealDate < #currentMonthEnd#
+and cstep.stateCode >= #programCode# and cstep.isSupported = 0 and iu.serialnumber like #yearBegin#||'%' and cstep.target <> iu.orgId group by cstep.target,cstep.ledgerId,cstep.ledgerType
+) group by orgId,ledgerType
+
+union all]]>
+<!--民生-本月呈报件办结数(不是本级建账有办理方式的纳入统计)-->
+<![CDATA[ select #month# as month,orgId,ledgerType,null as countType,count(ledgerId) as num,106 as dataType from(
+select cstep.target as orgId,cstep.ledgerType,cstep.ledgerId from platformAccountSteps cstep,ledgerPeopleAspirations iu  where iu.id=cstep.ledgerId and cstep.ledgerType not in(2,3)
+and cstep.lastDealDate >=#currentMonthBegin# and cstep.lastDealDate < #currentMonthEnd# 
+and cstep.stateCode >= #programCode# and cstep.isSupported = 0 and iu.serialnumber like #yearBegin#||'%' and cstep.target <> iu.orgId group by cstep.target,cstep.ledgerId,cstep.ledgerType
+) group by orgId,ledgerType
+
+union all]]>
+<!--困难-累计呈报件办结数-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 11 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select orgId,poorType,null,count(ledgerId) as num from(
+select cstep.target as orgId,iu.poorType,cstep.ledgerId from platformAccountSteps cstep,ledgerpoorpeople iu  where iu.id=cstep.ledgerId and cstep.ledgerType = 2
+and cstep.lastDealDate < #currentMonthEnd#
+and cstep.stateCode >= #programCode# and cstep.isSupported = 0 and iu.serialnumber like #yearBegin#||'%' and cstep.target <> iu.orgId group by cstep.target,cstep.ledgerId,iu.poorType
+) group by orgId,poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>
+<!--困难-本月呈报件办结数-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 106 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select orgId,poorType,null,count(ledgerId) as num from(
+select cstep.target as orgId,iu.poorType,cstep.ledgerId from platformAccountSteps cstep,ledgerpoorpeople iu  where iu.id=cstep.ledgerId and cstep.ledgerType = 2
+and cstep.lastDealDate >=#currentMonthBegin# and cstep.lastDealDate < #currentMonthEnd# 
+and cstep.stateCode >= #programCode# and cstep.isSupported = 0 and iu.serialnumber like #yearBegin#||'%' and cstep.target <> iu.orgId group by cstep.target,cstep.ledgerId,iu.poorType
+) group by orgId,poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+
+union all]]>
+<!--稳定-累计呈报件办结数-->
+<![CDATA[ select #month# as month,orgId,ledgerType,null as countType,count(ledgerId) as num,11 as dataType from(
+select cstep.target as orgId,iu.steadyWorkType as ledgerType,cstep.ledgerId from platformAccountSteps cstep,ledgersteadywork iu  where iu.id=cstep.ledgerId and cstep.ledgerType = 3
+and cstep.lastDealDate < #currentMonthEnd# and iu.steadyWorkType is not null
+and cstep.stateCode >= #programCode# and cstep.isSupported = 0 and iu.serialnumber like #yearBegin#||'%' and cstep.target <> iu.orgId group by cstep.target,cstep.ledgerId,iu.steadyWorkType
+) group by orgId,ledgerType
+
+union all]]>
+<!--稳定-本月呈报件办结数-->
+<![CDATA[ select #month# as month,orgId,ledgerType,null as countType,count(ledgerId) as num,106 as dataType from(
+select cstep.target as orgId,iu.steadyWorkType as ledgerType,cstep.ledgerId from platformAccountSteps cstep,ledgersteadywork iu  where iu.id=cstep.ledgerId and cstep.ledgerType = 3
+and cstep.lastDealDate >=#currentMonthBegin# and cstep.lastDealDate < #currentMonthEnd# and iu.steadyWorkType is not null
+and cstep.stateCode >= #programCode# and cstep.isSupported = 0 and iu.serialnumber like #yearBegin#||'%' and cstep.target <> iu.orgId group by cstep.target,cstep.ledgerId,iu.steadyWorkType
+) group by orgId,ledgerType
+
+union all]]>
+<!--民生-累计-村级呈报到镇再呈报到台账办（镇级、不是本级收集（包含上年接转的不是本级收集））-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, ledgertype as ledgerType,null as countType,count(ledgerid) as num,12 as dataType from(
+select lg.dealOrgid, lg.ledgertype,lg.ledgerid from platformaccountlogs lg,ledgerpeopleaspirations lpp where lg.dealtype = #submitCode# and lg.ledgerType not in(2,3)
+ and lg.ledgerid = lpp.id and lpp.serialnumber like #yearBegin#||'%' and lpp.orgId <> lg.dealOrgId
+ and lg.dealtime < #currentMonthEnd#
+group by lg.dealorgid,lg.ledgertype,lg.ledgerid
+) group by dealorgid,ledgertype
+
+union all]]>
+<!--民生-本月-村级呈报到镇再呈报到台账办（镇级、不是本级收集（包含上年接转的不是本级收集））-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, ledgertype as ledgerType,null as countType,count(ledgerid) as num,107 as dataType from(
+select lg.dealOrgid, lg.ledgertype,lg.ledgerid from platformaccountlogs lg,ledgerpeopleaspirations lpp where lg.dealtype = #submitCode# and lg.ledgerType not in(2,3)
+ and lg.ledgerid = lpp.id and lpp.orgId <> lg.dealOrgId
+ and lg.dealtime >=#currentMonthBegin# and lg.dealtime < #currentMonthEnd# 
+group by lg.dealorgid,lg.ledgertype,lg.ledgerid
+) group by dealorgid,ledgertype
+
+union all]]>
+<!--困难-累计-村级呈报到镇再呈报到台账办（镇级、不是本级收集（包含上年接转的不是本级收集））-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 12 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select dealOrgid as orgid, poorType,count(ledgerid) as num from(
+select lg.dealOrgid, lpp.poorType,lg.ledgerid from platformaccountlogs lg,ledgerpoorpeople lpp where lg.dealtype = #submitCode# and lg.ledgerType = 2
+ and lg.ledgerid = lpp.id and lpp.serialnumber like #yearBegin#||'%' and lpp.orgId <> lg.dealOrgId
+  and lg.dealtime < #currentMonthEnd#
+group by lg.dealorgid,lpp.poorType,lg.ledgerid
+) group by dealorgid,poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>
+<!--困难-本月-村级呈报到镇再呈报到台账办（镇级、不是本级收集（包含上年接转的不是本级收集））-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 107 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select dealOrgid as orgid, poorType,count(ledgerid) as num from(
+select lg.dealOrgid, lpp.poorType,lg.ledgerid from platformaccountlogs lg,ledgerpoorpeople lpp where lg.dealtype = #submitCode# and lg.ledgerType = 2
+ and lg.ledgerid = lpp.id and lpp.orgId <> lg.dealOrgId
+  and lg.dealtime >=#currentMonthBegin# and lg.dealtime < #currentMonthEnd#
+group by lg.dealorgid,lpp.poorType,lg.ledgerid
+) group by dealorgid,poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+
+union all]]>
+<!--稳定-累计-村级呈报到镇再呈报到台账办（镇级、不是本级收集（包含上年接转的不是本级收集））-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, steadyWorkType as ledgerType,null as countType,count(ledgerid) as num,12 as dataType from(
+select lg.dealOrgid, lpp.steadyWorkType,lg.ledgerid from platformaccountlogs lg,ledgersteadywork lpp where lg.dealtype = #submitCode# and lg.ledgerType = 3
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null and lpp.serialnumber like #yearBegin#||'%' and lpp.orgId <> lg.dealOrgId
+  and lg.dealtime < #currentMonthEnd#
+group by lg.dealorgid,lpp.steadyWorkType,lg.ledgerid
+) group by dealorgid,steadyWorkType
+
+union all]]>
+<!--稳定-本月-村级呈报到镇再呈报到台账办（镇级、不是本级收集（包含上年接转的不是本级收集））-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, steadyWorkType as ledgerType,null as countType,count(ledgerid) as num,107 as dataType from(
+select lg.dealOrgid, lpp.steadyWorkType,lg.ledgerid from platformaccountlogs lg,ledgersteadywork lpp where lg.dealtype = #submitCode# and lg.ledgerType = 3
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null and lpp.orgId <> lg.dealOrgId
+   and lg.dealtime >=#currentMonthBegin# and lg.dealtime < #currentMonthEnd#
+group by lg.dealorgid,lpp.steadyWorkType,lg.ledgerid
+) group by dealorgid,steadyWorkType
+
+union all]]>
+<!--民生-本月办理中（镇级、待办）-->
+<![CDATA[ select #month# as month,target as orgId, cstep.ledgerType, null as countType, count(cstep.ledgerId) as num,13 as dataType from platformAccountSteps cstep,ledgerPeopleAspirations lpa 
+	   where lpa.id=cstep.ledgerId and cstep.ledgerType not in(2,3)
+     and cstep.lastdealdate < #currentMonthEnd# 
+	   and cstep.stateCode < #programCode# and cstep.isSupported=0 and lpa.serialnumber like #yearBegin#||'%'  
+     group by cstep.target,cstep.ledgerType
+
+union all]]>
+<!--困难-本月办理中（镇级、待办）-->     
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 13 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select target as orgId,lpa.poorType,count(cstep.ledgerId) as num from platformAccountSteps cstep,ledgerPoorPeople lpa 
+	   where lpa.id=cstep.ledgerId and cstep.ledgerType = 2
+     and cstep.lastdealdate < #currentMonthEnd# 
+	   and cstep.stateCode < #programCode# and cstep.isSupported=0 and lpa.serialnumber like #yearBegin#||'%'
+     group by cstep.target,lpa.poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>
+<!--稳定-本月办理中（镇级、待办）-->
+<![CDATA[ select #month# as month,target as orgId, lpa.steadyWorkType as ledgerType, null as countType, count(cstep.ledgerId) as num,13 as dataType from platformAccountSteps cstep,ledgersteadywork lpa 
+	   where lpa.id=cstep.ledgerId and cstep.ledgerType = 3
+     and cstep.lastdealdate <  #currentMonthEnd# 
+	   and cstep.stateCode < #programCode# and cstep.isSupported=0 and lpa.serialnumber like #yearBegin#||'%' and lpa.steadyWorkType is not null
+     group by cstep.target,lpa.steadyWorkType
+ 
+union all]]>
+<!--民生-镇、职能部门本月-实质办结（本级建账）-->
+<![CDATA[ select #month# as month,istep.target as orgId,istep.ledgerType,null as countType, count(istep.id) as num, 14 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType not in (2,3)) where rnk=1)  istep,ledgerPeopleAspirations lpa 
+       where istep.ledgerId = lpa.id and lpa.orgId = istep.target
+       and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+       group by istep.target,istep.ledgerType
+                      
+union all]]>
+<!--民生-镇、职能部门累计-实质办结（本级建账）-->
+<![CDATA[ select #month# as month,istep.target as orgId,istep.ledgerType,null as countType, count(istep.id) as num, 108 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType not in (2,3)) where rnk=1)  istep,ledgerPeopleAspirations lpa 
+       where istep.ledgerId = lpa.id  and lpa.serialnumber like #yearBegin#||'%' and lpa.orgId = istep.target
+      and istep.lastdealdate <  #currentMonthEnd# 
+      group by istep.target,istep.ledgerType
+
+union all]]>                  
+<!--困难-镇、职能部门本月-实质办结（本级建账）-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 14 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select istep.target as orgId,lpa.poorType,count(istep.id) as num from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType = 2) where rnk=1)  istep,ledgerpoorpeople lpa 
+       where istep.ledgerId = lpa.id and lpa.orgId = istep.target
+       and istep.lastdealdate >= #currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+       group by istep.target,lpa.poorType
+                      
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+ 
+union all]]>                   
+<!--困难-镇、职能部门累计-实质办结（本级建账）-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 108 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select istep.target as orgId,lpa.poorType,count(istep.id) as num from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType = 2) where rnk=1)  istep,ledgerpoorpeople lpa 
+       where istep.ledgerId = lpa.id and lpa.serialnumber like #yearBegin#||'%' and lpa.orgId = istep.target
+            and istep.lastdealdate <  #currentMonthEnd# 
+        group by istep.target,lpa.poorType
+                      
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+ 
+union all]]>
+<!--稳定-镇、职能部门本月-实质办结（本级建账）-->
+<![CDATA[ select #month# as month,istep.target as orgId,lpa.steadyWorkType,null as countType, count(istep.id) as num, 14 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType = 3) where rnk=1)  istep,ledgersteadywork lpa 
+       where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null and lpa.orgId = istep.target
+            and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+       group by istep.target,lpa.steadyWorkType
+                      
+
+union all]]>
+<!--稳定-镇、职能部门累计-实质办结（本级建账）-->
+<![CDATA[ select #month# as month,istep.target as orgId,lpa.steadyWorkType,null as countType, count(istep.id) as num, 108 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType = 3) where rnk=1)  istep,ledgersteadywork lpa 
+       where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null and lpa.serialnumber like #yearBegin#||'%' and lpa.orgId = istep.target
+            and istep.lastdealdate < #currentMonthEnd# 
+       group by istep.target,lpa.steadyWorkType
+                                
+union all]]>
+<!--民生-镇、职能部门本月-阶段办结（本级建账）-->
+<![CDATA[ select #month# as month,istep.target as orgId,istep.ledgerType,null as countType, count(istep.id) as num, 15 as dataType from (select *
+            from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType not in(2,3)) where rnk=1)  istep,ledgerPeopleAspirations lpa
+              where istep.ledgerId = lpa.id and lpa.orgId = istep.target
+                    and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+               group by istep.target,istep.ledgerType
+
+union all]]>
+<!--民生-镇、职能部门累计-阶段办结（本级建账）-->
+<![CDATA[ select #month# as month,istep.target as orgId,istep.ledgerType,null as countType, count(istep.id) as num, 109 as dataType from (select *
+            from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType not in(2,3)) where rnk=1)  istep,ledgerPeopleAspirations lpa
+              where istep.ledgerId = lpa.id and lpa.serialnumber like #yearBegin#||'%' and lpa.orgId = istep.target
+                    and istep.lastdealdate <  #currentMonthEnd# 
+              group by istep.target,istep.ledgerType
+
+union all]]>
+<!--困难-镇、职能部门本月-阶段办结（本级建账）-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 15 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select istep.target as orgId,lpa.poorType, count(istep.id) as num from (select *
+            from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType = 2) where rnk=1)  istep,ledgerpoorpeople lpa
+              where istep.ledgerId = lpa.id and lpa.orgId = istep.target
+                    and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+              group by istep.target,lpa.poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+ 
+union all]]>
+<!--困难-镇、职能部门累计-阶段办结（本级建账）-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 109 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select istep.target as orgId,lpa.poorType, count(istep.id) as num from (select *
+            from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType = 2) where rnk=1)  istep,ledgerpoorpeople lpa
+              where istep.ledgerId = lpa.id and lpa.serialnumber like #yearBegin#||'%' and lpa.orgId = istep.target
+                    and istep.lastdealdate <  #currentMonthEnd# 
+              group by istep.target,lpa.poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>
+<!--稳定-镇、职能部门本月-阶段办结（本级建账）-->
+<![CDATA[ select  12 as month,istep.target as orgId,lpa.steadyWorkType as ledgerType,null as countType, count(istep.id) as num, 15 as dataType from (select *
+            from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType = 3) where rnk=1)  istep,ledgersteadywork lpa
+              where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null and lpa.orgId = istep.target
+                    and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+              group by istep.target,lpa.steadyWorkType
+
+union all]]>
+<!--稳定-镇、职能部门累计-阶段办结（本级建账）-->
+<![CDATA[ select #month# as month,istep.target as orgId,lpa.steadyWorkType as ledgerType,null as countType, count(istep.id) as num, 109 as dataType from (select *
+            from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType = 3) where rnk=1)  istep,ledgersteadywork lpa
+              where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null and lpa.serialnumber like #yearBegin#||'%' and lpa.orgId = istep.target
+                    and istep.lastdealdate <  #currentMonthEnd# 
+              group by istep.target,lpa.steadyWorkType
+
+union all]]>
+<!--和页面显示不同，页面上本级程序办结后在其他层级实质办结会显示在本级的实质办结，但统计他在本级实际为程序办结-->
+<!--民生-镇、职能部门本月-程序办结（本级建账）-->
+<![CDATA[ select #month# as month,istep.target as orgId,istep.ledgerType,null as countType,count(istep.ledgerid) as num,16 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.isFeedBack=1 and cstep.ledgerType not in (2,3)
+           ) where rnk=1)  istep,ledgerPeopleAspirations lpa  
+          where istep.ledgerId = lpa.id and lpa.orgId = istep.target and istep.stateCode = #programCode#
+         and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd#
+         group by istep.target,istep.ledgerType
+         
+union all]]>
+<!--民生-镇、职能部门累计-程序办结（本级建账）-->
+<![CDATA[ select #month# as month,istep.target as orgId,istep.ledgerType,null as countType,count(istep.ledgerid) as num,110 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.isFeedBack=1 and cstep.ledgerType not in (2,3)
+           ) where rnk=1)  istep,ledgerPeopleAspirations lpa  
+          where istep.ledgerId = lpa.id and lpa.serialnumber like #yearBegin#||'%' and lpa.orgId = istep.target and istep.stateCode = #programCode#
+               and istep.lastdealdate <  #currentMonthEnd# 
+         group by istep.target,istep.ledgerType
+         
+union all]]>     
+<!--困难-镇、职能部门本月-程序办结（本级建账）-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 16 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select istep.target as orgId,lpa.poorType,count(istep.ledgerid) as num from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.isFeedBack=1 and cstep.ledgerType = 2
+           ) where rnk=1)  istep,ledgerpoorpeople lpa  
+          where istep.ledgerId = lpa.id and lpa.orgId = istep.target and istep.stateCode = #programCode#
+         and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd#
+         group by istep.target,lpa.poorType
+         
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>        
+<!--困难-镇、职能部门累计-程序办结（本级建账）-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 110 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select istep.target as orgId,lpa.poorType,count(istep.ledgerid) as num from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.isFeedBack=1 and cstep.ledgerType = 2
+           ) where rnk=1)  istep,ledgerpoorpeople lpa  
+          where istep.ledgerId = lpa.id and lpa.serialnumber like #yearBegin#||'%' and lpa.orgId = istep.target and istep.stateCode = #programCode#
+               and istep.lastdealdate <  #currentMonthEnd# 
+         group by istep.target,lpa.poorType
+         
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>
+<!--稳定-镇、职能部门本月-程序办结（本级建账）-->
+<![CDATA[ select #month# as month,istep.target as orgId,lpa.steadyWorkType,null as countType,count(istep.ledgerid) as num,16 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.isFeedBack=1 and cstep.ledgerType = 3
+           ) where rnk=1)  istep,ledgersteadywork lpa  
+          where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null and lpa.orgId = istep.target and istep.stateCode = #programCode#
+         and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd#
+         group by istep.target,lpa.steadyWorkType
+
+union all]]>
+<!--稳定-镇、职能部门累计-程序办结（本级建账）-->
+<![CDATA[ select #month# as month,istep.target as orgId,lpa.steadyWorkType,null as countType,count(istep.ledgerid) as num,110 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.target,cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.isFeedBack=1 and cstep.ledgerType = 3
+           ) where rnk=1)  istep,ledgersteadywork lpa  
+          where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null and lpa.serialnumber like #yearBegin#||'%' and lpa.orgId = istep.target
+               and istep.lastdealdate < #currentMonthEnd#  and istep.stateCode = #programCode#
+         group by istep.target,lpa.steadyWorkType
+         
+         
+union all]]>
+<!--民生-本月-申报（职能部门、本级收集（包含上年接转的本级收集））-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, ledgertype as ledgerType,targeOrgId as countType,count(ledgerid) as num,111 as dataType from(
+select lg.dealOrgid, lg.ledgertype,lg.targeOrgId,lg.ledgerid from platformaccountlogs lg,ledgerpeopleaspirations lpp where lg.dealtype = #declareCode# and lg.ledgerType not in(2,3)
+ and lg.dealTime >=#currentMonthBegin# and lg.dealTime < #currentMonthEnd# 
+ and lg.ledgerid = lpp.id and lpp.orgId = lg.dealOrgId
+group by lg.dealorgid,lg.ledgertype,lg.ledgerid,lg.targeOrgId
+) group by dealorgid,ledgertype,targeOrgId
+
+union all]]>
+<!--民生-累计-申报（职能部门、本级收集(包含上年接转的本级收集)）-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, ledgertype as ledgerType,targeOrgId as countType,count(ledgerid) as num,17 as dataType from(
+select lg.dealOrgid, lg.ledgertype,lg.targeOrgId,lg.ledgerid from platformaccountlogs lg,ledgerpeopleaspirations lpp where lg.dealtype = #declareCode# and lg.ledgerType not in(2,3)
+ and lg.ledgerid = lpp.id and lpp.serialnumber like #yearBegin#||'%' and lpp.orgId = lg.dealOrgId
+ and lg.dealTime <  #currentMonthEnd# 
+group by lg.dealorgid,lg.ledgertype,lg.ledgerid,lg.targeOrgId
+) group by dealorgid,ledgertype,targeOrgId
+
+union all]]>
+<!--苦难-本月-申报（职能部门、本级收集（包含上年接转的本级收集））-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,countType,sum(num) as num, 111 as dataType from (
+select orgid,countType,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,countType,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select dealOrgid as orgid, poorType,targeOrgId as countType,count(ledgerid) as num from(
+select lg.dealOrgid, lpp.poorType,lg.targeOrgId,lg.ledgerid from platformaccountlogs lg,ledgerpoorpeople lpp where lg.dealtype = #declareCode# and lg.ledgerType = 2
+ and lg.dealTime >=#currentMonthBegin# and lg.dealTime < #currentMonthEnd# 
+ and lg.ledgerid = lpp.id and lpp.orgId = lg.dealOrgId
+group by lg.dealorgid,lpp.poorType,lg.ledgerid,lg.targeOrgId
+) group by dealorgid,poorType,targeOrgId
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype,orgid,countType
+
+union all]]>
+<!--困难-累计-申报（职能部门、本级收集(包含上年接转的本级收集)）-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,countType,sum(num) as num, 17 as dataType from (
+select orgid,countType,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,countType,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select dealOrgid as orgid, poorType,targeOrgId as countType, count(ledgerid) as num from(
+select lg.dealOrgid, lpp.poorType,lg.targeOrgId,lg.ledgerid from platformaccountlogs lg,ledgerpoorpeople lpp where lg.dealtype = #declareCode# and lg.ledgerType = 2
+ and lg.ledgerid = lpp.id and lpp.serialnumber like #yearBegin#||'%' and lpp.orgId = lg.dealOrgId
+ and lg.dealTime <  #currentMonthEnd# 
+group by lg.dealorgid,lpp.poorType,lg.ledgerid,lg.targeOrgId
+) group by dealorgid,poorType,targeOrgId
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype,orgid,countType
+  
+union all]]>
+<!--稳定-本月-申报（职能部门、本级收集（包含上年接转的本级收集））-->
+<![CDATA[ select #month# as month, dealOrgid as orgid, steadyWorkType as ledgerType,targeOrgId as countType,count(ledgerid) as num,111 as dataType from(
+select lg.dealOrgid, lpp.steadyWorkType,lg.targeOrgId,lg.ledgerid from platformaccountlogs lg,ledgersteadywork lpp where lg.dealtype = #declareCode# and lg.ledgerType = 3
+ and lg.dealTime >=#currentMonthBegin# and lg.dealTime < #currentMonthEnd# 
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null and lpp.orgId = lg.dealOrgId
+group by lg.dealorgid,lpp.steadyWorkType,lg.ledgerid,lg.targeOrgId
+) group by dealorgid,steadyWorkType,targeOrgId
+
+union all]]>
+<!--稳定-累计-申报（职能部门、本级收集(包含上年接转的本级收集)）-->
+<![CDATA[ select #month# as month, dealOrgId as orgid, steadyWorkType as ledgerType,targeOrgId as countType,count(ledgerid) as num,17 as dataType from(
+select lg.dealOrgid, lpp.steadyWorkType,lg.targeOrgId,lg.ledgerid from platformaccountlogs lg,ledgersteadywork lpp where lg.dealtype = #declareCode# and lg.ledgerType = 3
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null and lpp.serialnumber like #yearBegin#||'%' and lpp.orgId = lg.dealOrgId
+ and lg.dealTime <  #currentMonthEnd# 
+group by lg.dealorgid,lpp.steadyWorkType,lg.ledgerid,lg.targeOrgId
+) group by dealorgid,steadyWorkType,targeOrgId
+
+union all]]>
+<!--民生-本月-镇呈报-->
+<![CDATA[ select #month# as month, target as orgid, ledgertype as ledgerType,dealtype as countType,count(ledgerid) as num,112 as dataType from(
+select lg.target, lg.ledgertype,lg.ledgerid,lg.dealtype from platformaccountsteps lg,ledgerpeopleaspirations lpp where lg.dealtype in(#submitCode#,#declareCode#) and lg.ledgerType not in(2,3)
+ and lg.lastdealdate >=#currentMonthBegin# and lg.lastdealdate < #currentMonthEnd# 
+ and lg.ledgerid = lpp.id
+group by lg.target,lg.ledgertype,lg.ledgerid,lg.dealtype
+) group by target,ledgertype,dealtype
+
+union all]]>
+<!--民生-累计-镇呈报-->
+<![CDATA[ select #month# as month, target as orgid, ledgertype as ledgerType,dealtype as countType,count(ledgerid) as num,18 as dataType from(
+select lg.target, lg.ledgertype,lg.ledgerid,lg.dealtype from platformaccountsteps lg,ledgerpeopleaspirations lpp where lg.dealtype in(#submitCode#,#declareCode#) and lg.ledgerType not in(2,3)
+ and lg.ledgerid = lpp.id and lpp.serialnumber like #yearBegin#||'%'
+ and lg.lastdealdate <  #currentMonthEnd# 
+group by lg.target,lg.ledgertype,lg.ledgerid,lg.dealtype
+) group by target,ledgertype,dealtype
+
+union all]]>
+<!--困难-本月-镇呈报-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,countType,sum(num) as num, 112 as dataType from (
+select orgid,countType,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,countType,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select target as orgid, poorType,dealtype as countType,count(ledgerid) as num from(
+select lg.target, lpp.poorType,lg.ledgerid,lg.dealType from platformaccountsteps lg,ledgerpoorpeople lpp where lg.dealtype in(#submitCode#,#declareCode#) and lg.ledgerType = 2
+ and lg.lastdealdate >=#currentMonthBegin# and lg.lastdealdate < #currentMonthEnd# 
+ and lg.ledgerid = lpp.id
+group by lg.target,lpp.poorType,lg.ledgerid,lg.dealtype
+) group by target,poorType,dealtype
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid,countType
+  
+union all]]>
+<!--困难-累计-镇呈报-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,countType,sum(num) as num, 18 as dataType from (
+select orgid,countType,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,countType,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select target as orgid, poorType,dealtype as countType,count(ledgerid) as num from(
+select lg.target, lpp.poorType,lg.ledgerid,lg.dealtype from platformaccountsteps lg,ledgerpoorpeople lpp where lg.dealtype in(#submitCode#,#declareCode#) and lg.ledgerType = 2
+ and lg.ledgerid = lpp.id and lpp.serialnumber like #yearBegin#||'%'
+ and lg.lastdealdate < #currentMonthEnd# 
+group by lg.target,lpp.poorType,lg.ledgerid,lg.dealtype
+) group by target,poorType,dealtype
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid,countType
+  
+union all]]>
+<!--稳定-本月-镇呈报-->
+<![CDATA[ select #month# as month, target as orgid, steadyWorkType as ledgerType,dealtype as countType,count(ledgerid) as num,112 as dataType from(
+select lg.target, lpp.steadyWorkType,lg.ledgerid,lg.dealtype from platformaccountsteps lg,ledgersteadywork lpp where lg.dealtype in(#submitCode#,#declareCode#) and lg.ledgerType = 3
+ and lg.lastdealdate >=#currentMonthBegin# and lg.lastdealdate < #currentMonthEnd# 
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null
+group by lg.target,lpp.steadyWorkType,lg.ledgerid,lg.dealtype
+) group by target,steadyWorkType,dealtype
+
+union all]]>
+<!--稳定-累计-镇呈报-->
+<![CDATA[ select #month# as month, target as orgid, steadyWorkType as ledgerType,dealtype as countType,count(ledgerid) as num,18 as dataType from(
+select lg.target, lpp.steadyWorkType,lg.ledgerid,lg.dealtype from platformaccountsteps lg,ledgersteadywork lpp where lg.dealtype in(#submitCode#,#declareCode#) and lg.ledgerType = 3
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null
+ and lg.lastdealdate < #currentMonthEnd# and lpp.serialnumber like #yearBegin#||'%'
+group by lg.target,lpp.steadyWorkType,lg.ledgerid,lg.dealtype
+) group by target,steadyWorkType,dealtype
+
+union all]]>
+<!--民生-累计-转办、交办数（不管建账单位）-->
+<![CDATA[ select #month# as month, source as orgid, ledgertype as ledgerType,dealType as countType,count(ledgerid) as num,20 as dataType from(
+select lg.source, lg.ledgertype,lg.dealType,lg.ledgerid from platformaccountsteps lg,ledgerpeopleaspirations lpp where lg.ledgerType not in(2,3)
+ and lg.ledgerid = lpp.id and lpp.serialnumber like #yearBegin#||'%' and lg.dealType in (#assignCode#,#turnCode#)
+ and lg.lastdealdate <  #currentMonthEnd# 
+group by lg.source,lg.ledgertype,lg.ledgerid,lg.dealType
+) group by source,ledgertype,dealType
+
+union all]]>
+<!--民生-本月-转办、交办数（不管建账单位）-->
+<![CDATA[ select #month# as month, source as orgid, ledgertype as ledgerType,dealtype as countType,count(ledgerid) as num,114 as dataType from(
+select lg.source, lg.ledgertype,lg.dealtype,lg.ledgerid from platformaccountsteps lg,ledgerpeopleaspirations lpp where lg.ledgerType not in(2,3)
+ and lg.ledgerid = lpp.id and lg.dealType in (#assignCode#,#turnCode#)
+ and lg.lastDealDate >=#currentMonthBegin# and lg.lastDealDate < #currentMonthEnd# 
+group by lg.source,lg.ledgertype,lg.ledgerid,lg.dealtype
+) group by source,ledgertype,dealtype
+
+union all]]>
+<!--困难-累计-转办、交办数（不管建账单位）-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,countType,sum(num) as num, 20 as dataType from (
+select orgid,countType,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,countType,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select source as orgid, poorType,dealtype as countType,count(ledgerid) as num from(
+select lg.source, lpp.poorType,lg.dealtype,lg.ledgerid from platformaccountsteps lg,ledgerpoorpeople lpp where lg.ledgerType = 2
+ and lg.ledgerid = lpp.id and lpp.serialnumber like #yearBegin#||'%' and lg.dealType in (#assignCode#,#turnCode#)
+  and lg.lastDealDate <  #currentMonthEnd# 
+group by lg.source,lpp.poorType,lg.ledgerid,lg.dealtype
+) group by source,poorType,dealtype
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype,orgid,countType
+
+union all]]>
+<!--困难-本月-转办、交办数（不管建账单位）-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,countType,sum(num) as num, 114 as dataType from (
+select orgid,countType,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,countType,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select source as orgid, poorType,dealtype as countType,count(ledgerid) as num from(
+select lg.source, lpp.poorType,lg.dealtype,lg.ledgerid from platformaccountsteps lg,ledgerpoorpeople lpp where lg.ledgerType = 2
+ and lg.ledgerid = lpp.id and lg.dealType in (#assignCode#,#turnCode#)
+  and lg.lastDealDate >=#currentMonthBegin# and lg.lastDealDate < #currentMonthEnd# 
+group by lg.source,lpp.poorType,lg.ledgerid,lg.dealtype
+) group by source,poorType,dealtype
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid,countType
+
+union all]]>
+<!--稳定-累计-转办、交办数（不管建账单位）-->
+<![CDATA[ select #month# as month, source as orgid, steadyWorkType as ledgerType,dealtype as countType,count(ledgerid) as num,20 as dataType from(
+select lg.source, lpp.steadyWorkType,lg.dealtype,lg.ledgerid from platformaccountsteps lg,ledgersteadywork lpp where lg.ledgerType = 3
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null and lpp.serialnumber like #yearBegin#||'%' and lg.dealType in (#assignCode#,#turnCode#)
+  and lg.lastDealDate <  #currentMonthEnd# 
+group by lg.source,lpp.steadyWorkType,lg.ledgerid,lg.dealtype
+) group by source,steadyWorkType,dealtype
+
+union all]]>
+<!--稳定-本月-转办、交办数（不管建账单位）-->
+<![CDATA[ select #month# as month, source as orgid, steadyWorkType as ledgerType,dealtype as countType,count(ledgerid) as num,114 as dataType from(
+select lg.source, lpp.steadyWorkType,lg.dealtype,lg.ledgerid from platformaccountsteps lg,ledgersteadywork lpp where lg.ledgerType = 3
+ and lg.ledgerid = lpp.id and lpp.steadyWorkType is not null and lg.dealType in (#assignCode#,#turnCode#)
+ and lg.lastDealDate >=#currentMonthBegin# and lg.lastDealDate < #currentMonthEnd# 
+group by lg.source,lpp.steadyWorkType,lg.ledgerid,lg.dealtype
+) group by source,steadyWorkType,dealtype
+
+union all]]>
+<!--民生-本月转办件办理中-->
+<![CDATA[ select #month# as month,target as orgId, cstep.ledgerType, null as countType, count(cstep.ledgerId) as num,21 as dataType from platformAccountSteps cstep,ledgerPeopleAspirations lpa 
+     where lpa.id=cstep.ledgerId and cstep.ledgerType not in(2,3)
+     and cstep.lastdealdate < #currentMonthEnd# 
+     and cstep.stateCode < #programCode# and cstep.isSupported=0 and lpa.serialnumber like #yearBegin#||'%'  
+     and cstep.ledgerId in(select ledgerid from platformaccountsteps where dealType = #turnCode# and ledgerType not in(2,3) group by ledgerId)
+     group by cstep.target,cstep.ledgerType
+     
+union all]]>
+<!--困难-本月转办件办理中-->     
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 21 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select target as orgId,lpa.poorType,count(cstep.ledgerId) as num from platformAccountSteps cstep,ledgerPoorPeople lpa 
+     where lpa.id=cstep.ledgerId and cstep.ledgerType = 2
+     and cstep.lastdealdate < #currentMonthEnd# 
+     and cstep.stateCode < #programCode# and cstep.isSupported=0 and lpa.serialnumber like #yearBegin#||'%'
+     and cstep.ledgerId in(select ledgerid from platformaccountsteps where dealType = #turnCode# and ledgerType = 2 group by ledgerId)
+     group by cstep.target,lpa.poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+union all]]>
+<!--稳定-本月转办件办理中-->
+<![CDATA[ select #month# as month,target as orgId, lpa.steadyWorkType as ledgerType, null as countType, count(cstep.ledgerId) as num,21 as dataType from platformAccountSteps cstep,ledgersteadywork lpa 
+     where lpa.id=cstep.ledgerId and cstep.ledgerType = 3
+     and cstep.lastdealdate <  #currentMonthEnd# 
+     and cstep.stateCode < #programCode# and cstep.isSupported=0 and lpa.serialnumber like #yearBegin#||'%' and lpa.steadyWorkType is not null
+     and cstep.ledgerId in(select ledgerid from platformaccountsteps where dealType = #turnCode# and ledgerType = 3 group by ledgerId)
+     group by cstep.target,lpa.steadyWorkType
+     
+union all]]>
+<!--民生-累计建账实质办结总数-->
+<![CDATA[ select #month# as month,lpp.orgId,istep.ledgerType,null as countType,count(istep.ledgerId) as num, 115 as dataType from(     
+select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType not in (2,3)) where rnk=1
+)istep,ledgerpeopleaspirations lpp where istep.ledgerId = lpp.id 
+and lpp.serialnumber like #yearBegin#||'%'and istep.lastdealdate <  #currentMonthEnd#
+group by lpp.orgId,istep.ledgerType
+
+union all]]>
+<!--民生-本月建账实质办结总数-->
+<![CDATA[ select #month# as month,lpp.orgId,istep.ledgerType,null as countType,count(istep.ledgerId) as num,22 as dataType from(     
+select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType not in (2,3)) where rnk=1
+)istep,ledgerpeopleaspirations lpp where istep.ledgerId = lpp.id 
+and istep.lastdealdate >=to_date('2015/12/01 00:00:00','yyyy/mm/dd,hh24:mi:ss' )and istep.lastdealdate <  #currentMonthEnd#
+group by lpp.orgId,istep.ledgerType
+
+union all]]>
+<!--困难-累计建账实质办结总数-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 115 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select lpa.orgId,lpa.poorType,count(istep.ledgerId) as num from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType = 2) where rnk=1)  istep,ledgerpoorpeople lpa 
+       where istep.ledgerId = lpa.id
+       and lpa.serialnumber like #yearBegin#||'%' and istep.lastdealdate <  #currentMonthEnd# 
+       group by lpa.poorType,lpa.orgId
+                      
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+
+union all]]>
+<!--困难-本月建账实质办结总数-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 22 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select lpa.orgId,lpa.poorType,count(istep.ledgerId) as num from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType = 2) where rnk=1)  istep,ledgerpoorpeople lpa 
+       where istep.ledgerId = lpa.id
+       and istep.lastdealdate >= #currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+       group by lpa.poorType,lpa.orgId
+                      
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all ]]>
+<!--稳定-累计建账实质办结总数-->
+<![CDATA[ select #month# as month,lpp.orgId,lpp.steadyWorkType as ledgerType,null as countType,count(istep.ledgerId) as num, 115 as dataType from(     
+select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType = 3) where rnk=1
+)istep,ledgersteadywork lpp where istep.ledgerId = lpp.id and lpp.steadyWorkType is not null
+and lpp.serialnumber like #yearBegin#||'%'and istep.lastdealdate <  #currentMonthEnd#
+group by lpp.orgId,lpp.steadyWorkType
+
+union all]]>
+<!--稳定-本月建账实质办结总数-->
+<![CDATA[ select #month# as month,lpp.orgId,lpp.steadyWorkType as ledgerType,null as countType,count(istep.ledgerId) as num,22 as dataType from(     
+select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep where cstep.stateCode = #completeCode# and cstep.ledgerType = 3) where rnk=1
+)istep,ledgersteadywork lpp where istep.ledgerId = lpp.id 
+and istep.lastdealdate >=to_date('2015/12/01 00:00:00','yyyy/mm/dd,hh24:mi:ss' )and istep.lastdealdate <  #currentMonthEnd#
+group by lpp.orgId,lpp.steadyWorkType
+
+union all]]>
+<!--民生-累计建账阶段办结总数-->
+<![CDATA[ select #month# as month,lpa.orgId as orgId,istep.ledgerType,null as countType, count(istep.id) as num, 116 as dataType from (select *
+            from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType not in(2,3)) where rnk=1)  istep,ledgerPeopleAspirations lpa
+              where istep.ledgerId = lpa.id 
+              and lpa.serialnumber like #yearBegin#||'%' and istep.lastdealdate < #currentMonthEnd# 
+              group by lpa.orgId,istep.ledgerType
+              
+union all]]>        
+<!--民生-本月阶段办结总数-->
+<![CDATA[ select #month# as month,lpa.orgId as orgId,istep.ledgerType,null as countType, count(istep.id) as num, 23 as dataType from (select *
+            from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType not in(2,3)) where rnk=1)  istep,ledgerPeopleAspirations lpa
+              where istep.ledgerId = lpa.id
+                    and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate < #currentMonthEnd# 
+               group by lpa.orgId,istep.ledgerType
+               
+union all]]>           
+<!--困难-累计建账阶段办结总数-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 116 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select lpa.orgId as orgId,lpa.poorType, count(istep.id) as num from (select *
+            from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType = 2) where rnk=1)  istep,ledgerpoorpeople lpa
+              where istep.ledgerId = lpa.id and lpa.serialnumber like #yearBegin#||'%'
+              and istep.lastdealdate <  #currentMonthEnd# 
+              group by lpa.orgId,lpa.poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>
+<!--困难-本月阶段办结总数-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 23 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select lpa.orgId as orgId,lpa.poorType, count(istep.id) as num from (select *
+            from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType = 2) where rnk=1)  istep,ledgerpoorpeople lpa
+              where istep.ledgerId = lpa.id
+              and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+              group by lpa.orgId,lpa.poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]> 
+<!--稳定-镇、职能部门累计-阶段办结（本级建账）-->
+<![CDATA[ select #month# as month,lpa.orgId as orgId,lpa.steadyWorkType as ledgerType,null as countType, count(istep.id) as num, 116 as dataType from (select *
+            from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType = 3) where rnk=1)  istep,ledgersteadywork lpa
+              where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null and lpa.serialnumber like #yearBegin#||'%'
+                    and istep.lastdealdate <  #currentMonthEnd# 
+                    group by lpa.orgId,lpa.steadyWorkType
+                    
+union all]]>            
+<!--稳定-镇、职能部门本月-阶段办结（本级建账）-->
+<![CDATA[ select  12 as month,lpa.orgId as orgId,lpa.steadyWorkType as ledgerType,null as countType, count(istep.id) as num, 23 as dataType from (select *
+            from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #periodCode# and cstep.ledgerType = 3) where rnk=1)  istep,ledgersteadywork lpa
+              where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null
+                    and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd# 
+              group by lpa.orgId,lpa.steadyWorkType
+              
+union all]]>
+<!--民生-累计程序性办结总数-->
+<![CDATA[ select #month# as month,lpa.orgId as orgId,istep.ledgerType,null as countType,count(istep.ledgerid) as num,117 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.stateCode = #programCode# and cstep.isFeedBack=1 and cstep.ledgerType not in (2,3)
+           ) where rnk=1)  istep,ledgerPeopleAspirations lpa  
+          where istep.ledgerId = lpa.id and lpa.serialnumber like #yearBegin#||'%'
+               and istep.lastdealdate <  #currentMonthEnd# 
+         group by lpa.orgId,istep.ledgerType
+         
+union all]]>
+<!--民生-本月程序性办结总数-->
+<![CDATA[ select #month# as month,lpa.orgId as orgId,istep.ledgerType,null as countType,count(istep.ledgerid) as num,24 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.stateCode = #programCode# and cstep.isFeedBack=1 and cstep.ledgerType not in (2,3)
+           ) where rnk=1)  istep,ledgerPeopleAspirations lpa  
+          where istep.ledgerId = lpa.id 
+         and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd#
+         group by lpa.orgId,istep.ledgerType
+         
+union all]]>       
+<!--困难-累计程序性办结总数-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 117 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select lpa.orgId as orgId,lpa.poorType,count(istep.ledgerid) as num from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.stateCode = #programCode# and cstep.isFeedBack=1 and cstep.ledgerType = 2
+           ) where rnk=1)  istep,ledgerpoorpeople lpa  
+          where istep.ledgerId = lpa.id and lpa.serialnumber like #yearBegin#||'%'
+               and istep.lastdealdate <  #currentMonthEnd# 
+         group by lpa.orgId,lpa.poorType
+         
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+
+union all]]>
+<!--困难-本月程序性办结总数-->
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 24 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select lpa.orgId as orgId,lpa.poorType,count(istep.ledgerid) as num from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.stateCode = #programCode# and cstep.isFeedBack=1 and cstep.ledgerType = 2
+           ) where rnk=1)  istep,ledgerpoorpeople lpa  
+          where istep.ledgerId = lpa.id
+         and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd#
+         group by lpa.orgId,lpa.poorType
+         
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid       
+  
+union all]]> 
+<!--稳定-累计程序性办结总数-->
+<![CDATA[ select #month# as month,lpa.orgId as orgId,lpa.steadyWorkType,null as countType,count(istep.ledgerid) as num,117 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.stateCode = #programCode# and cstep.isFeedBack=1 and cstep.ledgerType = 3
+           ) where rnk=1)  istep,ledgersteadywork lpa  
+          where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null and lpa.serialnumber like #yearBegin#||'%'
+               and istep.lastdealdate < #currentMonthEnd# 
+         group by lpa.orgId,lpa.steadyWorkType
+union all]]>
+<!--稳定-本月程序性办结总数-->
+<![CDATA[ select #month# as month,lpa.orgId as orgId,lpa.steadyWorkType,null as countType,count(istep.ledgerid) as num,24 as dataType from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.stateCode = #programCode# and cstep.isFeedBack=1 and cstep.ledgerType = 3
+           ) where rnk=1)  istep,ledgersteadywork lpa  
+          where istep.ledgerId = lpa.id and lpa.steadyWorkType is not null
+         and istep.lastdealdate >=#currentMonthBegin# and istep.lastdealdate <  #currentMonthEnd#
+         group by lpa.orgId,lpa.steadyWorkType
+         
+union all]]>
+<!--民生-累计建账本月办理中-->
+<![CDATA[ select #month# as month,lpa.orgId as orgId, cstep.ledgerType, null as countType, count(cstep.ledgerId) as num,25 as dataType from platformAccountSteps cstep,ledgerPeopleAspirations lpa 
+     where lpa.id=cstep.ledgerId and cstep.ledgerType not in(2,3)
+     and cstep.lastdealdate < #currentMonthEnd# 
+     and cstep.stateCode < #programCode# and cstep.isSupported=0 and lpa.serialnumber like #yearBegin#||'%'  
+     group by lpa.orgId,cstep.ledgerType
+     
+union all]]>
+<!--困难-累计建账本月办理中-->     
+<![CDATA[ select #month# as month,orgid,to_number(poorType) as ledgertype,null as countType,sum(num) as num, 25 as dataType from (
+select orgid,num,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from (
+select orgid,num,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from (
+
+select lpa.orgId as orgId,lpa.poorType,count(cstep.ledgerId) as num from platformAccountSteps cstep,ledgerPoorPeople lpa 
+     where lpa.id=cstep.ledgerId and cstep.ledgerType = 2
+     and cstep.lastdealdate < #currentMonthEnd# 
+     and cstep.stateCode < #programCode# and cstep.isSupported=0 and lpa.serialnumber like #yearBegin#||'%'
+     group by lpa.orgId,lpa.poorType
+
+)) t, (select level lv from dual connect by level <= 100) c
+  where c.lv <= t.cnt
+  ) group by poortype, orgid
+  
+union all]]>
+<!--稳定-累计建账本月办理中-->
+<![CDATA[ select #month# as month,lpa.orgId as orgId, lpa.steadyWorkType as ledgerType, null as countType, count(cstep.ledgerId) as num,25 as dataType from platformAccountSteps cstep,ledgersteadywork lpa 
+     where lpa.id=cstep.ledgerId and cstep.ledgerType = 3
+     and cstep.lastdealdate <  #currentMonthEnd# 
+     and cstep.stateCode < #programCode# and cstep.isSupported=0 and lpa.serialnumber like #yearBegin#||'%' and lpa.steadyWorkType is not null
+     group by lpa.orgId,lpa.steadyWorkType
+     ]]>
+</insert>
+</sqlMap>

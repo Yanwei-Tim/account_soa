@@ -1,0 +1,41 @@
+log4j.rootLogger=error,stdout,logfile
+
+#jms \u4e8b\u52a1error
+log4j.logger.org.springframework.jms.connection.JmsTransactionManager=error
+log4j.logger.org.springframework.jms.listener.DefaultMessageListenerContainer=error
+log4j.logger.org.springframework.transaction.support.TransactionSynchronizationManager=error
+
+#\u6570\u636e\u5e93\u811a\u672c
+log4j.logger.com.ibatis=error
+log4j.logger.com.ibatis.common.jdbc.SimpleDataSource=error
+log4j.logger.com.ibatis.common.jdbc.ScriptRunner=error
+log4j.logger.com.ibatis.sqlmap.engine.impl.SqlMapClientDelegate=error
+log4j.logger.java.sql.Connection=error
+log4j.logger.java.sql.Statement=error
+log4j.logger.java.sql.PreparedStatement=error
+log4j.logger.java.sql.ResultSet=error
+
+log4j.logger.com.tianque.datatransfer.ExcelDataimportThread=error
+log4j.logger.com.tianque.job=error
+
+log4j.logger.org.apache.struts2=error
+log4j.logger.com.opensymphony.xwork2=error
+log4j.logger.ognl=error
+log4j.logger.org.apache.struts2.util.StrutsTypeConverter=error
+log4j.logger.org.springframework.aop.framework.Cglib2AopProxy=error
+
+#c3p0\u9519\u8bef
+log4j.logger.com.mchange.v2 = error
+
+#\u8f93\u5165\u65e5\u5fd7\u5230\u63a7\u5236\u53f0L:\u8f93\u51fa\u884c\u53f7 ;
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%-d{yyyy-MM-dd HH\:mm\:ss} %l-[%p] %m -(\:%L)%n
+ 
+#\u8f93\u5165\u65e5\u5fd7\u5230\u6587\u4ef6;
+log4j.appender.logfile=org.apache.log4j.RollingFileAppender  
+log4j.appender.logfile.File=../logs/accountSoa.log
+log4j.appender.logfile.MaxFileSize= 10000KB  
+log4j.appender.logfile.MaxBackupIndex=100
+log4j.appender.logfile.layout=org.apache.log4j.PatternLayout  
+log4j.appender.logfile.layout.ConversionPattern=%-d{yyyy-MM-dd HH\:mm\:ss} %l-[%p] %m -(\:%L)%n

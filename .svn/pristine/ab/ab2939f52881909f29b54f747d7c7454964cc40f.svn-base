@@ -1,0 +1,666 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="threeRecords">
+	<typeAlias alias="BaseWork"
+		type="com.tianque.plugin.account.domain.BaseWorking" />
+	<typeAlias alias="ThreeRecordsIssueAttachFile"
+		type="com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile" />
+	<typeAlias alias="ThreeRecordsIssueViewObject"
+		type="com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject" />
+	<typeAlias alias="ThreeRecordsIssueStep"
+		type="com.tianque.plugin.account.domain.ThreeRecordsIssueStep" />
+	<typeAlias alias="ledgerAttachFile" type="com.tianque.plugin.account.domain.LedgerAttachFile" />	
+
+
+	<!-- 台账类附件果映射 -->
+	<resultMap id="attachFileResult" class="ThreeRecordsIssueAttachFile">
+		<result property="id" column="id" />
+		<result property="ledgerId" column="ledgerId" />
+		<result property="id" column="id" />
+		<result property="fileName" column="fileName" />
+		<result property="fileActualUrl" column="filePath" />
+		<result property="ledgerType" column="ledgerType" />
+		<result property="issueLog.id" column="issueLogId" />
+		<result property="replyForm.id" column="replyFormId" />
+	</resultMap>
+
+	<resultMap class="BaseWork" id="simpleBaseWork">
+		<result property="id" column="id" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="occurOrg.id" column="occurOrgId" />
+		<result property="occurOrg.orgInternalCode" column="occurOrgInternalCode" />
+		<result property="createOrg.id" column="orgId" />
+		<result property="createOrg.orgInternalCode" column="orgInternalCode" />
+		<result property="occurDate" column="occurDate" />
+		<result property="status" column="status" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="ledgerId" column="ledgerId" />
+		<result property="ledgerType" column="ledgerType" />
+	</resultMap>
+
+
+	<!-- viewObject映射结果-->
+	<resultMap id="viewResult" class="ThreeRecordsIssueViewObject">
+		<result property="superviseLevel" column="superviseLevel"
+			nullValue="-1" />
+		<result property="issueId" column="issueId" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="occurDate" column="occurDate" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="createTableType.id" column="createTableType" />
+		<result property="name" column="name" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="appealContent" column="appealContent" />
+		<result property="sourceKind.id" column="sourceKind" />
+		<result property="occurOrg.id" column="occurOrg" />
+		<result property="createOrg.id" column="createOrg" />
+		<result property="dealTime" column="lastdealdate" />
+		<result property="targetOrg.id" column="targetOrg" />
+		<result property="issueStepId" column="stepId" />
+		<result property="supervisionState" column="superviselevel"
+			nullValue="-1" />
+		<result property="dealState" column="statecode" />
+		<result property="delayState" column="delayState" nullValue="0" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="state" column="state" />
+	</resultMap>
+
+	<sql id="sqlOrderBy">
+		<dynamic >
+			<isPropertyAvailable property="sortField" prepend=" order by ">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<sql id="sqlResult">
+		select lpa.id as issueId,
+		lpa.serialnumber,
+		lpa.subject,
+		lpa.status,
+		lpa.name,
+		lpa.mobileNumber,
+		lpa.appealContent,
+		lpa.occurdate,
+		lpa.occurOrgId as occurorg,
+		lpa.orgId as createOrg,
+		lpa.sourceKind,
+		lpa.CREATEUSER,
+		lpa.createTableType,
+		lpa.hours,
+		lpa.subject,
+		lpa.minute,
+		istep.source currentOrg,
+		istep.target targetOrg,
+		istep.lastdealdate,
+		istep.id as stepId,
+		istep.superviselevel,
+		istep.statecode,
+		istep.state,
+		istep.delayState
+	</sql>
+
+	<resultMap id="issueStepResult" class="ThreeRecordsIssueStep">
+		<result property="id" column="id" />
+		<result property="source.id" column="source" />
+		<result property="target.id" column="target" />
+		<result property="target.orgInternalCode" column="targetinternalcode" />
+		<result property="stateCode" column="stateCode" />
+		<result property="entryDate" column="entryDate" />
+		<result property="endDate" column="endDate" />
+		<result property="lastDealDate" column="lastDealDate" />
+		<result property="ledgerId" column="ledgerId" />
+		<result property="ledgerType" column="ledgerType" />
+		<result property="superviseLevel" column="superviseLevel" />
+		<result property="backTo.id" column="backTo" />
+		<result property="groupId" column="groupId" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+	</resultMap>
+
+
+
+
+
+	<select id="searchIssueStepsByIssueId" parameterClass="java.util.Map"
+		resultMap="issueStepResult">
+		select * from platformAccountSteps where ledgerType =
+		#ledgerType# and ledgerId = #ledgerId#
+	</select>
+
+	<select id="searchAllIssueStepsByStepId" parameterClass="java.lang.Long"
+		resultMap="issueStepResult">
+		select pa.* from platformAccountSteps pa ,
+		platformAccountSteps p where p.ledgerId = pa.ledgerId and p.ledgerType
+		= pa.ledgerType
+		where p.id = #value# 
+	</select>
+
+
+	<!-- 根据stepid查询完整的台账信息 -->
+	<select id="getSimpleBaseWorkByStepId" parameterClass="long"
+		resultMap="simpleBaseWork">
+		select iu.*,steps.ledgerId,steps.ledgerType from
+		ledgerPeopleAspirations iu,platformAccountSteps steps where
+		iu.id=steps.ledgerId and steps.id=#value#
+	</select>
+
+
+	<sql id="sql_findJurisdictions_leaderView">
+		<dynamic>
+			<isPropertyAvailable property="issueType"
+				prepend=" and ">
+				cstep.ledgerType = #issueType#
+			</isPropertyAvailable>
+			<isEqual property="seachValue" compareValue="all">
+			  <![CDATA[  and cstep.targetinternalcode like #orgCode#||'%' ]]>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="present">
+				<isNotEmpty property="targetOrg">  
+					and cstep.target = #targetOrg#
+				</isNotEmpty>
+				<isEmpty>
+				   and cstep.targetinternalcode = #orgCode#  
+				</isEmpty>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and cstep.target in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+			</isEqual>
+		</dynamic>
+	</sql>
+
+
+	<!-- 下辖实质已办台账列表 -->
+	<select id="findJurisdictionsSubstanceDone" parameterClass="map"
+		resultMap="viewResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.stateCode = #completeCode# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerPeopleAspirations lpa 
+ 			where istep.ledgerId = lpa.id ]]>
+		<include refid="sqlOrderBy" />
+	</select>
+
+
+	<!-- 下辖阶段已办台账列表 -->
+	<select id="findJurisdictionsPeriodDone" parameterClass="map"
+		resultMap="viewResult">
+		<include refid="sqlResult" />
+		<![CDATA[	 from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = #completeCode# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerPeopleAspirations lpa 
+ 			where istep.ledgerId = lpa.id ]]>
+		<include refid="sqlOrderBy" />
+	</select>
+
+
+<sql id="_sql_findJurisdictions_leaderView">
+		<dynamic>
+			<isPropertyAvailable property="issueType"
+				prepend=" and ">
+				ledgerType = #issueType#
+			</isPropertyAvailable>
+			<isEqual property="seachValue" compareValue="all">
+			  <![CDATA[  and targetinternalcode like #orgCode#||'%' ]]>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="present">
+			  <![CDATA[    and targetinternalcode = #orgCode#  ]]>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and target in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+			</isEqual>
+		</dynamic>
+	</sql>
+	<!-- 下辖已办台账列表 -->
+	<select id="findJurisdictionsDone" parameterClass="map"
+		resultMap="viewResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select *  from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.stateCode = #completeCode# and cstep.isFeedBack=1 ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	   <![CDATA[ ) where rnk=1)  istep,ledgerPeopleAspirations lpa  
+ 		     where istep.ledgerId = lpa.id ]]>
+ 		  
+ 		 <![CDATA[ and istep.ledgerid not in(select ledgerid from platformaccountsteps where dealType = #complete# and ledgerid in 
+ 		 (select ledgerid from platformaccountsteps where stateCode = #completeCode# and isFeedBack=1 ]]>  
+        		<include refid="_sql_findJurisdictions_leaderView" />        
+                <![CDATA[ group by ledgerid) and ledgertype = #issueType#)]]>
+                
+		<include refid="sqlOrderBy" />
+	</select>
+	
+
+	<!-- 下辖待办台账列表   lpa.createOrg, iu.lastOrg,-->
+	<select id="findJurisdictionsNeedDo" parameterClass="map"
+		resultMap="viewResult">
+		<![CDATA[
+	 select	         
+       lpa.id as issueId,
+       lpa.serialnumber,
+       lpa.subject,
+       lpa.name,
+       lpa.mobileNumber,
+       lpa.appealContent,
+       lpa.status,
+       lpa.occurdate,
+       lpa.createTableType,
+       lpa.hours, 
+       lpa.subject,
+       lpa.minute,
+       lpa.occurOrgId as  occurorg,
+       lpa.sourcekind,
+       lpa.CREATEUSER,
+       lpa.orgId as createOrg,
+       cstep.source currentOrg,
+       cstep.target targetOrg,
+       cstep.lastdealdate,
+       cstep.id as stepId,
+       cstep.superviselevel,
+       cstep.statecode,
+       cstep.state,
+       cstep.delayState
+       
+       from platformAccountSteps cstep,ledgerPeopleAspirations lpa 
+	   where lpa.id=cstep.ledgerId  ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+		<![CDATA[ 
+			and cstep.stateCode<#completeCode# and cstep.isSupported=#isSupported#
+			]]>
+		<include refid="sqlOrderBy" />
+	</select>
+
+
+
+	<!-- 下辖待跟进台账列表 -->
+	<select id="findJurisdictionsFollow" parameterClass="map"
+		resultMap="viewResult">
+		<include refid="sqlResult" />
+		<![CDATA[	
+		   from (select *  from platformAccountSteps where id in (select max(id)
+		   from platformAccountSteps cstep  where cstep.stateCode >= #completeCode# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+		<![CDATA[ group by ledgerId,ledgerType)) istep,
+			 ledgerPeopleAspirations lpa  
+			 where istep.ledgerId= lpa.id  and  istep.stateCode < #issueCompleteCode#  and lpa.status < #verification# ]]>
+		<include refid="sqlOrderBy" />
+	</select>
+
+
+
+	<!-- 下辖待反馈台账列表 -->
+	<select id="findJurisdictionsFeedBack" parameterClass="map"
+		resultMap="viewResult">
+		<include refid="sqlResult" />
+		<![CDATA[  from (select *  from platformAccountSteps	 where id in(select max(cstep.id)
+			from platformAccountSteps cstep	where 1=1
+		]]>
+		<isPropertyAvailable property="issueType"
+			prepend=" and ">
+			cstep.ledgerType = #issueType#
+		</isPropertyAvailable>
+		<include refid="sql_findJurisdictions_leaderView" />
+		<![CDATA[ group by cstep.ledgerId,cstep.ledgerType)) istep,
+			  ledgerPeopleAspirations lpa   where istep.ledgerId= lpa.id   and lpa.isCanFeedBack=0 
+		]]>
+		<isEqual property="seachValue" compareValue="all">
+			  <![CDATA[  and lpa.orginternalcode like #orgCode#||'%' ]]>
+			</isEqual>
+		<isEqual property="seachValue" compareValue="present">
+			  <![CDATA[    and lpa.orgId = #orgId#  ]]>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and lpa.orgId in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</isEqual>
+		<include refid="sqlOrderBy" />
+	</select>
+
+
+
+	<!-- 查询台账的处理记录的附件 -->
+	<select id="loadIssueAttachFilesByIssueAndLog" parameterClass="map"
+		resultMap="attachFileResult">
+		select
+		issueFiles.id,issueFiles.ledgerType,issueFiles.ledgerId,issueFiles.issueLogId,issueFiles.replyFormId,files.fileName,files.physicsFullFileName
+		filePath
+		from platformAccountHasAttachFiles issueFiles
+		left join ledgerAttachFiles files on files.moduleObjectId=issueFiles.id
+		and files.moduleKey='for_platformAccount'
+		where issueFiles.Filetype <![CDATA[<>]]>
+		'for_platformAccountEvaluate' and
+		issueFiles.Filetype <![CDATA[<>]]>
+		'for_platformAccountReplyForm' 
+		
+		and issueFiles.ledgerId=#ledgerId#
+		<dynamic prepend=" and ">
+			<isPropertyAvailable property="issueLogId">
+				<isNotEmpty property="issueLogId">issueLogId=#issueLogId#</isNotEmpty>
+				<isEmpty property="issueLogId">issueLogId is null</isEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+
+	<!-- 根据id查询台账附件 -->
+	<select id="getIssueAttachFileById" parameterClass="long"
+		resultMap="attachFileResult">
+		select
+		issueFiles.id,issueFiles.ledgerId,issueFiles.ledgerType,issueFiles.issueLogId,issueFiles.replyFormId,files.fileName,files.physicsFullFileName
+		filePath
+		from platformAccountHasAttachFiles issueFiles
+		left join ledgerAttachFiles files on files.moduleObjectId=issueFiles.id
+		and files.moduleKey='for_platformAccount'
+		where issueFiles.id=#value#
+	</select>
+
+
+
+	<!-- 保存台账附件关联关系 -->
+	<insert id="addIssueAttachFiles" parameterClass="map">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_platformAccountHasAttachFile.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO platformAccountHasAttachFiles
+		(id,ledgerId,ledgerType,issueLogId,fileType,replyFormId) VALUES
+		(#id#,#ledgerId#,#ledgerType#,#issueLogId#,#fileType#,#replyFormId#)
+	</insert>
+
+	<!-- 删除台账附件关联关系 -->
+	<delete id="deleteIssuehasattachfilesById" parameterClass="long">
+		delete from platformAccountHasAttachFiles where id=#fileId#  
+	</delete>
+
+	<delete id="deleteAttachFileBymoduleobjectId" parameterClass="long">
+		delete from ledgerAttachFiles af where af.moduleobjectid= #fileId# and
+		af.moduleKey='for_platformAccount'
+	</delete>
+
+	<!-- 删除台账附件关联关系 -->
+	<delete id="removeAllIssueAttachFiles" parameterClass="java.util.Map">
+		delete
+		from platformAccountHasAttachFiles where ledgerId=#ledgerId# and
+		ledgerType=#ledgerType#
+	</delete>
+
+	<!-- 删除台账模块的附件 -->
+	<delete id="removeAllIssueAttachFilesFromBaseFile"
+		parameterClass="map">
+		delete from ledgerAttachFiles where
+		modulekey='for_platformAccount' and moduleobjectid in
+		(select id from platformAccountHasAttachFiles where ledgerId=#ledgerId# and
+		ledgerType=#ledgerType#)
+	</delete>
+
+
+	<!-- 下辖已办台账数量 -->
+	<select id="countJurisdictionsDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId from platformAccountSteps
+	         where id in  (select max(id)   from platformAccountSteps cstep   where cstep.stateCode = #completeCode# and cstep.isFeedBack=1 ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ group by ledgerId)) istep,ledgerPeopleAspirations iu where istep.ledgerId=iu.id ]]>
+	    
+	    <![CDATA[ and istep.ledgerid not in(select ledgerid from platformaccountsteps where dealType = #complete# and ledgerid in 
+ 		 (select ledgerid from platformaccountsteps where stateCode = #completeCode# and isFeedBack=1 ]]>  
+        		<include refid="_sql_findJurisdictions_leaderView" />        
+                <![CDATA[ group by ledgerid) and ledgertype = #issueType#) ]]>
+	</select>
+
+	<!-- 下辖实质已办台账数量 -->
+	<select id="countJurisdictionsSubstanceDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId  from platformAccountSteps
+	         where id in  (select max(id)  from platformAccountSteps cstep where cstep.stateCode = #completeCode# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ group by ledgerId)) istep,ledgerPeopleAspirations iu where istep.ledgerId=iu.id ]]>
+	</select>
+
+	<!-- 下辖阶段已办台账数量 -->
+	<select id="countJurisdictionsPeriodDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId  from platformAccountSteps  where id in
+	      (select max(id)      from platformAccountSteps cstep   where cstep.stateCode = #completeCode# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ group by ledgerId)) istep,ledgerPeopleAspirations iu where istep.ledgerId=iu.id ]]>
+	</select>
+
+
+
+	<!-- 下辖待办台账数量 -->	<!--判断是否查询所有，本级，下辖-->
+	<select id="countJurisdictionsNeedDo" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from platformAccountSteps cstep,ledgerPeopleAspirations iu  where iu.id=cstep.ledgerId ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+		<![CDATA[ 	and cstep.stateCode<#completeCode# ]]>
+		<isPropertyAvailable property="isSupported">
+			<isNotNull property="isSupported" >
+				and cstep.isSupported = #isSupported#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isNotPropertyAvailable property="isSupported">
+			and cstep.isSupported = 0
+		</isNotPropertyAvailable>
+	</select>
+
+
+
+
+
+
+
+	<!-- 下辖待跟进台账数量 -->
+	<select id="countJurisdictionsFollow" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId,ledgerType  , stateCode
+			  from platformaccountsteps
+			 where id in
+				   (select max(id)
+					  from platformaccountsteps cstep
+					 where cstep.stateCode >= #completeCode# 
+		]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+		<![CDATA[ group by ledgerId,ledgerType)) istep,ledgerPeopleAspirations lpa  where istep.ledgerId=lpa.id and  istep.stateCode < #issueCompleteCode# and lpa.status < #verification#]]>
+	</select>
+
+	<select id="countJurisdictionsFeedBack" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId,ledgerType  , stateCode,id
+			  from platformaccountsteps
+			 where id in
+				   (select max(cstep.id)
+					  from platformaccountsteps cstep
+					  where 1=1
+		]]>
+		<isPropertyAvailable property="issueType"
+			prepend=" and ">
+			cstep.ledgerType = #issueType#
+		</isPropertyAvailable>
+		<![CDATA[  group by cstep.ledgerId,cstep.ledgerType) ) istep,ledgerPeopleAspirations lpa 
+		 where istep.ledgerId=lpa.id and lpa.isCanFeedBack=0 ]]>
+		 <isEqual property="seachValue" compareValue="all">
+			  <![CDATA[  and lpa.orginternalcode like #orgCode#||'%' ]]>
+			</isEqual>
+		<isEqual property="seachValue" compareValue="present">
+			  <![CDATA[    and lpa.orgId = #orgId#  ]]>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and lpa.orgId in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</isEqual>
+	</select>
+
+
+	<!-- 下辖上报台账列表 -->
+	<select id="findJurisdictionsSubmit" parameterClass="map"
+			resultMap="viewResult">
+			<include refid="sqlResult" />
+			<![CDATA[ from (select *  from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+	                  from platformAccountSteps cstep  where cstep.submit = #submit# ]]>
+			<include refid="sql_findJurisdictions_leaderView" />
+		   <![CDATA[ ) where rnk=1)  istep,ledgerPeopleAspirations lpa  
+	 		     where istep.ledgerId = lpa.id ]]>
+			<include refid="sqlOrderBy" />
+	</select>
+
+
+	<!-- 下辖上报台账数量 -->
+	<select id="countJurisdictionsSubmit" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) 
+		 from (select *  from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.submit = #submit# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	   <![CDATA[ ) where rnk=1)  istep,ledgerPeopleAspirations lpa  
+ 		     where istep.ledgerId = lpa.id ]]>
+	</select>
+	
+	
+	
+	<!--  下辖上级交办台账列表 -->
+	<select id="findJurisdictionsAssgin" parameterClass="map"
+			resultMap="viewResult">
+			<include refid="sqlResult" />
+			<![CDATA[ from (select *  from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+	                  from platformAccountSteps cstep  where cstep.assign = #assgin# ]]>
+			<include refid="sql_findJurisdictions_leaderView" />
+		   <![CDATA[ ) where rnk=1)  istep,ledgerPeopleAspirations lpa  
+	 		     where istep.ledgerId = lpa.id ]]>
+			<include refid="sqlOrderBy" />
+	</select>
+
+
+	<!-- 下辖上级交办台账数量 -->
+	<select id="countJurisdictionsAssgin" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) 
+		 from (select *  from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep  where cstep.assign = #assgin# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	   <![CDATA[ ) where rnk=1)  istep,ledgerPeopleAspirations lpa  
+ 		     where istep.ledgerId = lpa.id ]]>
+	</select>
+	
+	
+
+
+	<select id="loadLedgerAndLogAttachFilesByLedgerIdAndType"
+		parameterClass="map" resultMap="attachFileResult">
+		select
+		issueFiles.id,issueFiles.ledgerType,issueFiles.ledgerId,issueFiles.issueLogId,issueFiles.replyFormId,files.fileName,files.physicsFullFileName
+		filePath
+		from platformAccountHasAttachFiles issueFiles
+		left join ledgerAttachFiles files on files.moduleObjectId=issueFiles.id
+		and files.moduleKey='for_platformAccount'
+		where issueFiles.Filetype <![CDATA[<>]]>
+		'for_platformAccountEvaluate' and
+		issueFiles.Filetype <![CDATA[<>]]> 'for_platformAccountReplyForm'
+		and issueFiles.ledgerId=#ledgerId# and
+		issueFiles.ledgerType=#ledgerType#
+
+	</select>
+
+	<select id="loadLedgerAttachFilesByLedgerIdAndType"
+		parameterClass="map" resultMap="attachFileResult">
+		select
+		issueFiles.id,issueFiles.ledgerType,issueFiles.ledgerId,issueFiles.issueLogId,issueFiles.replyFormId,files.fileName,files.physicsFullFileName
+		filePath
+		from platformAccountHasAttachFiles issueFiles
+		left join ledgerAttachFiles files on files.moduleObjectId=issueFiles.id
+		and files.moduleKey='for_platformAccount'
+		where issueFiles.Filetype ='for_platformAccount' and
+		issueFiles.ledgerId=#ledgerId# and issueFiles.ledgerType=#ledgerType#
+
+	</select>
+	
+	<insert id="addAttachFile" parameterClass="ledgerAttachFile">
+		INSERT INTO	ledgerAttachFiles
+		(fileName,physicsFullFileName,moduleKey,moduleObjectId)
+		VALUES
+		(#name#,#physicsFullFileName#,#moduleKey#,#moduleObjectId#)
+	</insert>
+	
+	
+	<select id="findReplyFormFiles"
+		parameterClass="map" resultMap="attachFileResult">
+		select
+		issueFiles.id,issueFiles.ledgerType,issueFiles.ledgerId,issueFiles.issueLogId,issueFiles.replyFormId,files.fileName,files.physicsFullFileName
+		filePath
+		from platformAccountHasAttachFiles issueFiles
+		left join ledgerAttachFiles files on files.moduleObjectId=issueFiles.id
+		and files.moduleKey='for_platformAccount'
+		where issueFiles.Filetype ='for_platformAccountReplyForm' and
+		issueFiles.ledgerId=#ledgerId# and issueFiles.ledgerType=#ledgerType#
+
+	</select>
+	
+	
+	<select id="findReplyFormFilesByReplyId"
+		parameterClass="java.lang.Long" resultMap="attachFileResult">
+		select
+		issueFiles.id,issueFiles.ledgerType,issueFiles.ledgerId,issueFiles.issueLogId,issueFiles.replyFormId,files.fileName,files.physicsFullFileName
+		filePath
+		from platformAccountHasAttachFiles issueFiles
+		left join ledgerAttachFiles files on files.moduleObjectId=issueFiles.id
+		and files.moduleKey='for_platformAccount'
+		where issueFiles.Filetype ='for_platformAccountReplyForm' and
+		issueFiles.replyFormId=#replyFormId# 
+
+	</select>
+	
+	
+	
+	<!-- 下辖已办和新建台账列表 -->
+	<select id="findJurisdictionsCreateAndDone" parameterClass="map"
+		resultMap="viewResult">
+		<include refid="sqlResult" />
+		<![CDATA[	 from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode in (500,600,700,120) ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerPeopleAspirations lpa 
+ 			where istep.ledgerId = lpa.id ]]>
+		<include refid="sqlOrderBy" />
+	</select>
+	
+	<!-- 下辖阶段已办和新建台账数量 -->
+	<select id="countJurisdictionsCreateAndDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId  from platformAccountSteps  where id in
+	      (select max(id)      from platformAccountSteps cstep   where cstep.stateCode in (500,600,700,120) ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ group by ledgerId)) istep,ledgerPeopleAspirations iu where istep.ledgerId=iu.id ]]>
+	</select>
+	
+	
+	
+
+</sqlMap>

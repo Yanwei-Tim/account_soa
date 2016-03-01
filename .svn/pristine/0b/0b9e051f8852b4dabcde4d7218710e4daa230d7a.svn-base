@@ -1,0 +1,505 @@
+package com.tianque.plugin.account.dao.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.plugin.account.dao.PeopleAspirationDao;
+import com.tianque.plugin.account.domain.Agriculture;
+import com.tianque.plugin.account.domain.Education;
+import com.tianque.plugin.account.domain.Energy;
+import com.tianque.plugin.account.domain.Environment;
+import com.tianque.plugin.account.domain.Labor;
+import com.tianque.plugin.account.domain.LedgerPeopleAspirations;
+import com.tianque.plugin.account.domain.Medical;
+import com.tianque.plugin.account.domain.Other;
+import com.tianque.plugin.account.domain.Science;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.Town;
+import com.tianque.plugin.account.domain.Traffic;
+import com.tianque.plugin.account.domain.WaterResources;
+
+@Repository("threeRecordsPeopleAspirationDao")
+public class PeopleAspirationDaoImpl extends AbstractBaseDao implements
+		PeopleAspirationDao {
+
+	@Override
+	public LedgerPeopleAspirations addPeopleAspirations(
+			LedgerPeopleAspirations peopleAspirations) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"ledgerPeopleAspirations.addPeopleAspirations",
+				peopleAspirations);
+		return getPeopleAspirations(id);
+	}
+
+	@Override
+	public LedgerPeopleAspirations updatePeopleAspirations(
+			LedgerPeopleAspirations peopleAspirations) {
+
+		getSqlMapClientTemplate().update(
+				"ledgerPeopleAspirations.updatePeopleAspirations",
+				peopleAspirations);
+		LedgerPeopleAspirations result = getPeopleAspirations(peopleAspirations
+				.getId());
+		return result;
+	}
+
+	@Override
+	public LedgerPeopleAspirations getPeopleAspirations(Long id) {
+
+		return (LedgerPeopleAspirations) getSqlMapClientTemplate()
+				.queryForObject(
+						"ledgerPeopleAspirations.getPeopleAspirationsById", id);
+	}
+
+	@Override
+	public LedgerPeopleAspirations getFullById(Long id) {
+		return (LedgerPeopleAspirations) getSqlMapClientTemplate()
+				.queryForObject("ledgerPeopleAspirations.getFullById", id);
+	}
+
+	@Override
+	public void deletePeopleAspirationById(Long id) {
+		getSqlMapClientTemplate().delete(
+				"ledgerPeopleAspirations.deletePeopleAspirationsById", id);
+	}
+
+	@Override
+	public void updateLedgerCurrentStepAndOrg(
+			LedgerPeopleAspirations peopleAspirations) {
+		getSqlMapClientTemplate().update(
+				"ledgerPeopleAspirations.updateIssueCurrentStepAndOrg",
+				peopleAspirations);
+
+	}
+
+	@Override
+	public WaterResources addWaterResources(WaterResources resource) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"ledgerPeopleAspirations.addWaterResources", resource);
+		return getWaterResourcesById(id);
+	}
+
+	@Override
+	public void deleteWaterResourcesByAspirationId(Long id) {
+		getSqlMapClientTemplate().delete(
+				"ledgerPeopleAspirations.deleteWaterResourcesByAspirationId",
+				id);
+	}
+
+	@Override
+	public WaterResources getWaterResourcesByAspirationId(Long id) {
+
+		return (WaterResources) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getWaterResourcesByAspirationsId", id);
+	}
+
+	@Override
+	public WaterResources getWaterResourcesById(Long id) {
+
+		return (WaterResources) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getWaterResourcesById", id);
+
+	}
+
+	@Override
+	public WaterResources updateWaterResources(WaterResources resource) {
+		getSqlMapClientTemplate().update(
+				"ledgerPeopleAspirations.updateWaterResources", resource);
+		WaterResources result = getWaterResourcesById(resource.getId());
+		return result;
+	}
+
+	@Override
+	public Traffic addTraffic(Traffic resource) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"ledgerPeopleAspirations.addTraffic", resource);
+		return getTrafficById(id);
+	}
+
+	@Override
+	public void deleteTrafficByAspirationId(Long id) {
+		getSqlMapClientTemplate().delete(
+				"ledgerPeopleAspirations.deleteTrafficByAspirationId", id);
+
+	}
+
+	@Override
+	public Traffic getTrafficByAspirationId(Long id) {
+		return (Traffic) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getTrafficByAspirationsId", id);
+	}
+
+	@Override
+	public Traffic getTrafficById(Long id) {
+		return (Traffic) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getTrafficById", id);
+	}
+
+	@Override
+	public Traffic updateTraffic(Traffic resource) {
+		getSqlMapClientTemplate().update(
+				"ledgerPeopleAspirations.updateTraffic", resource);
+		Traffic result = getTrafficById(resource.getId());
+		return result;
+	}
+
+	@Override
+	public Agriculture addAgriculture(Agriculture resource) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"ledgerPeopleAspirations.addAgriculture", resource);
+		return getAgricultureById(id);
+	}
+
+	@Override
+	public Education addEducation(Education resource) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"ledgerPeopleAspirations.addEducation", resource);
+		return getEducationById(id);
+	}
+
+	@Override
+	public Energy addEnergy(Energy resource) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"ledgerPeopleAspirations.addEnergy", resource);
+		return getEnergyById(id);
+	}
+
+	@Override
+	public Environment addEnvironment(Environment resource) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"ledgerPeopleAspirations.addEnvironment", resource);
+		return getEnvironmentById(id);
+	}
+
+	@Override
+	public Labor addLabor(Labor resource) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"ledgerPeopleAspirations.addLabor", resource);
+		return getLaborById(id);
+	}
+
+	@Override
+	public Medical addMedical(Medical resource) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"ledgerPeopleAspirations.addMedical", resource);
+		return getMedicalById(id);
+	}
+
+	@Override
+	public Other addOther(Other resource) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"ledgerPeopleAspirations.addOther", resource);
+		return getOtherById(id);
+	}
+
+	@Override
+	public Science addScience(Science resource) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"ledgerPeopleAspirations.addScience", resource);
+		return getScienceById(id);
+	}
+
+	@Override
+	public Town addTown(Town resource) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"ledgerPeopleAspirations.addTown", resource);
+		return getTownById(id);
+	}
+
+	@Override
+	public void deleteAgricultureByAspirationId(Long id) {
+		getSqlMapClientTemplate().delete(
+				"ledgerPeopleAspirations.deleteAgricultureByAspirationId", id);
+
+	}
+
+	@Override
+	public void deleteEducationByAspirationId(Long id) {
+		getSqlMapClientTemplate().delete(
+				"ledgerPeopleAspirations.deleteEducationByAspirationId", id);
+
+	}
+
+	@Override
+	public void deleteEnergyByAspirationId(Long id) {
+		getSqlMapClientTemplate().delete(
+				"ledgerPeopleAspirations.deleteEnergyByAspirationId", id);
+
+	}
+
+	@Override
+	public void deleteEnvironmentByAspirationId(Long id) {
+		getSqlMapClientTemplate().delete(
+				"ledgerPeopleAspirations.deleteEnvironmentByAspirationId", id);
+
+	}
+
+	@Override
+	public void deleteLaborByAspirationId(Long id) {
+		getSqlMapClientTemplate().delete(
+				"ledgerPeopleAspirations.deleteLaborByAspirationId", id);
+
+	}
+
+	@Override
+	public void deleteMedicalByAspirationId(Long id) {
+		getSqlMapClientTemplate().delete(
+				"ledgerPeopleAspirations.deleteMedicalByAspirationId", id);
+
+	}
+
+	@Override
+	public void deleteOtherByAspirationId(Long id) {
+		getSqlMapClientTemplate().delete(
+				"ledgerPeopleAspirations.deleteOtherByAspirationId", id);
+
+	}
+
+	@Override
+	public void deleteScienceByAspirationId(Long id) {
+		getSqlMapClientTemplate().delete(
+				"ledgerPeopleAspirations.deleteScienceByAspirationId", id);
+
+	}
+
+	@Override
+	public void deleteTownByAspirationId(Long id) {
+		getSqlMapClientTemplate().delete(
+				"ledgerPeopleAspirations.deleteTownByAspirationId", id);
+	}
+
+	@Override
+	public Agriculture getAgricultureByAspirationId(Long id) {
+		return (Agriculture) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getAgricultureByAspirationsId", id);
+	}
+
+	@Override
+	public Agriculture getAgricultureById(Long id) {
+		return (Agriculture) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getAgricultureById", id);
+	}
+
+	@Override
+	public Education getEducationByAspirationId(Long id) {
+		return (Education) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getEducationByAspirationsId", id);
+	}
+
+	@Override
+	public Education getEducationById(Long id) {
+		return (Education) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getEducationById", id);
+	}
+
+	@Override
+	public Energy getEnergyByAspirationId(Long id) {
+		return (Energy) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getEnergyByAspirationsId", id);
+	}
+
+	@Override
+	public Energy getEnergyById(Long id) {
+		return (Energy) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getEnergyById", id);
+	}
+
+	@Override
+	public Environment getEnvironmentByAspirationId(Long id) {
+		return (Environment) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getEnvironmentByAspirationsId", id);
+	}
+
+	@Override
+	public Environment getEnvironmentById(Long id) {
+		return (Environment) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getEnvironmentById", id);
+	}
+
+	@Override
+	public Labor getLaborByAspirationId(Long id) {
+		return (Labor) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getLaborByAspirationsId", id);
+	}
+
+	@Override
+	public Labor getLaborById(Long id) {
+		return (Labor) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getLaborById", id);
+	}
+
+	@Override
+	public Medical getMedicalByAspirationId(Long id) {
+		return (Medical) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getMedicalByAspirationsId", id);
+	}
+
+	@Override
+	public Medical getMedicalById(Long id) {
+		return (Medical) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getMedicalById", id);
+	}
+
+	@Override
+	public Other getOtherByAspirationId(Long id) {
+		return (Other) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getOtherByAspirationsId", id);
+	}
+
+	@Override
+	public Other getOtherById(Long id) {
+		return (Other) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getOtherById", id);
+	}
+
+	@Override
+	public Science getScienceByAspirationId(Long id) {
+		return (Science) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getScienceByAspirationsId", id);
+	}
+
+	@Override
+	public Science getScienceById(Long id) {
+		return (Science) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getScienceById", id);
+	}
+
+	@Override
+	public Town getTownByAspirationId(Long id) {
+		return (Town) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getTownByAspirationsId", id);
+	}
+
+	@Override
+	public Town getTownById(Long id) {
+		return (Town) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.getTownById", id);
+	}
+
+	@Override
+	public Agriculture updateAgriculture(Agriculture resource) {
+		getSqlMapClientTemplate().update(
+				"ledgerPeopleAspirations.updateAgriculture", resource);
+		Agriculture result = getAgricultureById(resource.getId());
+		return result;
+	}
+
+	@Override
+	public Education updateEducation(Education resource) {
+		getSqlMapClientTemplate().update(
+				"ledgerPeopleAspirations.updateEducation", resource);
+		Education result = getEducationById(resource.getId());
+		return result;
+	}
+
+	@Override
+	public Energy updateEnergy(Energy resource) {
+		getSqlMapClientTemplate().update(
+				"ledgerPeopleAspirations.updateEnergy", resource);
+		Energy result = getEnergyById(resource.getId());
+		return result;
+	}
+
+	@Override
+	public Environment updateEnvironment(Environment resource) {
+		getSqlMapClientTemplate().update(
+				"ledgerPeopleAspirations.updateEnvironment", resource);
+		Environment result = getEnvironmentById(resource.getId());
+		return result;
+	}
+
+	@Override
+	public Labor updateLabor(Labor resource) {
+		getSqlMapClientTemplate().update("ledgerPeopleAspirations.updateLabor",
+				resource);
+		Labor result = getLaborById(resource.getId());
+		return result;
+	}
+
+	@Override
+	public Medical updateMedical(Medical resource) {
+		getSqlMapClientTemplate().update(
+				"ledgerPeopleAspirations.updateMedical", resource);
+		Medical result = getMedicalById(resource.getId());
+		return result;
+	}
+
+	@Override
+	public Other updateOther(Other resource) {
+		getSqlMapClientTemplate().update("ledgerPeopleAspirations.updateOther",
+				resource);
+		Other result = getOtherById(resource.getId());
+		return result;
+	}
+
+	@Override
+	public Science updateScience(Science resource) {
+		getSqlMapClientTemplate().update(
+				"ledgerPeopleAspirations.updateScience", resource);
+		Science result = getScienceById(resource.getId());
+		return result;
+	}
+
+	@Override
+	public Town updateTown(Town resource) {
+		getSqlMapClientTemplate().update("ledgerPeopleAspirations.updateTown",
+				resource);
+		Town result = getTownById(resource.getId());
+		return result;
+	}
+
+	@Override
+	public void deleteAttachFileByAttachfilesId(Long fileId) {
+		getSqlMapClientTemplate().delete(
+				"threeRecords.deleteAttachFileBymoduleobjectId", fileId);
+		getSqlMapClientTemplate().delete(
+				"threeRecords.deleteIssuehasattachfilesById", fileId);
+
+	}
+
+	@Override
+	public ThreeRecordsIssueAttachFile getPeopleAspirationAttachFileById(Long id) {
+		return (ThreeRecordsIssueAttachFile) getSqlMapClientTemplate()
+				.queryForObject("threeRecords.getIssueAttachFileById", id);
+	}
+
+	@Override
+	public List<ThreeRecordsIssueAttachFile> loadLedgerAttachFilesByLedgerIdAndType(
+			Long ledgerId, int type) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("ledgerId", ledgerId);
+		params.put("ledgerType", type);
+		return getSqlMapClientTemplate().queryForList(
+				"threeRecords.loadLedgerAttachFilesByLedgerIdAndType", params);
+	}
+
+	@Override
+	public List<LedgerPeopleAspirations> getPeopleAspirationByHistoryId(
+			String id) {
+		return getSqlMapClientTemplate().queryForList(
+				"ledgerPeopleAspirations.getPeopleAspirationByHistoryId", id);
+	}
+
+	@Override
+	public void updateFeedBackStatus(Long ledgerId, int isFeedBack) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("ledgerId", ledgerId);
+		map.put("isFeedBack", isFeedBack);
+		getSqlMapClientTemplate().update(
+				"ledgerPeopleAspirations.updateFeedBackStatus", map);
+	}
+
+	@Override
+	public int countLedgerByOldHistoryId(String oldHistoryId, String orgCode) {
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("oldHistoryId", oldHistoryId);
+		map.put("orgCode", orgCode);
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"ledgerPeopleAspirations.countLedgerByOldHistoryId", map);
+	}
+
+}

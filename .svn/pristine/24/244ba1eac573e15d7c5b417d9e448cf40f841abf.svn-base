@@ -1,0 +1,320 @@
+package com.tianque.account.api.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.tianque.account.api.ThreeRecordsIssueDubboService;
+import com.tianque.core.vo.AutoCompleteData;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.domain.BaseWorking;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueMap;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStep;
+import com.tianque.plugin.account.service.ThreeRecordsIssueService;
+import com.tianque.plugin.account.state.ThreeRecordsIssueOperate;
+import com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject;
+
+@Component
+public class ThreeRecordsIssueDubboServiceImpl implements
+		ThreeRecordsIssueDubboService {
+
+	@Autowired
+	protected ThreeRecordsIssueService threeRecordsIssueService;
+
+	@Override
+	public ThreeRecordsIssueViewObject assign(Long stepId,
+			ThreeRecordsIssueLogNew log, Long target, Long[] tellorgs,
+			List<ThreeRecordsIssueAttachFile> files, Long[] notices) {
+		return threeRecordsIssueService.assign(stepId, log, target, tellorgs,
+				files, notices);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject back(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		return threeRecordsIssueService.back(stepId, log, files);
+	}
+
+	@Override
+	public List<ThreeRecordsIssueAttachFile> combineIssueAttachFile(
+			String[] fileNameAndIdS) {
+		return threeRecordsIssueService.combineIssueAttachFile(fileNameAndIdS);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject comment(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		return threeRecordsIssueService.comment(stepId, log, files);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject complete(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		return threeRecordsIssueService.complete(stepId, log, files);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject concept(Long stepId,
+			ThreeRecordsIssueLogNew log) {
+		return threeRecordsIssueService.concept(stepId, log);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject declare(Long stepId,
+			ThreeRecordsIssueLogNew log, Long target, Long[] tellorgs,
+			List<ThreeRecordsIssueAttachFile> files) {
+		return threeRecordsIssueService.declare(stepId, log, target, tellorgs,
+				files);
+	}
+
+	@Override
+	public boolean deleteIssueByIssueId(Long ledgerId, int ledgerType) {
+		return threeRecordsIssueService.deleteIssueByIssueId(ledgerId,
+				ledgerType);
+	}
+
+	@Override
+	public PageInfo<AutoCompleteData> findAdminTargetsByName(Long stepid,
+			String tag, ThreeRecordsIssueOperate operate, Long[] exceptIds,
+			boolean twice, int pageIndex, int rows) {
+		return threeRecordsIssueService.findAdminTargetsByName(stepid, tag,
+				operate, exceptIds, twice, pageIndex, rows);
+	}
+
+	@Override
+	public PageInfo<AutoCompleteData> findFunctionTargetsByName(Long stepid,
+			String tag, ThreeRecordsIssueOperate operate, Long[] exceptIds,
+			int pageIndex, int rows) {
+		return threeRecordsIssueService.findFunctionTargetsByName(stepid, tag,
+				operate, exceptIds, pageIndex, rows);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsAssgin(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType) {
+		return threeRecordsIssueService.findJurisdictionsAssgin(seachValue,
+				orgId, page, rows, sidx, sord, issueType);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType) {
+		return threeRecordsIssueService.findJurisdictionsDone(seachValue,
+				orgId, page, rows, sidx, sord, issueType);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsFeedBack(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType) {
+		return threeRecordsIssueService.findJurisdictionsFeedBack(seachValue,
+				orgId, page, rows, sidx, sord, issueType);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsFollow(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType) {
+		return threeRecordsIssueService.findJurisdictionsFollow(seachValue,
+				orgId, page, rows, sidx, sord, issueType);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsNeedDo(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType) {
+		return threeRecordsIssueService.findJurisdictionsNeedDo(seachValue,
+				orgId, page, rows, sidx, sord, issueType,
+				LedgerConstants.OPERATE_TYPE_SPONSOR);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsPeriodDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType) {
+		return threeRecordsIssueService.findJurisdictionsPeriodDone(seachValue,
+				orgId, page, rows, sidx, sord, issueType);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubmit(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType) {
+		return threeRecordsIssueService.findJurisdictionsSubmit(seachValue,
+				orgId, page, rows, sidx, sord, issueType);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubstanceDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType) {
+		return threeRecordsIssueService.findJurisdictionsSubstanceDone(
+				seachValue, orgId, page, rows, sidx, sord, issueType);
+	}
+
+	@Override
+	public PageInfo<AutoCompleteData> findTellTargetsByName(Long stepid,
+			String tag, ThreeRecordsIssueOperate operate,
+			boolean transferToAdmin, Long[] exceptIds, int page, int rows) {
+		return threeRecordsIssueService.findTellTargetsByName(stepid, tag,
+				operate, transferToAdmin, exceptIds, page, rows);
+	}
+
+	@Override
+	public ThreeRecordsIssueAttachFile getIssueAttachFileById(Long id) {
+		return threeRecordsIssueService.getIssueAttachFileById(id);
+	}
+
+	@Override
+	public List<ThreeRecordsIssueOperate> getIssueCandoForOrg(Long stepId,
+			Organization operateOrg) {
+		return threeRecordsIssueService.getIssueCandoForOrg(stepId, operateOrg);
+	}
+
+	@Override
+	public List<ThreeRecordsIssueLogNew> getIssueDealLog(
+			ThreeRecordsIssueMap issueMap) {
+		return threeRecordsIssueService.getIssueDealLog(issueMap);
+	}
+
+	@Override
+	public List<ThreeRecordsIssueMap> getIssueMap(Long issueId, int ledgerType) {
+		return threeRecordsIssueService.getIssueMap(issueId, ledgerType);
+	}
+
+	@Override
+	public ThreeRecordsIssueStep getIssueStepById(Long stepId) {
+		return threeRecordsIssueService.getIssueStepById(stepId);
+	}
+
+	@Override
+	public int getJurisdictionsNeedDoCount(Organization organization) {
+		return threeRecordsIssueService
+				.getJurisdictionsNeedDoCount(organization);
+	}
+
+	@Override
+	public int getMyDoneCount(Organization organization) {
+		return threeRecordsIssueService.getMyDoneCount(organization);
+	}
+
+	@Override
+	public BaseWorking getSimpleBaseWorkByStepId(Long keyId) {
+		return threeRecordsIssueService.getSimpleBaseWorkByStepId(keyId);
+	}
+
+	@Override
+	public List<ThreeRecordsIssueLogNew> loadIssueOperationLogsByIssueId(
+			Long issueId, Long ledgerType) {
+		return threeRecordsIssueService.loadIssueOperationLogsByIssueId(
+				issueId, ledgerType);
+	}
+
+	@Override
+	public List<ThreeRecordsIssueAttachFile> loadLedgerAndLogAttachFilesByLedgerIdAndType(
+			Long issueId, int ledgerType) {
+		return threeRecordsIssueService
+				.loadLedgerAndLogAttachFilesByLedgerIdAndType(issueId,
+						ledgerType);
+	}
+
+	@Override
+	public List<ThreeRecordsIssueAttachFile> loadLedgerAttachFilesByLedgerIdAndType(
+			Long ledgerId, int type) {
+		return threeRecordsIssueService.loadLedgerAttachFilesByLedgerIdAndType(
+				ledgerId, type);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject periodComplete(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		return threeRecordsIssueService.periodComplete(stepId, log, files);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject programComplete(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		return threeRecordsIssueService.programComplete(stepId, log, files);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject submit(Long stepId,
+			ThreeRecordsIssueLogNew log, Long target, Long[] tells,
+			List<ThreeRecordsIssueAttachFile> files) {
+		return threeRecordsIssueService.submit(stepId, log, target, tells,
+				files);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject support(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		return threeRecordsIssueService.support(stepId, log, files);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject tmpComment(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		return threeRecordsIssueService.tmpComment(stepId, log, files);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject turn(Long stepId,
+			ThreeRecordsIssueLogNew log, Long target, Long[] tellorgs,
+			List<ThreeRecordsIssueAttachFile> files, Long[] notices) {
+		return threeRecordsIssueService.turn(stepId, log, target, tellorgs,
+				files, notices);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSupportDo(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType) {
+		return threeRecordsIssueService.findJurisdictionsNeedDo(seachValue,
+				orgId, page, rows, sidx, sord, issueType,
+				LedgerConstants.OPERATE_TYPE_SUPPORT);
+	}
+
+	@Override
+	public PageInfo<AutoCompleteData> findNoticeTargetsByName(Long stepid,
+			String tag, ThreeRecordsIssueOperate operate, Long[] exceptIds,
+			int page, int rows) {
+		return threeRecordsIssueService.findNoticeTargetsByName(stepid, tag,
+				operate, exceptIds, page, rows);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsNoticeDo(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType) {
+		return threeRecordsIssueService.findJurisdictionsNeedDo(seachValue,
+				orgId, page, rows, sidx, sord, issueType,
+				LedgerConstants.OPERATE_TYPE_NOTICE);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsCreateAndDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType) {
+		return threeRecordsIssueService.findJurisdictionsCreateAndDone(
+				seachValue, orgId, page, rows, sidx, sord, issueType);
+	}
+
+	@Override
+	public ThreeRecordsIssueLogNew getLastStepByIssueIdAndIssueType(
+			Long ledgerId, int ledgerType) {
+		return threeRecordsIssueService.getLastStepByIssueIdAndIssueType(ledgerId, ledgerType);
+	}
+
+	@Override
+	public Map<String, Integer> getIssueCount(Long orgId, Long issueType) {
+		return threeRecordsIssueService.getIssueCount(orgId, issueType);
+	}
+}

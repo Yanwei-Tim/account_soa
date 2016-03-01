@@ -1,0 +1,77 @@
+## currentProject
+currentProject=default
+
+## currentVersion
+currentVersion=3.1.3d-release
+
+isNeedUnConceptedState=true
+
+production.resourcePath=http://223.221.65.27
+
+isNotValidatePath=/download/TQIM.zip;/;/ssoLogin.action;/validateCodeServlet;/login.jsp;/loginView.jsp;/loginDLG.jsp;/f5load.html;/sessionManage/login.action;/sessionManage/searchIp.action;/sessionManage/loginForDlg.action;/singleLogin/filePermission.action;/sessionManage/getCurrentSession.action;/common/loginError.jsp;/common/error404.jsp;/common/error500.jsp;/common/errorException.jsp;/common/notHavePermissionResult.jsp;/ticket/getDataImportTicketByTicketId.action;/sysadmin/userMessage/findUserMessages.action;/sysadmin/proclamationManage/getDisplayProclamation.action;/baseinfo/gisManage/gisControllergis.action;/sysadmin/userMessage/findUserMessagesAndProclamation.action;/mobile/sessionManageMobileManage/login.action;/robots.txt
+dubbo.whiteList=com.tianque.userAuth.api.PermissionDubboService.findUserByUserName;com.tianque.userAuth.api.SessionManagerDubboService.havePermission;com.tianque.userAuth.api.SessionManagerDubboService.deleteSessionsWhenTimeOut;com.tianque.userAuth.api.SessionManagerDubboService.login;com.tianque.userAuth.api.SessionManagerDubboService.isLogin;com.tianque.userAuth.api.SessionManagerDubboService.isFirstLogin;com.tianque.userAuth.api.SessionManagerDubboService.findSessionBySessionId;com.tianque.userAuth.api.PermissionDubboService.getSimpleUserById;com.tianque.userAuth.api.OrganizationDubboRemoteService.getFullOrgById;com.tianque.userAuth.api.PermissionDubboService.findUserAllPermissionByUserIdAndPermissionEname;com.tianque.userAuth.api.OrganizationDubboRemoteService.findOrganizationInternaCodeSpecifiedOrgName;com.tianque.userAuth.api.OrganizationDubboRemoteService.getOrgInternalCodeById;com.tianque.userAuth.api.OrganizationDubboRemoteService.getSimpleOrgById;com.tianque.userAuth.api.PropertyDictDubboService.findPropertyDictByDomainName;
+
+## memcached config
+development.memcached.servers=localhost:11211
+production.memcached.servers=192.168.10.11:11211,192.168.10.12:11211,192.168.10.33:11211,192.168.10.16:11211,192.168.10.17:11211,192.168.10.18:11211,192.168.10.15:11211,192.168.10.14:11211,192.168.10.20:11211,192.168.10.21:11211,192.168.10.22:11211
+test.memcached.servers=localhost:11211
+
+## filemanage config
+production.filemanage=thirdPartyProjects/filemanage/userfiles/files
+development.filemanage=thirdPartyProjects/filemanage/userfiles/files
+test.filemanage=thirdPartyProjects/filemanage/userfiles/files
+
+production.temporaryResidentFolder=temporaryResidentFolder
+development.temporaryResidentFolder=temporaryResidentFolder
+test.temporaryResidentFolder=temporaryResidentFolder
+
+#final static consistance
+orgTreeAutoCompleteSearchNum=10
+sessionTimeOut=7200000
+#platformMessage Template
+historyMessageTemplate=historyMessage.ftl
+rectificativePersonMessageTemplate=rectificativePerson.ftl
+positiveInfoMessageTemplate=positiveInfo.ftl
+idleYouthMessageTemplate=idleYouth.ftl
+elderlyPeopleMessageTemplate=elderlyPeople.ftl
+
+production.isAsyncBbsUser=false
+bbs.baseurl=http\://192.168.20.14/asyncUser/asyncUser.php
+
+#job time config
+sessionRepeatInterval=600000
+positiveInfoNewJobCronTime=0 30 0 * * ?
+rectificativePersonJobCronTime=0 0 1 * * ?
+idleYouthTowJobCronTime=0 30 1 * * ?
+floatingPopulationJobCronTime=0 1 1 * * ?
+householdStaffOneTaskCronTime=0 2 1 * * ?
+issueTypeStanalMonthJobDoTime=0 30 0 1 * ?
+issueDealStatMonthTime=0 20 1 1 * ?
+statisticsMonthMessageTime=0 50 22 L * ?
+familyNumStatisticsJobTime=0 50 21 * * ?
+inhabitantNumStatisticsJobTime=0 30 20 * * ?
+baseInfoStatTypeJobCronTime=0 50 22 L * ?
+inhabitantConnectJobCronTime=0 0 0 * * ?
+archiveSystemLogsTime=0 0 23 L * ?
+automaticPopulationStatTime=0 10 0 1 * ?
+automaticAttentionPopulationStatTime=0 1 0 1 * ?
+actualCompanyStatJobCronTime=0 19 11 12 * ?
+newEconomicStatJobCronTime=0 52 15 12 * ?
+directoryReminderTime=0 0 17 * * ?
+builddataJobCronTime=0 0 12 1 * ? *
+sysBeginUseYear=201205
+
+gis.indexmap=/openLayersMap/product_3.0/map.jsp
+gis.boundBuildData=/openLayersMap/product_3.0/gis2Dbuilddatas.jsp
+gis.server=http\://localhost\:8082
+openfireServer=192.168.1.245
+webAppUrl=http\://localhost\:8080/module.jsp
+
+#TBSchedule config
+isSchedule=false
+TBSchedule.zkConnectString=127.0.0.1:2181
+TBSchedule.rootPath=/taobao-pamirs-schedule/sichuanAnalysis
+TBSchedule.zkSessionTimeout=3000
+TBSchedule.userName=ScheduleAdmin
+TBSchedule.password=password
+TBSchedule.isCheckParentPath=true

@@ -1,0 +1,120 @@
+package com.tianque.plugin.account.dao;
+
+import java.util.List;
+
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject;
+import com.tianque.plugin.account.vo.SearchComprehensiveVo;
+
+public interface ThreeRecordsComprehensiveDao {
+
+	/**
+	 * 待办/抄告/协办
+	 * @param searchVo
+	 * @param org
+	 * @param childOrg
+	 * @param page
+	 * @param rows
+	 * @param isSupported
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsNeedDo(
+			SearchComprehensiveVo searchVo, List<Organization> orgs, List<Long> childOrg,
+			Integer page, Integer rows, Integer isSupported);
+	
+	/**
+	 * 程序性办结
+	 * @param searchVo
+	 * @param org
+	 * @param childOrg
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs, List<Long> childOrg,
+			Integer page, Integer rows);
+	
+	/**
+	 * 阶段性办结
+	 * @param searchVo
+	 * @param org
+	 * @param childOrg
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsPeriodDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs, List<Long> childOrg,
+			Integer page, Integer rows);
+	
+	
+	/**
+	 * 实质性办结
+	 * @param searchVo
+	 * @param org
+	 * @param childOrg
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubStanceDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs, List<Long> childOrg,
+			Integer page, Integer rows);
+	
+	
+	/**
+	 * 待反馈
+	 * @param searchVo
+	 * @param org
+	 * @param childOrg
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsFeedBack(
+			SearchComprehensiveVo searchVo,  List<Organization> orgs, List<Long> childOrg,
+			Integer page, Integer rows);
+
+	
+	/**
+	 * 交办
+	 * @param searchVo
+	 * @param org
+	 * @param childOrg
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsAssgin(
+			SearchComprehensiveVo searchVo, List<Organization> orgs, List<Long> childOrg,
+			Integer page, Integer rows);
+
+	/**
+	 * 上报
+	 * @param searchVo
+	 * @param org
+	 * @param childOrg
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubmit(
+			SearchComprehensiveVo searchVo, List<Organization> orgs, List<Long> childOrg,
+			Integer page, Integer rows);
+	
+	
+	/**
+	 * 已办
+	 * @param searchVo
+	 * @param org
+	 * @param childOrg
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsCreateAndDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs, List<Long> childOrg,
+			Integer page, Integer rows);
+}

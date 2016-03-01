@@ -1,0 +1,86 @@
+@import "/resource/system/js/jqueryui/green/jquery-ui-1.9.2.custom.min.css";
+@import "main.css";
+
+/*ui*/
+.ui-tabs .ui-tabs-nav{border:1px solid #009A9D;background:#009B9E url(../images/skin/green/icon_staticsTitle.png) repeat-x;}
+.ui-tabs .ui-tabs-nav li{background:url(../images/skin/green/icon_staticsTitle.png) repeat-x;}
+.ui-tabs .ui-tabs-nav li.ui-tabs-active{color:#346FC5;background:#fff url(../images/skin/green/tabCurrent.png) repeat-x center 0;}
+.ui-tabs .ui-tabs-nav li.ui-tabs-active a{color:#037c7e;}
+.ui-dialog .ui-tabs .ui-tabs-nav{background:#eee url(../images/skin/green/dialog_tab_title.jpg) repeat;}
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-tabs-active a{color:#037c7e;}
+
+/*jqgrid*/
+.ui-jqgrid .ui-state-highlight,.ui-jqgrid tr.ui-state-hover{background:#C6E6E6;}
+
+/*jrac_zoom_slider*/
+.jrac_zoom_slider .ui-state-active{border: 1px solid #018487;background: #009a9d;}
+
+/*tablelist*/
+.tablelist .title{background:#E7F4F0;}
+
+/* header */
+.systemHeader{background: url(../images/skin/green/header_bg.jpg) repeat-x;}
+.systemHeader .logo-container{
+    background: url(../images/skin/green/head_left_bg.jpg) left bottom no-repeat;
+}
+.product-menu ul li.sysMenu{ background: url(../images/skin/green/menu_btn.png) top no-repeat;}
+.product-menu ul li.sysMenu:hover{background-position:bottom;}
+/*workbench*/
+.addworkmemos .okbtn{background:#3CBEC3;border: 1px solid #018487;}
+.column .portlet-header{background:url(../images/skin/green/map-title-bg.jpg) repeat-x; border:1px solid #009A9D;}
+.portlet-content a{color:#00999D;}
+.portlet-header .portlet_tools{background: url(/resource/workBench/images/icon_tools.png) no-repeat;}
+.calendar #today{color:#037c7e;}
+.workbench-ctt-left .btitle{background:url(../images/skin/green/left_title.jpg) no-repeat 23px center;}
+.workbench-ctt-left .ui-datepicker .ui-datepicker-calendar td .ui-state-active{background-color:#3CBEC3;}
+dl.sysMenuList dd a.select, dl.sysMenuList dd a:hover{background: url(../images/skin/green/menu_bg_hover.png) repeat-x;}
+
+.orgBoxSearchBox .organizationlist a:hover,.orgSelectBox .orgBoxResult a strong{color:#037c7e;}
+.orgSelectBox .orgBoxResult a strong{border:1px solid #C6D8E0;background:-moz-linear-gradient(top, #fafafa, #e7eef1); background:-webkit-gradient(linear, left top, left bottom, from(#fafafa), to(#e7eef1)); filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr='#fafafa',EndColorStr='#e7eef1');}
+.orgSelectBox .orgBoxResult a.cur strong,.orgSelectBox .orgBoxResult a:hover strong{background:#01979E;}
+
+
+/*nav*/
+#nav a,.btnbanner a,.btnlist a{background:url(../images/skin/green/button-bg.png) left bottom no-repeat;}
+#nav a span, .btnbanner a span,.btnlist span{background:url(../images/skin/green/button-bg.png) right bottom no-repeat;}
+
+/*nav-sub-buttons*/
+#nav .nav-sub-buttons a:hover{background:#009B9E;}
+
+/*autocomplute*/
+ul.holder li.bit-box{border: 1px solid #95D1C9;background: #D5ECE1;}
+
+/*issue*/
+.issueList li.current{border:1px solid #3E9596;background:#57BCBD;}
+.issueList li.current span.arrow{background:url(../images/skin/green/icon_issueSarrow.png) no-repeat;}
+div.issuePagination a:hover, div.issuePagination a:active{color:#fff; border:1px solid #B7E2DC; background-color:#009A9D;}
+.dealRecord h3.processRecord .processBtnList a.cur{
+	background: -moz-linear-gradient(top, white, #E9F5F1);
+	background: -webkit-gradient(linear, left top, left bottom, from(white), to(#E9F5F1));
+	filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr='#ffffff', EndColorStr='#E9F5F1');
+}
+.dealRecord h3.processRecord .processBtnList a span{background:url(../images/skin/green/icon_process_title.png) no-repeat;}
+.issueRight .recordList .recordContent{color:#027D7F;}
+div.issuePagination span.current{background:#009A9D;}
+.issueRight .recordList .recordData{border:1px solid #B7E2DC;background:#EDF8F3;}
+.issueRight .smallText{border:1px solid #B7E2DC;border-top:0;}
+/*.issueRight .issueContentInfo{background:#e7f4f0;border-bottom:1px solid #3e9596;}*/
+
+/*dlgBox*/
+.dlgBox{background-color:#F5FDFA; border:1px solid #B7E2DC;}
+.dlgRightAdd{border-left:1px solid #B7E2DC;}
+.dlgLeftMenu li.cur a{background:#7DCAA6;}
+.dlgBtnList,
+.upTreatedAvatar{border-top:1px solid #B7E2DC;}
+.dlgBtnList input,
+.upTreatedAvatar input{border: 1px solid #018487;background: #009a9d;}
+.dlgBtnList input:hover,
+.upTreatedAvatar input:hover{color:#018487;}
+.personalCatagory{border-bottom:1px solid #019B9D;}
+.personalCatagory a{background:url(/resource/system/js/jqueryui/green/images/ui-icons_015e60_256x240.png) no-repeat -129px -192px;}
+
+/*incident*/
+.Structure dd.current,.processList_content .list a.current{background:#E7F4F0;}
+
+/*ul.holder*/
+ul.holder li.bit-box-focus {background: #57BCBD !important;}

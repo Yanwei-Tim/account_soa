@@ -1,0 +1,13 @@
+alter table ledgerPeopleAspirations  add (oldLedgerType number(10));
+alter table ledgerPeopleAspirations  add (oldLedgerId number(10));
+alter table ledgerPeopleAspirations  add (oldHistoryId varchar(20));
+alter table ledgerPeopleAspirations  add (isCanFeedBack number(1));
+alter table ledgerpoorpeople  add (oldLedgerType number(10));
+alter table ledgerpoorpeople  add (oldLedgerId number(10));
+alter table ledgerpoorpeople  add (oldHistoryId varchar(20));
+alter table ledgerpoorpeople  add (isCanFeedBack number(1));
+alter table ledgerSteadyWork  add (oldLedgerType number(10));
+alter table ledgerSteadyWork  add (oldLedgerId number(10));
+alter table ledgerSteadyWork  add (oldHistoryId varchar(20));
+alter table ledgerSteadyWork  add (isCanFeedBack number(1));
+commit;

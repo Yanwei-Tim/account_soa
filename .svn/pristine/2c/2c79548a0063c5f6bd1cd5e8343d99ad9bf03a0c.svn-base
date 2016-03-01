@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+	
+<sqlMap namespace="ledgerPeopleAspirations">	
+	
+	<typeAlias alias="ledgerPeopleAspirations" type="com.tianque.plugin.account.domain.LedgerPeopleAspirations"/>
+	
+	
+	<resultMap id="peopleAspirationsResult" class="ledgerPeopleAspirations">
+		<result property="id" column="ID"/>
+		<result property="organization.id" column="ORGID"/>
+		<result property="orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="name" column="NAME"/>
+		<result property="idCardNo" column="IDCARDNO"/>
+		<result property="gender.id" column="GENDER"/>
+		<result property="birthDay" column="BIRTHDAY"/>
+		<result property="mobileNumber" column="MOBILENUMBER"/>
+		<result property="isPartyMember" column="ISPARTYMEMBER"/>
+		<result property="permanentAddress" column="PERMANENTADDRESS"/>
+		<result property="position.id" column="POSITION"/>
+		<result property="serverTelephone" column="SERVERTELEPHONE"/>
+		<result property="serverContractor" column="SERVERCONTRACTOR"/>
+		<result property="serverJob" column="SERVERJOB"/>
+		<result property="serverUnit" column="SERVERUNIT"/>
+		<result property="serialNumber" column="SERIALNUMBER"/>
+		<result property="createTableType.id" column="CREATETABLETYPE"/>
+		<result property="responseGroupNo" column="RESPONSEGROUPNO"/>
+		<result property="appealHumanType.id" column="APPEALHUMANTYPE"/>
+		<result property="isAnonymity" column="isAnonymity"/>
+		<!-- <result property="itemCategory.id" column="ITEMCATEGORY"/>
+		<result property="itemCategorySub.id" column="ITEMCATEGORYSUB"/> -->
+		<result property="appealContent" column="APPEALCONTENT" />
+		<result property="occurOrg.id" column="OCCURORGID"/>
+		<result property="occurOrgInternalCode" column="OCCURORGINTERNALCODE"/>
+		<result property="gridNo" column="GRIDNO"/>
+		<result property="bookingUnit" column="BOOKINGUNIT"/>
+		<result property="registrant" column="REGISTRANT"/>
+		<result property="registrationTime" column="REGISTRATIONTIME"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="status" column="status"/>
+		<result property="occurDate" column="occurDate"/>
+		<result property="hours" column="hours"/>
+		<result property="minute" column="minute"/>
+		<result property="subject" column="subject"/>
+		<result property="ledgerType" column="ledgerType"/>
+		<result property="oldIssueId" column="oldIssueId"/>
+		<result property="historyId" column="historyId"/>
+		<result property="oldHistoryId" column="oldHistoryId"/>
+		<result property="oldLedgerId" column="oldLedgerId"/>
+		<result property="oldLedgerType" column="oldLedgerType"/>
+		<result property="isCanFeedBack" column="isCanFeedBack"/>
+		
+	</resultMap>
+
+
+	<select id="getPeopleAspirationsById" parameterClass="java.lang.Long" resultMap="peopleAspirationsResult">
+		select * from ledgerPeopleAspirations where id=#value#
+	</select>
+
+	<insert id="addPeopleAspirations" parameterClass="ledgerPeopleAspirations">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_ledgerPeopleAspirations.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerPeopleAspirations (ID , BIRTHDAY , CREATEDATE , UPDATEDATE , MOBILENUMBER ,
+		 	ORGID , GENDER , RESPONSEGROUPNO , ISPARTYMEMBER , POSITION , APPEALHUMANTYPE ,  
+			SERIALNUMBER , SERVERTELEPHONE , ORGINTERNALCODE , NAME , IDCARDNO , 
+		 	SERVERCONTRACTOR , SERVERJOB , CREATEUSER , UPDATEUSER , PERMANENTADDRESS ,
+		  	SERVERUNIT , APPEALCONTENT , OCCURORGID , OCCURORGINTERNALCODE , GRIDNO ,
+		  	BOOKINGUNIT, REGISTRANT, REGISTRATIONTIME,CREATETABLETYPE,occurdate,hours,minute,subject,ledgerType,isAnonymity,oldIssueId,historyId,oldHistoryId,oldLedgerId,oldLedgerType)
+		values(#id#, #birthDay#, #createDate#, #updateDate#, #mobileNumber#, 
+		   #organization.id#, #gender.id#, #responseGroupNo#, 
+		   #isPartyMember#, #position.id#, #appealHumanType.id#, 
+		   #serialNumber#, #serverTelephone#, #orgInternalCode#,
+		   #name#, #idCardNo#, #serverContractor#, #serverJob#,
+		   #createUser#, #updateUser#, #permanentAddress#, #serverUnit#, 
+		   #appealContent#, #occurOrg.id#, 
+		   #occurOrgInternalCode#, #gridNo#, #bookingUnit#, #registrant#, 
+		   #registrationTime#,#createTableType.id#,#occurDate#,#hours#,#minute#,#subject#,#ledgerType#,#isAnonymity#,#oldIssueId#,#historyId#,#oldHistoryId#,#oldLedgerId#,#oldLedgerType#)
+	</insert>
+	
+	<update id="updatePeopleAspirations" parameterClass="ledgerPeopleAspirations">
+		update ledgerPeopleAspirations set id = #id# 
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+				<isNotNull prepend="," property="isAnonymity">
+					isAnonymity=#isAnonymity#
+				</isNotNull>
+				
+				<isNotNull prepend="," property="organization.id">
+					ORGID = #organization.id#
+				</isNotNull>
+				
+				<isNull prepend="," property="gender.id">
+					GENDER = null
+				</isNull>
+				<isNotNull prepend="," property="gender.id">
+					GENDER = #gender.id#
+				</isNotNull>
+				<isNotNull prepend="," property="createTableType.id">
+					createTableType = #createTableType.id#
+				</isNotNull>
+				<isNotNull prepend="," property="responseGroupNo">
+					RESPONSEGROUPNO = #responseGroupNo#
+				</isNotNull>
+				
+				<isNull prepend="," property="position.id">
+					POSITION = null
+				</isNull>
+				<isNotNull prepend="," property="position.id">
+					POSITION = #position.id#
+				</isNotNull>
+				<isNotNull prepend="," property="appealHumanType.id">
+					APPEALHUMANTYPE = #appealHumanType.id#
+				</isNotNull>
+				<isNotNull prepend="," property="serialNumber">
+					SERIALNUMBER = #serialNumber#
+				</isNotNull>
+				<isNotNull prepend="," property="serverTelephone">
+					SERVERTELEPHONE = #serverTelephone#
+				</isNotNull>
+				<isNotNull prepend="," property="orgInternalCode">
+					ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="serverContractor">
+					SERVERCONTRACTOR = #serverContractor#
+				</isNotNull>
+				<isNotNull prepend="," property="serverJob">
+					SERVERJOB = #serverJob#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				
+				<isNotNull prepend="," property="serverUnit">
+					SERVERUNIT = #serverUnit#
+				</isNotNull>
+				<isNotNull prepend="," property="appealContent">
+					APPEALCONTENT = #appealContent#
+				</isNotNull>
+				<isNotNull prepend="," property="occurOrg.id">
+					OCCURORGID = #occurOrg.id#
+				</isNotNull>
+				<isNotNull prepend="," property="occurOrgInternalCode">
+					OCCURORGINTERNALCODE = #occurOrgInternalCode#
+				</isNotNull>
+				<isNotNull prepend="," property="gridNo">
+					GRIDNO = #gridNo#
+				</isNotNull>
+				<isNotNull prepend="," property="bookingUnit">
+					BOOKINGUNIT = #bookingUnit#
+				</isNotNull>
+				<isNotNull prepend="," property="registrant">
+					REGISTRANT = #registrant#
+				</isNotNull>
+			<!--  	<isNotNull prepend="," property="registrationTime">
+					REGISTRATIONTIME = #registrationTime#
+				</isNotNull>-->
+				<isNotNull prepend="," property="occurDate">
+					occurDate = #occurDate#
+				</isNotNull>
+					<isNotNull prepend="," property="hours">
+					hours = #hours#
+				</isNotNull>
+				<isNotNull prepend="," property="minute">
+					minute = #minute#
+				</isNotNull>
+				<isNotNull prepend="," property="subject">
+					subject = #subject#
+				</isNotNull>
+				<isNull property="isPartyMember">,isPartyMember=0</isNull>
+				<isNotNull prepend="," property="isPartyMember">
+					ISPARTYMEMBER = #isPartyMember#
+				</isNotNull>
+				<isNull property="idCardNo">,BIRTHDAY=null</isNull>
+				<isNotNull prepend="," property="idCardNo">
+					BIRTHDAY = #birthDay#
+				</isNotNull>
+				,NAME = #name#
+				,IDCARDNO = #idCardNo#
+				,MOBILENUMBER = #mobileNumber#
+				,PERMANENTADDRESS = #permanentAddress#
+		where id = #id#
+	</update>
+	
+	<delete id="deletePeopleAspirationsById" parameterClass="java.lang.Long">	
+		delete  from ledgerPeopleAspirations where id = #value#	
+	</delete>
+	
+
+
+
+
+	<select id="getFullById" parameterClass="long" resultMap="peopleAspirationsResult">
+		select * from ledgerPeopleAspirations where id=#value#
+	</select>
+	
+	
+	<update id="updateIssueCurrentStepAndOrg" parameterClass="ledgerPeopleAspirations">
+		update ledgerPeopleAspirations set	status=#status# 
+		<isNotNull prepend="," property="isCanFeedBack">
+			isCanFeedBack = #isCanFeedBack#
+		</isNotNull>	
+		where id=#id#
+	</update>
+	
+	<select id="getPeopleAspirationByHistoryId" parameterClass="java.lang.String" resultMap="peopleAspirationsResult">
+		select * from ledgerPeopleAspirations where historyId=#value#
+	</select>
+	
+	
+	<update id="updateFeedBackStatus" parameterClass="map">
+		update ledgerPeopleAspirations  set	isCanFeedBack = #isFeedBack# where id=#ledgerId#
+	</update>
+
+<!-- 统计台账数，数据导入用，判断是否已经导入过 -->
+	<select id="countLedgerByOldHistoryId" parameterClass="map"
+		resultClass="java.lang.Integer">
+		select count(0) from ledgerPeopleAspirations where oldHistoryId=#oldHistoryId#
+		<isNotEmpty property="orgCode">and orginternalcode like #orgCode#||'%'</isNotEmpty>
+	</select>
+</sqlMap>

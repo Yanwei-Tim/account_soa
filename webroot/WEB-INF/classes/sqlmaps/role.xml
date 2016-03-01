@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="role">
+
+	<typeAlias alias="Role" type="com.tianque.domain.Role" />
+	
+	<parameterMap id="roleParams" class="Role">
+		<parameter property="id" />
+		<parameter property="roleName" />
+		<parameter property="createDate" />
+		<parameter property="description" />
+		<parameter property="createUser" />
+		<parameter property="updateDate" />
+		<parameter property="updateUser" />
+		<parameter property="useInLevel" />
+		<parameter property="workBenchType" />
+		<!--<parameter property="useInOrgType"/>-->
+	</parameterMap>
+	
+	<resultMap id="roleResult" class="Role">
+		<result property="id" column="id" />
+		<result property="roleName" column="roleName" />
+		<result property="description" column="description" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="useInLevel.id" column="useInLevel"/>
+		<result property="workBenchType.id" column="workBenchType"/>
+		<!--<result property="useInOrgType.id" column="useInOrgType"/>-->
+	</resultMap>
+
+	<insert id="addRole" parameterClass="Role">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_roles.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO roles
+		(id,roleName,createDate,description,createUser,updateUser,updateDate,useInLevel,workBenchType)
+		VALUES(#id#,#roleName#,#createDate#,#description#,#createUser#,#updateUser#,#updateDate#,#useInLevel.id#,#workBenchType.id#)
+	</insert>
+	
+	<insert id="addRolePermissionRela" parameterClass="java.util.Map">
+		INSERT INTO roleHasPermissions (roleId,permissionId)
+		VALUES(#roleId#,#permissionId#)
+	</insert>
+	<delete id="deleteRoleById" parameterClass="java.lang.Long">
+		delete from roles
+		where id=#value#
+	</delete>
+	<delete id="deleteRolePermissionRelasByRoleId" parameterClass="java.lang.Long">
+		delete from roleHasPermissions where roleId=#value#
+	</delete>
+	<delete id="deleteUserRoleRelasByRoleId" parameterClass="java.lang.Long">
+		delete
+		from userHasRoles where roleId=#value#
+	</delete>
+	<update id="updateRole" parameterClass="Role">
+		update roles set
+		<dynamic>
+		        id=#id#
+				<isNotNull prepend="," property="roleName">
+					roleName=#roleName#
+				</isNotNull>
+				<isNotNull prepend="," property="description">
+					description=#description#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					updateUser=#updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="useInLevel">
+				    useInLevel=#useInLevel.id#
+				</isNotNull>
+				<isNotNull prepend="," property="workBenchType">
+				    workBenchType=#workBenchType.id#
+				</isNotNull>
+				<!--
+				<isNotNull prepend="," property="useInOrgType">
+					useInOrgType=#useInOrgType.id#
+				</isNotNull>
+				-->
+				<isNotNull prepend="," property="updateDate">
+					updateDate=#updateDate#
+				</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+
+	<sql id="sql_where">
+		from roles
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="roleName">
+				<isNotNull property="roleName" prepend=" and ">
+					roleName=#roleName#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="roleValue">
+				<isNotNull property="roleValue" prepend=" and ">
+					roleValue=#roleValue#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="userId">
+				<isNotNull property="userId" prepend=" and ">
+					id in (select roleId
+					from userHasRoles where userId=#userId#)
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="userInlevel">
+				<isNotNull property="userInlevel" prepend=" and ">
+				  useinlevel <![CDATA[<=]]> #userInlevel#
+				</isNotNull>
+			</isPropertyAvailable>	
+		</dynamic>
+	</sql>
+	<select id="findRoles" parameterClass="java.util.Map" resultMap="roleResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="findRoleByRoleNameUseInLevel" parameterClass="java.util.Map" resultMap="roleResult">
+			
+		select * from roles t
+			<dynamic prepend="where">
+				<isPropertyAvailable property="levelId">
+					<isNotNull property="levelId" prepend=" and ">
+						t.useinlevel = #levelId#
+					</isNotNull>
+				</isPropertyAvailable>
+				<isPropertyAvailable property="roleName">
+					<isNotNull property="roleName" prepend=" and ">
+				    	t.rolename = #roleName#
+				    </isNotNull>
+				</isPropertyAvailable>
+			</dynamic>
+	</select>
+	
+	<select id="countRoles" parameterClass="map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	<select id="findRolesByUserId" parameterClass="java.lang.Long"
+		resultMap="roleResult">
+		select r.* from roles r,userHasRoles urr
+		where
+		r.id=urr.roleId and urr.userId=#value#
+	</select>
+	<select id="getSimpleRoleById" parameterClass="java.lang.Long"
+		resultMap="roleResult">
+		select * from roles where id=#value#
+	</select>
+	
+	<select id="findRolesByUserAndUseInLevel" resultMap="roleResult" parameterClass="map">
+		select * from roles rs,userhasroles uhr
+		where rs.id=uhr.roleid and uhr.userid=#userId# and rs.useinlevel=#useInLevel#
+	</select>
+	
+	<select id="findAllChildRolesByUseInLevel" resultMap="roleResult" parameterClass="java.lang.Long">
+		<![CDATA[
+		select * from roles where useinlevel< #useInLevel#
+		]]>
+	</select>
+	
+	<select id="findDirectlyChildRolesByUseInLevel" resultMap="roleResult" parameterClass="java.lang.Long">
+		select * from roles where useinlevel=#useInLevel#-1
+	</select>
+	
+	<resultMap id="roleAndLevelInfo" class="Role">
+		<result property="id" column="id" />
+		<result property="roleName" column="roleName" />
+		<result property="useInLevel.id" column="useinlevel"/>
+		<result property="useInLevel.displayName" column="leveDisplayname"/>
+	</resultMap>
+	<select id="findAllRolesDownCurrentOrgLevel" resultMap="roleAndLevelInfo" parameterClass="map">
+	<![CDATA[
+	select rs.id,rs.rolename,rs.useinlevel,p.displayname leveDisplayname
+          from roles rs ,propertydicts p
+		     where rs.useinlevel <= #useInLevel# and rs.rolename!='admin' and p.id=rs.useinlevel
+	]]>
+	</select>
+
+</sqlMap>

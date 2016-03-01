@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="accountKeyInfo">
+	<!-- 注释说明 -->
+	<typeAlias alias="accountKeyInfo" type="com.tianque.plugin.account.domain.AccountKeyInfo" />
+	<resultMap id="accountKeyInfoResult" class="AccountKeyInfo">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="curNum" column="curNum" />
+		<result property="step" column="step" />
+		<result property="remark" column="remark" />
+	</resultMap>
+
+	<insert id="addAccountKeyInfo" parameterClass="AccountKeyInfo">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_accountKeyInfos.NEXTVAL AS ID FROM DUAL ]]>
+	</selectKey>
+	INSERT INTO accountKeyInfos(id,name,curNum,step,remark)
+	VALUES(#id#,#name#,#curNum#,#step#,#remark#)
+	</insert>
+	
+	<update id="updateAccountKeyInfo" parameterClass="AccountKeyInfo">
+		update accountKeyInfos set 
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="curNum">
+				curNum=#curNum#
+			</isNotNull>
+			<isNotNull prepend="," property="step">
+				step=#step#
+			</isNotNull>
+			<isNotNull prepend="," property="remark">
+				remark=#remark#
+			</isNotNull>
+		 where id=#id#
+		</dynamic>
+	</update>
+	
+	<delete id="deleteAccountKeyInfoById" parameterClass="java.lang.Long">
+		delete from accountKeyInfos 
+		where id=#value#
+	</delete>
+	
+	<select id="getSimpleAccountKeyInfoById" parameterClass="java.lang.Long"
+		resultMap="accountKeyInfoResult">
+		<![CDATA[select * from accountKeyInfos where id=#value#]]>
+	</select>
+	
+	<sql id="sql_where">
+		from accountKeyInfos
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+					name=#name#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findAccountKeyInfos" parameterClass="java.util.Map" resultMap="accountKeyInfoResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		for update 
+	</select>
+	
+	
+</sqlMap>

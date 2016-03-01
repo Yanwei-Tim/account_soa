@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<!--
+		description属性代表详细描述; permissionType代表为功能或是菜单权限{1:代表菜单;0：代表功能};
+		ename属性代表对应权限的英文名; moduleName代表所属的模块; cname代表所对应的权限名称;
+	-->
+<permission-config>
+	<permission cname="系统管理子系统" ename="systemManagement"
+		permissionType="1" description=" " moduleName=" ">
+		<permission cname="系统管理" ename="baseSystemManagement"
+			permissionType="1" description=" " moduleName="系统管理">
+			<permission cname="用户管理" ename="userManagement"
+				normalUrl="/hotModuel/sysadmin/userManage/userList.jsp"
+				permissionType="1" description=" " moduleName="系统管理">
+				<permission cname="新增" ename="addUser" permissionType="0"
+					description=" " moduleName="用户管理">
+				</permission>
+				<permission cname="修改" ename="updateUser" permissionType="0"
+					description=" " moduleName="用户管理">
+				</permission>
+				<permission cname="查看" ename="viewUser" permissionType="0"
+					description=" " moduleName="用户管理">
+				</permission>
+				<permission cname="重置密码" ename="resetPassword"
+					permissionType="0" description=" " moduleName="用户管理">
+				</permission>
+				<permission cname="锁定/解锁" ename="lockUser"
+					permissionType="0" description=" " moduleName="用户管理">
+				</permission>
+				<permission cname="删除" ename="deleteUser" permissionType="0"
+					description=" " moduleName="用户管理">
+				</permission>
+				<permission cname="导入" ename="importUser" permissionType="0"
+					description=" " moduleName="用户管理">
+				</permission>
+				<permission cname="启用" ename="reUsed" permissionType="0"
+					description=" " moduleName="用户管理">
+				</permission>
+				<permission cname="禁用" ename="stopUsed" permissionType="0"
+					description=" " moduleName="用户管理">
+				</permission>
+				<permission cname="查询" ename="searchUser" permissionType="0"
+					description=" " moduleName="用户管理">
+				</permission>
+			</permission>
+			<permission cname="部门管理" ename="organizationManagement"
+				normalUrl="/hotModuel/sysadmin/orgManage/orgList.jsp"
+				permissionType="1" description=" " moduleName="系统管理">
+				<permission cname="新增" ename="addOrganization"
+					permissionType="0" description=" " moduleName="部门管理">
+				</permission>
+				<permission cname="修改" ename="updateOrganization"
+					permissionType="0" description=" " moduleName="部门管理">
+				</permission>
+				<permission cname="删除网格" ename="deleteGridOrganization"
+					permissionType="0" description=" " moduleName="部门管理">
+				</permission>
+				<permission cname="移动顺序" ename="moveOrganization"
+					permissionType="0" description=" " moduleName="部门管理">
+				</permission>
+				<permission cname="导入" ename="importOrgs" permissionType="0"
+					description=" " moduleName="部门管理">
+				</permission>
+			</permission>
+			<permission cname="用户列表" ename="usersListManagement"
+				normalUrl="/hotModuel/sysadmin/userManage/users.jsp" permissionType="1"
+				description=" " moduleName="系统管理">
+				<permission cname="修改" ename="userListUpdate"
+					permissionType="0" description=" " moduleName="用户列表">
+				</permission>
+				<permission cname="查看" ename="usersListView"
+					permissionType="0" description=" " moduleName="用户列表">
+				</permission>
+				<permission cname="重置密码" ename="usersListResetPassword"
+					permissionType="0" description=" " moduleName="用户列表">
+				</permission>
+				<permission cname="锁定/解锁" ename="usersListLockUsers"
+					permissionType="0" description=" " moduleName="用户列表">
+				</permission>
+				<permission cname="启用" ename="usersListReUsed"
+					permissionType="0" description=" " moduleName="用户列表">
+				</permission>
+				<permission cname="禁用" ename="usersListStopUsed"
+					permissionType="0" description=" " moduleName="用户列表">
+				</permission>
+				<permission cname="查询" ename="searchUserListData"
+					permissionType="0" description=" " moduleName="用户列表">
+				</permission>
+			</permission>
+
+			<permission cname="岗位管理" ename="roleManagement"
+				normalUrl="/hotModuel/sysadmin/roleManage/roleList.ftl"
+				permissionType="1" description=" " moduleName="系统管理">
+				<permission cname="修改" ename="updateRole" permissionType="0"
+					description=" " moduleName="岗位管理">
+				</permission>
+				<permission cname="删除" ename="deleteRole" permissionType="0"
+					description=" " moduleName="岗位管理">
+				</permission>
+				<permission cname="复制" ename="copyRole" permissionType="0"
+					description=" " moduleName="岗位管理">
+				</permission>
+				<permission cname="新增" ename="addRole" permissionType="0"
+					description=" " moduleName="岗位管理">
+				</permission>
+				<permission cname="查看" ename="viewRole" permissionType="0"
+					description=" " moduleName="岗位管理">
+				</permission>
+				<permission cname="查询" ename="searchRoles"
+					permissionType="0" description=" " moduleName="岗位管理">
+				</permission>
+			</permission>
+
+		</permission>
+		<permission cname="系统高级管理" ename="advancedSystemManagement"
+			permissionType="1" description=" " moduleName="系统管理">
+			<permission cname="系统属性管理" ename="propertyDictManagement"
+				normalUrl="/hotModuel/sysadmin/propertyManage/findPropertyDomain.action"
+				permissionType="1" description=" " moduleName="系统高级管理">
+				<permission cname="新增" ename="addProperty"
+					permissionType="0" description=" " moduleName="系统属性管理 ">
+				</permission>
+				<permission cname="修改" ename="updateProperty"
+					permissionType="0" description=" " moduleName="系统属性管理">
+				</permission>
+				<permission cname="删除" ename="deleteProperty"
+					permissionType="0" description=" " moduleName="系统属性管理">
+				</permission>
+				<permission cname="移动顺序" ename="moveProperty"
+					permissionType="0" description=" " moduleName="系统属性管理">
+				</permission>
+			</permission>
+			<permission cname="系统日志" ename="systemLogsManagement"
+				normalUrl="/hotModuel/sysadmin/logManage/logList.jsp"
+				permissionType="1" description=" " moduleName="系统高级管理">
+			</permission>
+			<permission cname="在线用户列表" ename="onlineSessions"
+				normalUrl="/hotModuel/sysadmin/onlineSessions.jsp" permissionType="1"
+				description=" " moduleName="系统高级管理">
+				<permission cname="注销" ename="sessionLogout"
+					permissionType="0" description=" " moduleName="在线用户列表">
+				</permission>
+			</permission>
+
+			<permission cname="权限管理" ename="permissionManageMent"
+				normalUrl="/hotModuel/sysadmin/permissionManage/permissionManageList.jsp"
+				permissionType="1" description=" " moduleName="系统高级管理">
+			</permission>
+
+			<permission cname="系统全局设置" ename="globalSettingManageMent"
+				normalUrl="/hotModuel/sysadmin/sysGlobalSetting/sideBar.jsp"
+				permissionType="1" description=" " moduleName="系统高级管理">
+			</permission>
+
+			<permission cname="系统公告" ename="systemNoticeManageMent"
+				normalUrl="/hotModuel/sysadmin/proclamationManage/proclamationsList.action"
+				permissionType="1" description=" " moduleName="系统高级管理">
+			</permission>
+		</permission>
+
+	</permission>
+		
+	<permission cname="中江台账处理" ename="serviceWork4ThreeRecords"
+		permissionType="1" description=" " moduleName=" ">
+		   <permission cname="首页信息" ename="homePageListManagement"
+					normalUrl="/account/homePage.jsp"
+					permissionType="1" description=" " moduleName="中江台账处理">
+		   </permission>
+		   <permission cname="民生信息" ename="threeRecordsListManagement"
+				permissionType="1" description=" " moduleName="中江台账处理">
+				<permission cname="水利信息" ename="waterResourcesListManagement"
+					normalUrl="/account/peopleAspiration/waterResourceList.jsp"
+					permissionType="1" description=" " moduleName="中江水利处理">
+					<permission cname="新增" ename="addWaterResource"
+						permissionType="0" description=" " moduleName="水利信息">
+					</permission>
+					<permission cname="修改" ename="updateWaterResource"
+						permissionType="0" description=" " moduleName="水利信息">
+					</permission>
+					<permission cname="删除" ename="deleteWaterResource"
+						permissionType="0" description=" " moduleName="水利信息">
+					</permission>
+                    <permission cname="导入" ename="importWaterResource"
+                                permissionType="0" description=" " moduleName="水利信息">
+                    </permission>
+					<permission cname="查询" ename="queryWaterResource"
+						permissionType="0" description=" " moduleName="水利信息">
+					</permission>
+				</permission>
+				<permission cname="交通信息" ename="trafficListManagement"
+					normalUrl="/account/peopleAspiration/trafficList.jsp"
+					permissionType="1" description=" " moduleName="中江交通处理">
+					<permission cname="新增" ename="addTraffic"
+						permissionType="0" description=" " moduleName="交通信息">
+					</permission>
+					<permission cname="修改" ename="updateTraffic"
+						permissionType="0" description=" " moduleName="交通信息">
+					</permission>
+					<permission cname="删除" ename="deleteTraffic"
+						permissionType="0" description=" " moduleName="交通信息">
+					</permission>
+					<permission cname="查询" ename="queryTraffic"
+						permissionType="0" description=" " moduleName="交通信息">
+					</permission>
+				</permission>
+				<permission cname="能源信息" ename="energyListManagement"
+					normalUrl="/account/peopleAspiration/energyList.jsp"
+					permissionType="1" description=" " moduleName="中江能源处理">
+					<permission cname="新增" ename="addEnergy"
+						permissionType="0" description=" " moduleName="能源信息">
+					</permission>
+					<permission cname="修改" ename="updateEnergy"
+						permissionType="0" description=" " moduleName="能源信息">
+					</permission>
+					<permission cname="删除" ename="deleteEnergy"
+						permissionType="0" description=" " moduleName="能源信息">
+					</permission>
+					<permission cname="查询" ename="queryEnergy"
+						permissionType="0" description=" " moduleName="能源信息">
+					</permission>
+					
+					
+				</permission>
+				
+				<permission cname="教育信息" ename="educationListManagement"
+					normalUrl="/account/peopleAspiration/educationList.jsp"
+					permissionType="1" description=" " moduleName="中江教育处理">
+					<permission cname="新增" ename="addEducation"
+						permissionType="0" description=" " moduleName="教育信息">
+					</permission>
+					<permission cname="修改" ename="updateEducation"
+						permissionType="0" description=" " moduleName="教育信息">
+					</permission>
+					<permission cname="删除" ename="deleteEducation"
+						permissionType="0" description=" " moduleName="教育信息">
+					</permission>
+					<permission cname="查询" ename="queryEducation"
+						permissionType="0" description=" " moduleName="教育信息">
+					</permission>
+					
+				</permission>
+				
+				
+				<permission cname="科技文体信息" ename="scienceListManagement"
+					normalUrl="/account/peopleAspiration/scienceList.jsp"
+					permissionType="1" description=" " moduleName="中江科技文体处理">
+					<permission cname="新增" ename="addScience"
+						permissionType="0" description=" " moduleName="医疗卫生信息">
+					</permission>
+					<permission cname="修改" ename="updateScience"
+						permissionType="0" description=" " moduleName="医疗卫生信息">
+					</permission>
+					<permission cname="删除" ename="deleteScience"
+						permissionType="0" description=" " moduleName="医疗卫生信息">
+					</permission>
+					<permission cname="查询" ename="queryScience"
+						permissionType="0" description=" " moduleName="医疗卫生信息">
+					</permission>
+					
+				</permission>
+				
+				
+				
+				<permission cname="医疗卫生信息" ename="medicalListManagement"
+					normalUrl="/account/peopleAspiration/medicalList.jsp"
+					permissionType="1" description=" " moduleName="中江医疗卫生处理">
+					<permission cname="新增" ename="addMedical"
+						permissionType="0" description=" " moduleName="医疗卫生信息">
+					</permission>
+					<permission cname="修改" ename="updateMedical"
+						permissionType="0" description=" " moduleName="医疗卫生信息">
+					</permission>
+					<permission cname="删除" ename="deleteMedical"
+						permissionType="0" description=" " moduleName="医疗卫生信息">
+					</permission>
+					<permission cname="查询" ename="queryMedical"
+						permissionType="0" description=" " moduleName="医疗卫生信息">
+					</permission>
+					
+				</permission>
+				
+			<permission cname="劳动和社会保障信息" ename="laborListManagement"
+					normalUrl="/account/peopleAspiration/laborList.jsp"
+					permissionType="1" description=" " moduleName="中江劳动和社会保障处理">
+					<permission cname="新增" ename="addLabor"
+						permissionType="0" description=" " moduleName="劳动和社会保障信息">
+					</permission>
+					<permission cname="修改" ename="updateLabor"
+						permissionType="0" description=" " moduleName="劳动和社会保障信息">
+					</permission>
+					<permission cname="删除" ename="deleteLabor"
+						permissionType="0" description=" " moduleName="劳动和社会保障信息">
+					</permission>
+					<permission cname="查询" ename="queryLabor"
+						permissionType="0" description=" " moduleName="劳动和社会保障信息">
+					</permission>
+				</permission>
+				
+			<permission cname="环境保护信息" ename="environmentListManagement"
+					normalUrl="/account/peopleAspiration/environmentList.jsp"
+					permissionType="1" description=" " moduleName="中江环境保护处理">
+					<permission cname="新增" ename="addEnvironment"
+						permissionType="0" description=" " moduleName="环境保护信息">
+					</permission>
+					<permission cname="修改" ename="updateEnvironment"
+						permissionType="0" description=" " moduleName="环境保护信息">
+					</permission>
+					<permission cname="删除" ename="deleteEnvironment"
+						permissionType="0" description=" " moduleName="环境保护信息">
+					</permission>
+					<permission cname="查询" ename="queryEnvironment"
+						permissionType="0" description=" " moduleName="环境保护信息">
+					</permission>
+				</permission>
+				
+				
+			<permission cname="城乡规划建设管理信息" ename="townListManagement"
+					normalUrl="/account/peopleAspiration/townList.jsp"
+					permissionType="1" description=" " moduleName="中江劳动和社会保障处理">
+					<permission cname="新增" ename="addTown"
+						permissionType="0" description=" " moduleName="城乡规划建设管理信息">
+					</permission>
+					<permission cname="修改" ename="updateTown"
+						permissionType="0" description=" " moduleName="城乡规划建设管理信息">
+					</permission>
+					<permission cname="删除" ename="deleteTown"
+						permissionType="0" description=" " moduleName="城乡规划建设管理信息">
+					</permission>
+					<permission cname="查询" ename="queryTown"
+						permissionType="0" description=" " moduleName="城乡规划建设管理信息">
+					</permission>
+				</permission>		
+				
+			
+			<permission cname="农业信息" ename="agricultureListManagement"
+					normalUrl="/account/peopleAspiration/agricultureList.jsp"
+					permissionType="1" description=" " moduleName="中江农业资源处理">
+					<permission cname="新增" ename="addAgriculture"
+						permissionType="0" description=" " moduleName="农业信息">
+					</permission>
+					<permission cname="修改" ename="updateAgriculture"
+						permissionType="0" description=" " moduleName="农业信息">
+					</permission>
+					<permission cname="删除" ename="deleteAgriculture"
+						permissionType="0" description=" " moduleName="农业信息">
+					</permission>
+					<permission cname="查询" ename="queryAgriculture"
+						permissionType="0" description=" " moduleName="农业信息">
+					</permission>
+					
+				</permission>		
+				
+			
+			<permission cname="其他信息" ename="otherListManagement"
+					normalUrl="/account/peopleAspiration/otherList.jsp"
+					permissionType="1" description=" " moduleName="中江农业资源处理">
+					<permission cname="新增" ename="addOther"
+						permissionType="0" description=" " moduleName="其他资源">
+					</permission>
+					<permission cname="修改" ename="updateOther"
+						permissionType="0" description=" " moduleName="其他资源">
+					</permission>
+					<permission cname="删除" ename="deleteOther"
+						permissionType="0" description=" " moduleName="其他资源">
+					</permission>
+					<permission cname="查询" ename="queryOther"
+						permissionType="0" description=" " moduleName="其他资源">
+					</permission>
+				</permission>			
+			</permission>
+			
+			<permission cname="困难群众信息" ename="difficultPeopleRecordManagement"
+				 normalUrl="/account/difficultPeopleRecord/ledgerPoorPeopleRecordList.jsp"
+				 permissionType="1" description=" " moduleName="中江台账处理">
+					<permission cname="新增" ename="addDifficultPeopleRecord"
+						permissionType="0" description=" " moduleName="困难群众信息">
+					</permission>
+					<permission cname="修改" ename="updateDifficultPeopleRecord"
+						permissionType="0" description=" " moduleName="困难群众信息">
+					</permission>
+					<permission cname="删除" ename="deleteDifficultPeopleRecord"
+						permissionType="0" description=" " moduleName="困难群众信息">
+					</permission>
+					<permission cname="查询" ename="queryDifficultPeopleRecord"
+						permissionType="0" description=" " moduleName="困难群众信息">
+					</permission>
+			 </permission>
+			 
+			 <permission cname="稳定信息" ename="steadyRecordManagement"
+				 normalUrl="/account/steadyRecord/ledgerSteadyWorkRecordList.jsp"
+				 permissionType="1" description=" " moduleName="中江台账处理">
+					<permission cname="新增" ename="addLedgerSteadyWorkRecord"
+						permissionType="0" description=" " moduleName="稳定信息">
+					</permission>
+					<permission cname="修改" ename="updateLedgerSteadyWorkRecord"
+						permissionType="0" description=" " moduleName="稳定信息">
+					</permission>
+					<permission cname="删除" ename="deleteLedgerSteadyWorkRecord"
+						permissionType="0" description=" " moduleName="稳定信息">
+					</permission>
+					<permission cname="查询" ename="queryLedgerSteadyWorkRecord"
+						permissionType="0" description=" " moduleName="稳定信息">
+					</permission>
+			 </permission>
+			 
+			 <permission cname="统计报表" ename="ledgerReportManagement" permissionType="1" description=" " moduleName="中江台账处理">
+				<permission cname="工作月报表" ename="ledgerReportWorkMonth" normalUrl="/account/report/index.jsp?reportType=1" permissionType="1" description=" " moduleName="统计报表">
+				</permission>
+			</permission>
+			
+		</permission>
+
+</permission-config>

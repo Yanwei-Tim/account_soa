@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="uservo">
+	<!-- 注释说明 -->
+	<typeAlias alias="User" type="com.tianque.domain.User" />
+	<typeAlias alias="Role" type="com.tianque.domain.Role" />
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+
+
+	<resultMap id="baseUserInfoResult" class="User">
+		<result property="id" column="id" />
+		<result property="userName" column="userName" />
+		<result property="name" column="name" />
+		<result property="organization.id" column="organizationId" />
+	</resultMap>
+
+	<resultMap id="userResult" extends="baseUserInfoResult" class="User">
+		<result property="mobile" column="mobile" />
+		<result property="workCompany" column="workCompany" />
+		<result property="workPhone" column="workPhone" />
+		<result property="homePhone" column="homePhone" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="password" column="password" />
+		<result property="isAdmin" column="isAdmin" />
+		<result property="isLock" column="isLock" />
+		<result property="changePassword" column="changePassword" />
+		<result property="email" column="email" />
+
+		<result property="hasNewMessage" column="hasNewMessage" />
+		<result property="lastLoginTime" column="lastLoginTime" />
+		<result property="lastLoginIp" column="lastLoginIp" />
+		<result property="previousLoginTime" column="previousLoginTime" />
+		<result property="previousLoginIp" column="previousLoginIp" />
+
+		<result property="credits1" column="credits1" />
+		<result property="credits2" column="credits2" />
+
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="failureTimes" column="failureTimes" />
+		<result property="vpdn" column="vpdn"/>
+		<result property="isShutDown" column="isShutDown"/>
+		<result property="connectVpdn" column="connectVpdn"/>
+	</resultMap>
+
+	<resultMap id="fullUserRsult" extends="userResult" class="User">
+		<result property="roles" column="id" select="user.loadUserRoles"/>
+		<result property="multiZone" column="id" select="user.loadUserMultiZone"/>
+	</resultMap>
+	
+	<sql id="sql_where">
+		from users  
+		<dynamic prepend=" WHERE ">
+			<isPropertyAvailable property="userName">
+				<isNotEmpty property="userName" prepend=" and ">
+					userName like '$userName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+					<isNotEmpty property="name" prepend=" and ">
+						name like '$name$%'
+					</isNotEmpty>
+			</isPropertyAvailable>
+			<isEqual prepend="AND" property="ignoreIsShutDownOrNot" compareValue="1">
+	                    isShutDown = 0
+	        </isEqual>
+	        <isEqual prepend="AND" property="ignoreIsShutDownOrNot" compareValue="2">
+	                isShutDown = 1
+	        </isEqual>
+	        <isPropertyAvailable property="roleIds">
+	         <isNotEmpty property="roleIds">
+	          <isNotNull property="roleIds" prepend=" and ">
+				exists 
+				(select 1 from userhasroles r
+				         where r.userid = u.id
+				           and r.roleid in (
+		            <iterate property="roleIds" conjunction=",">
+						#roleIds[]#
+				    </iterate>)
+				  )
+			  </isNotNull>
+			 </isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<select id="countUsersByUserCondition" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+			<isPropertyAvailable property="isLock" prepend="and">
+						isLock = #isLock#
+			</isPropertyAvailable>
+	</select>
+	<select id="searchUserListData" parameterClass="java.util.Map" resultMap="fullUserRsult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+			<isPropertyAvailable property="isLock" prepend="and">
+						isLock = #isLock#
+			</isPropertyAvailable>
+	</select>
+	<select id="countUsersByUserConditionBylockStatus" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	<select id="searchUserListDataBylockStatus" parameterClass="java.util.Map" resultMap="fullUserRsult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+	</select>
+	
+</sqlMap>

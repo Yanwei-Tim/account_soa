@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	description属性代表详细描述;
+	permissionType代表为功能或是菜单权限{1:代表菜单;0：代表功能};
+	ename属性代表对应权限的英文名;
+	moduleName代表所属的模块;
+	cname代表所对应的权限名称;
+ -->
+<permission-config>
+	<permission cname="測試管理子系统" ename="testSystemManagement" permissionType="1" description=" " moduleName=" ">
+		<permission cname="測試管理" ename="testManagement" normalUrl="/hotModuel/testManage/testList.ftl" permissionType="1" description=" " moduleName="測試管理子系统"/>
+	</permission>
+</permission-config>

@@ -1,0 +1,101 @@
+@import "/resource/system/js/jqueryui/default/jquery-ui-1.9.2.custom.min.css";
+@import "/resource/system/css/main.css";
+
+/*ui*/
+.ui-tabs .ui-tabs-nav{border:1px solid #3874C8;background:#4B87D4 url(../images/skin/default/icon_staticsTitle.png) repeat-x;}
+.ui-tabs .ui-tabs-nav li{background:url(../images/skin/default/icon_staticsTitle.png) repeat-x;}
+.ui-tabs .ui-tabs-nav li.ui-tabs-active{color:#346FC5;background:url(../images/skin/default/tabCurrent.png) repeat-x center 0;}
+.ui-tabs .ui-tabs-nav li.ui-tabs-active a{color:#346FC5;}
+.ui-dialog .ui-tabs .ui-tabs-nav{background:#eee url(../images/skin/default/dialog_tab_title.jpg) repeat-x;}
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-tabs-active a{color:#346FC5;}
+
+/*jqgrid*/
+.ui-jqgrid .ui-state-highlight,.ui-jqgrid tr.ui-state-hover{background:#e6f0fb;}
+
+/*jrac_zoom_slider*/
+.jrac_zoom_slider .ui-state-active{border: 1px solid #346fc5;background: #3874ca;}
+
+/*tablelist*/
+.tablelist .title{background:#ECF1F8;}
+
+/* header */
+.systemHeader{background: url(../images/skin/default/header_bg.jpg) repeat-x;}
+.systemHeader .logo-container{
+    background: url(../images/skin/default/head_left_bg.jpg) left bottom no-repeat;
+}
+.product-menu ul li.sysMenu{ background: url(../images/skin/default/menu_btn.png) top no-repeat;}
+.product-menu ul li.sysMenu:hover{background-position:bottom;}
+
+/*workbench*/
+.addworkmemos .okbtn{background:#1C85C7;border:1px solid #0D659B;}
+.column .portlet-header{
+    background:url(../images/skin/default/map-title-bg.jpg) repeat-x;
+    border:1px solid #4286CF;
+    border-left:1px solid #83A4D1;
+    border-right:1px solid #83A4D1;
+}
+.portlet-header .portlet_tools{
+	background: url(../images/skin/default/icon_tools.png) no-repeat;
+}
+.portlet-content a{color:#06c;}
+.workbench-ctt-left .btitle{background:url(../images/skin/default/left_title.jpg) no-repeat 23px center;}
+.calendar #today,.workbench-ctt-left .today h3{
+	color:#336ec4;
+}
+.workbench-ctt-left .ui-datepicker .ui-datepicker-calendar td .ui-state-active{
+    background-color:#4984D3;
+}
+dl.sysMenuList dd a.select, dl.sysMenuList dd a:hover{
+    background: url(../images/skin/default/menu_bg_hover.png) repeat-x;
+}
+.workbench-ctt-left .ui-datepicker .ui-datepicker-calendar td{}
+
+/*orgBoxSearchBox*/
+.orgBoxSearchBox .organizationlist a:hover{color:#4b86d2;}
+.orgSelectBox .orgBoxResult a strong{color:#4b86d2;border:1px solid #C6D8E0;background:-moz-linear-gradient(top, #fafafa, #e7eef1); background:-webkit-gradient(linear, left top, left bottom, from(#fafafa), to(#e7eef1)); filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr='#fafafa',EndColorStr='#e7eef1');}
+.orgSelectBox .orgBoxResult a.cur strong,.orgSelectBox .orgBoxResult a:hover strong{background:#4687DE;}
+
+
+/*nav*/
+#nav a,.btnbanner a,.btnlist a{background:url(../images/skin/default/button-bg.png) left bottom no-repeat;}
+#nav a span, .btnbanner a span,.btnlist span{background:url(../images/skin/default/button-bg.png) right bottom no-repeat;}
+
+/*nav-sub-buttons*/
+#nav .nav-sub-buttons a:hover{background:#3366CC;}
+
+/*autocomplute*/
+ul.holder li.bit-box{border: 1px solid #5D99CD;background: #E8F2FC;}
+
+/*issueList*/
+.issueList li.current{border:1px solid #4581D9;background:#7CA9E2;}
+.issueList li.current span.arrow{background:url(../images/skin/default/icon_issueSarrow.png) no-repeat;}
+div.issuePagination a:hover, div.issuePagination a:active{color:#fff; border:1px solid #b7d8ee; background-color:#d2eaf6;}
+.dealRecord h3.processRecord .processBtnList a.cur{
+	background: -moz-linear-gradient(top, white, #E9F5F1);
+	background: -webkit-gradient(linear, left top, left bottom, from(white), to(#E9F5F1));
+	filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr='#ffffff', EndColorStr='#E9F5F1');
+}
+.dealRecord h3.processRecord .processBtnList a span{background:url(../images/skin/default/icon_process_title.png) no-repeat;}
+.issueRight .recordData .time{background-position:right center;}
+.issueRight .recordList .recordData{border:1px solid #C7E1F6; background:#E6F0FB;}
+.issueRight .smallText{border:1px solid #C7E1F6;border-top:0;}
+/*.issueRight .issueContentInfo{background:#ebf7fe;border-bottom:1px solid #4581d9;}*/
+
+/*dlgBox*/
+.dlgBox{background-color:#eff4f8; border:1px solid #A6C9E2;}
+.dlgRightAdd{border-left:1px solid #A6C9E2;}
+.dlgLeftMenu li.cur a{background:#82A9D9;}
+.dlgBtnList,
+.upTreatedAvatar{border-top:1px solid #A6C9E2;}
+.dlgBtnList input,
+.upTreatedAvatar input{border: 1px solid #346fc5;background: #3874ca;}
+.dlgBtnList input:hover,
+.upTreatedAvatar input:hover{color:#2d62ac;}
+.personalCatagory{border-bottom:1px solid #437FD5;}
+.personalCatagory a{background:url(/resource/system/js/jqueryui/default/images/ui-icons_346fc5_256x240.png) no-repeat -129px -192px;}
+
+/*incident*/
+.Structure dd.current,.processList_content .list a.current{background:#C2DAF2;}
+
+/*ul.holder*/
+ul.holder li.bit-box-focus {background: #5D99CD !important;}

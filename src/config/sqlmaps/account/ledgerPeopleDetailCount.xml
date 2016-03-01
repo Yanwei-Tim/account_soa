@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="ledgerPeopleDetailCount">
+	<typeAlias alias="LedgerDetail" type="com.tianque.plugin.account.vo.LedgerDetail" />
+	<typeAlias alias="LedgerWaterDetail" type="com.tianque.plugin.account.vo.LedgerWaterDetail" />
+	<typeAlias alias="LedgerTrafficDetail" type="com.tianque.plugin.account.vo.LedgerTrafficDetail" />
+	<typeAlias alias="LedgerEducationDetail" type="com.tianque.plugin.account.vo.LedgerEducationDetail" />
+	<typeAlias alias="LedgerEnergyDetail" type="com.tianque.plugin.account.vo.LedgerEnergyDetail" />
+	<typeAlias alias="LedgerScienceDetail" type="com.tianque.plugin.account.vo.LedgerScienceDetail" />
+	<typeAlias alias="LedgerMedicalDetail" type="com.tianque.plugin.account.vo.LedgerMedicalDetail" />
+	<typeAlias alias="LedgerLaborDetail" type="com.tianque.plugin.account.vo.LedgerLaborDetail" />
+	<typeAlias alias="LedgerEnvironmentDetail" type="com.tianque.plugin.account.vo.LedgerEnvironmentDetail" />
+	<typeAlias alias="LedgerTownDetail" type="com.tianque.plugin.account.vo.LedgerTownDetail" />
+	<typeAlias alias="LedgerAgricultureDetail" type="com.tianque.plugin.account.vo.LedgerAgricultureDetail" />
+	<typeAlias alias="LedgerOtherDetail" type="com.tianque.plugin.account.vo.LedgerOtherDetail" />
+	
+	<resultMap class="LedgerDetail" id="allResult">
+		<result property="count" column="count" />
+		<result property="responseGroupNo" column="responseGroupNo" />
+		<result property="plannedInvestment" column="plannedInvestment" />
+		<result property="selfFund" column="selfFund" />
+		<result property="gapFund" column="gapFund" />
+		<result property="beneficiaryNumber" column="beneficiaryNumber" />
+	</resultMap>
+	<resultMap class="LedgerWaterDetail" id="allWaterResult" extends="allResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="impoundage" column="impoundage" />
+		<result property="scatter" column="scatter" />
+		<result property="mileage" column="mileage" />
+		<result property="num" column="num" />
+	</resultMap>
+	<resultMap class="LedgerWaterDetail" id="buildWaterResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="buildType" column="buildType" />
+		<result property="centralized" column="centralized" />
+		<result property="mileage" column="mileage" />
+		<result property="num" column="num" />
+		<result property="count" column="count" />
+	</resultMap>
+	
+	<resultMap class="LedgerTrafficDetail" id="allTrafficResult" extends="allResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="wide" column="wide" />
+		<result property="rodeWide" column="rodeWide" />
+		<result property="rodeLength" column="rodeLength" />
+		<result property="mileage" column="mileage" />
+	</resultMap>
+	<resultMap class="LedgerTrafficDetail" id="buildTrafficResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="buildType" column="buildType" />
+		<result property="mileage" column="mileage" />
+		<result property="count" column="count" />
+		<result property="rodeLength" column="rodeLength" />
+	</resultMap>
+	<resultMap class="LedgerTrafficDetail" id="subCategoryTrafficResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="projectSubCategory" column="projectSubCategory" />
+		<result property="count" column="count" />
+	</resultMap>
+	<resultMap class="LedgerTrafficDetail" id="passSubCategoryTrafficResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="projectSubCategory" column="projectSubCategory" />
+		<result property="passengerCategory" column="passengerCategory" />
+		<result property="count" column="count" />
+	</resultMap>
+	
+	<resultMap class="LedgerEducationDetail" id="allEducationResult" extends="allResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="buildArea" column="buildArea" />
+	</resultMap>
+	<resultMap class="LedgerEducationDetail" id="buildEducationResult" extends="allResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="projectsubcategory" column="projectsubcategory" />
+		<result property="buildArea" column="buildArea" />
+	</resultMap>
+	<resultMap class="LedgerEducationDetail" id="buildEducationAreaResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="buildType" column="buildType" />
+		<result property="buildArea" column="buildArea" />
+	</resultMap>
+	<resultMap class="LedgerEducationDetail" id="subBuildEducationResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="projectsubcategory" column="projectsubcategory" />
+		<result property="buildType" column="buildType" />
+		<result property="buildArea" column="buildArea" />
+	</resultMap>
+	<resultMap class="LedgerEducationDetail" id="disEducationResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="projectsubcategory" column="projectsubcategory" />
+		<result property="distanceCategory" column="distanceCategory" />
+		<result property="count" column="count" />
+	</resultMap>
+	<resultMap class="LedgerEducationDetail" id="roadEducationResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="projectsubcategory" column="projectsubcategory" />
+		<result property="roadConditionCategory" column="roadConditionCategory" />
+		<result property="count" column="count" />
+	</resultMap>
+	
+	<resultMap class="LedgerEnergyDetail" id="allEnergyResult" extends="allResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="securityNum" column="securityNum" />
+	</resultMap>
+	<resultMap class="LedgerEnergyDetail" id="subEnergyResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="projectsubcategory" column="projectsubcategory" />
+		<result property="mileage" column="mileage" />
+		<result property="securityNum" column="securityNum" />
+		<result property="energyNumber" column="energyNumber" />
+		<result property="capacity" column="capacity" />
+		<result property="count" column="count" />
+	</resultMap>
+	<resultMap class="LedgerEnergyDetail" id="subSecEnergyResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="securityCategory" column="securityCategory" />
+		<result property="count" column="count" />
+	</resultMap>
+	
+	<resultMap class="LedgerScienceDetail" id="allScienceResult" extends="allResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="projectsubcategory" column="projectsubcategory" />
+		<result property="scienceScope" column="scienceScope" />
+		<result property="publicizeNum" column="publicizeNum" />
+	</resultMap>
+	
+	<resultMap class="LedgerMedicalDetail" id="allMedicalResult" extends="allResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="equipment" column="equipment" />
+		<result property="buildArea" column="buildArea" />
+	</resultMap>
+	
+	<resultMap class="LedgerLaborDetail" id="allLaborResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="count" column="count" />
+		<result property="responseGroupNo" column="responseGroupNo" />
+		<result property="relationNumber" column="relationNumber" />
+		<result property="money" column="money" />
+	</resultMap>
+	<resultMap class="LedgerLaborDetail" id="subLaborResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="projectSubCategory" column="projectSubCategory" />
+		<result property="count" column="count" />
+	</resultMap>
+	<resultMap class="LedgerLaborDetail" id="subCotentLaborResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="projectSubCategory" column="projectSubCategory" />
+		<result property="projectSubContentCategory" column="projectSubContentCategory" />
+		<result property="count" column="count" />
+	</resultMap>
+	
+	<resultMap class="LedgerEnvironmentDetail" id="allEnvironmentResult" extends="allResult">
+		<result property="projectCategory" column="projectCategory" />
+	</resultMap>
+	<resultMap class="LedgerEnvironmentDetail" id="subEnvironmentResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="projectSubCategory" column="projectSubCategory" />
+		<result property="count" column="count" />
+	</resultMap>
+	
+	<resultMap class="LedgerTownDetail" id="allTownResult" extends="allResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="scopeNumber" column="scopeNumber" />
+		<result property="area" column="area" />
+		<result property="mileage" column="mileage" />
+	</resultMap>
+	
+	<resultMap class="LedgerAgricultureDetail" id="allAgricultureResult" extends="allResult">
+		<result property="projectCategory" column="projectCategory" />
+	</resultMap>
+	<resultMap class="LedgerAgricultureDetail" id="subAgricultureResult">
+		<result property="projectCategory" column="projectCategory" />
+		<result property="projectSubCategory" column="projectSubCategory" />
+		<result property="num" column="num" />
+		<result property="trainNumber" column="trainNumber" />
+		<result property="trainPeopleNumber" column="trainPeopleNumber" />
+		<result property="scopeNumber" column="scopeNumber" />
+		<result property="quantities" column="quantities" />
+	</resultMap>
+	
+	<resultMap class="LedgerOtherDetail" id="allOtherResult" extends="allResult">
+		<result property="projectCategory" column="projectCategory" />
+	</resultMap>
+	
+	<sql id="sql_people_select">
+		<dynamic>
+			<isNotNull property="appealContent">  
+				<![CDATA[   and lpp.appealContent like  '%'||#appealContent#||'%' ]]>
+			</isNotNull>
+			
+			<isNotNull property="beginCreateDate">  
+				<![CDATA[   and lpp.createDate > #beginCreateDate# ]]>
+			</isNotNull> 
+			
+			<isNotNull property="endCreateDate">  
+				<![CDATA[   and lpp.createDate < #endCreateDate# ]]>
+			</isNotNull> 
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_resources_select">
+		<dynamic>
+			<isNotNull property="gapFund">  
+				<isEqual property="isGtGapFund" compareValue="1">
+			  		<![CDATA[  and ledger.gapFund >= #gapFund# ]]>
+				</isEqual>
+				<isEqual property="isGtGapFund" compareValue="0">
+			  		<![CDATA[  and ledger.gapFund < #gapFund# ]]>
+				</isEqual>
+			</isNotNull>
+			
+			<isNotNull property="selfFund">  
+				<isEqual property="isGtSelfFund" compareValue="1">
+			  		<![CDATA[  and ledger.selfFund >= #selfFund# ]]>
+				</isEqual>
+				<isEqual property="isGtSelfFund" compareValue="0">
+			  		<![CDATA[  and ledger.selfFund < #selfFund# ]]>
+				</isEqual>
+			</isNotNull> 
+			
+			<isNotNull property="beneficiaryNumber">  
+				<isEqual property="isGtbeneficiaryNumber" compareValue="1">
+			  		<![CDATA[ and ledger.BENEFICIARYNUMBER >= #beneficiaryNumber# ]]>
+				</isEqual>
+				<isEqual property="isGtbeneficiaryNumber" compareValue="0">
+			  		<![CDATA[  and ledger.BENEFICIARYNUMBER < #beneficiaryNumber# ]]>
+				</isEqual>
+			</isNotNull> 
+			
+			<isNotNull property="plannedInvestment">  
+				<isEqual property="isGtPlannedInvestment" compareValue="1">
+			  		<![CDATA[  and ledger.PLANNEDINVESTMENT >= #plannedInvestment# ]]>
+				</isEqual>
+				<isEqual property="isGtPlannedInvestment" compareValue="0">
+			  		<![CDATA[   and ledger.PLANNEDINVESTMENT < #plannedInvestment# ]]>
+				</isEqual>
+			</isNotNull> 
+			
+			<isNotNull property="projectCategory">  
+				<![CDATA[   and ledger.PROJECTCATEGORY = #projectCategory# ]]>
+			</isNotNull>
+			
+			<isNotNull property="buildType">  
+				<![CDATA[   and ledger.BUILDTYPE = #buildType# ]]>
+			</isNotNull> 
+			
+			<isNotNull property="buildAddress">  
+				<![CDATA[   and (ledger.FROMADDRESS like  '%'||#buildAddress#||'%' or ledger.TOADDRESS like  '%'||#buildAddress#||'%') ]]>
+			</isNotNull> 
+		</dynamic>
+	</sql>
+	
+<select id="getAllWaterResult" parameterClass="map" resultMap="allWaterResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,count(ledger.id) count,sum(lpp.RESPONSEGROUPNO) responseGroupNo,decode(sum(IMPOUNDAGE),null,0,sum(IMPOUNDAGE)) impoundage,
+	decode(sum(PLANNEDINVESTMENT),null,0,sum(PLANNEDINVESTMENT)) plannedInvestment,decode(sum(SELFFUND),null,0,sum(SELFFUND)) selfFund,decode(sum(GAPFUND),null,0,sum(GAPFUND)) gapFund,
+	decode(sum(BENEFICIARYNUMBER),null,0,sum(BENEFICIARYNUMBER)) beneficiaryNumber,decode(sum(SCATTER),null,0,sum(SCATTER)) scatter,decode(sum(mileage),null,0,sum(mileage)) mileage,
+	decode(sum(num),null,0,sum(num)) num
+	from ledgerwaterresource ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory]]>
+</select>
+<select id="getBuildWaterResult" parameterClass="map" resultMap="buildWaterResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.buildType buildType,
+	decode(sum(centralized),null,0,sum(centralized)) centralized,decode(sum(mileage),null,0,sum(mileage)) mileage,
+	decode(sum(num),null,0,sum(num)) num,count(ledger.id) count
+	from ledgerwaterresource ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.buildType]]>
+</select>
+
+<select id="getAllTrafficResult" parameterClass="map" resultMap="allTrafficResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,count(ledger.id) count,sum(lpp.RESPONSEGROUPNO) responseGroupNo,decode(sum(wide),null,0,sum(wide)) wide,
+	decode(sum(PLANNEDINVESTMENT),null,0,sum(PLANNEDINVESTMENT)) plannedInvestment,decode(sum(SELFFUND),null,0,sum(SELFFUND)) selfFund,decode(sum(GAPFUND),null,0,sum(GAPFUND)) gapFund,
+	decode(sum(BENEFICIARYNUMBER),null,0,sum(BENEFICIARYNUMBER)) beneficiaryNumber,decode(sum(rodeLength),null,0,sum(rodeLength)) rodeLength,decode(sum(mileage),null,0,sum(mileage)) mileage,
+	decode(sum(rodeWide),null,0,sum(rodeWide)) rodeWide
+	from ledgertraffic ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory]]>
+</select>
+<select id="getBuildTrafficResult" parameterClass="map" resultMap="buildTrafficResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.buildType buildType,decode(sum(mileage),null,0,sum(mileage)) mileage,count(ledger.id) count,
+	decode(sum(rodeLength),null,0,sum(rodeLength)) rodeLength
+	from ledgertraffic ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.buildType]]>
+</select>
+<select id="getSubCategoryTrafficResult" parameterClass="map" resultMap="subCategoryTrafficResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.projectSubCategory projectSubCategory,count(ledger.id) count
+	from ledgertraffic ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.projectSubCategory]]>
+</select>
+<select id="getPassSubCategoryTrafficResult" parameterClass="map" resultMap="passSubCategoryTrafficResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.projectSubCategory projectSubCategory,ledger.passengerManageCategory passengerCategory,
+	count(ledger.id) count from ledgertraffic ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.projectSubCategory,ledger.passengerManageCategory]]>
+</select>
+
+
+<select id="getAllEductionResult" parameterClass="map" resultMap="allEducationResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,count(ledger.id) count,sum(lpp.RESPONSEGROUPNO) responseGroupNo,
+	decode(sum(PLANNEDINVESTMENT),null,0,sum(PLANNEDINVESTMENT)) plannedInvestment,decode(sum(SELFFUND),null,0,sum(SELFFUND)) selfFund,decode(sum(GAPFUND),null,0,sum(GAPFUND)) gapFund,
+	decode(sum(BENEFICIARYNUMBER),null,0,sum(BENEFICIARYNUMBER)) beneficiaryNumber,decode(sum(buildArea),null,0,sum(buildArea)) buildArea
+	from ledgereducation ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory]]>
+</select>
+<select id="getBuildEductionResult" parameterClass="map" resultMap="buildEducationResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.projectsubcategory projectsubcategory,count(ledger.id) count,sum(lpp.RESPONSEGROUPNO) responseGroupNo,
+	decode(sum(PLANNEDINVESTMENT),null,0,sum(PLANNEDINVESTMENT)) plannedInvestment,decode(sum(SELFFUND),null,0,sum(SELFFUND)) selfFund,decode(sum(GAPFUND),null,0,sum(GAPFUND)) gapFund,
+	decode(sum(BENEFICIARYNUMBER),null,0,sum(BENEFICIARYNUMBER)) beneficiaryNumber,decode(sum(buildArea),null,0,sum(buildArea)) buildArea
+	from ledgereducation ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.projectsubcategory]]>
+</select>
+<select id="getBuildEductionAreaResult" parameterClass="map" resultMap="buildEducationAreaResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.buildType buildType,decode(sum(buildArea),null,0,sum(buildArea)) buildArea
+	from ledgereducation ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.buildType]]>
+</select>
+<select id="getSubBuildEducationResult" parameterClass="map" resultMap="subBuildEducationResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.projectsubcategory projectsubcategory,ledger.buildType buildType,
+	decode(sum(buildArea),null,0,sum(buildArea)) buildArea
+	from ledgereducation ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.projectsubcategory,ledger.buildType]]>
+</select>
+<select id="getDisEducationResult" parameterClass="map" resultMap="disEducationResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.projectsubcategory projectsubcategory,ledger.distanceCategory distanceCategory,count(ledger.id) count
+	from ledgereducation ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.projectsubcategory,ledger.distanceCategory]]>
+</select>
+<select id="getRoadEducationResult" parameterClass="map" resultMap="roadEducationResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.projectsubcategory projectsubcategory,ledger.roadConditionCategory roadConditionCategory,count(ledger.id) count
+	from ledgereducation ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.projectsubcategory,ledger.roadConditionCategory]]>
+</select>
+
+
+<select id="getAllEnergyResult" parameterClass="map" resultMap="allEnergyResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,count(ledger.id) count,sum(lpp.RESPONSEGROUPNO) responseGroupNo,
+	decode(sum(PLANNEDINVESTMENT),null,0,sum(PLANNEDINVESTMENT)) plannedInvestment,decode(sum(SELFFUND),null,0,sum(SELFFUND)) selfFund,decode(sum(GAPFUND),null,0,sum(GAPFUND)) gapFund,
+	decode(sum(BENEFICIARYNUMBER),null,0,sum(BENEFICIARYNUMBER)) beneficiaryNumber,decode(sum(securityNum),null,0,sum(securityNum)) securityNum
+	from ledgerenergy ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory]]>
+</select>
+<select id="getSubEnergyResult" parameterClass="map" resultMap="subEnergyResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.projectSubCategory projectSubCategory,count(ledger.id) count,decode(sum(mileage),null,0,sum(mileage)) mileage,
+	decode(sum(securityNum),null,0,sum(securityNum)) securityNum,decode(sum(capacity),null,0,sum(capacity)) capacity,decode(sum(energyNumber),null,0,sum(energyNumber)) energyNumber
+	from ledgerenergy ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.projectSubCategory]]>
+</select>
+<select id="getSubSecEnergyResult" parameterClass="map" resultMap="subSecEnergyResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.securityCategory securityCategory,count(ledger.id) count
+	from ledgerenergy ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.securityCategory]]>
+</select>
+
+<select id="getAllScienceResult" parameterClass="map" resultMap="allScienceResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.projectSubCategory projectSubCategory,count(ledger.id) count,sum(lpp.RESPONSEGROUPNO) responseGroupNo,
+	decode(sum(PLANNEDINVESTMENT),null,0,sum(PLANNEDINVESTMENT)) plannedInvestment,decode(sum(SELFFUND),null,0,sum(SELFFUND)) selfFund,decode(sum(GAPFUND),null,0,sum(GAPFUND)) gapFund,
+	decode(sum(BENEFICIARYNUMBER),null,0,sum(BENEFICIARYNUMBER)) beneficiaryNumber,decode(sum(scienceScope),null,0,sum(scienceScope)) scienceScope,
+	decode(sum(publicizeNum),null,0,sum(publicizeNum)) publicizeNum
+	from ledgerscience ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.projectSubCategory]]>
+</select>
+
+<select id="getAllMedicalResult" parameterClass="map" resultMap="allMedicalResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,count(ledger.id) count,sum(lpp.RESPONSEGROUPNO) responseGroupNo,
+	decode(sum(PLANNEDINVESTMENT),null,0,sum(PLANNEDINVESTMENT)) plannedInvestment,decode(sum(SELFFUND),null,0,sum(SELFFUND)) selfFund,decode(sum(GAPFUND),null,0,sum(GAPFUND)) gapFund,
+	decode(sum(BENEFICIARYNUMBER),null,0,sum(BENEFICIARYNUMBER)) beneficiaryNumber,decode(sum(equipment),null,0,sum(equipment)) equipment,
+	decode(sum(buildArea),null,0,sum(buildArea)) buildArea
+	from ledgermedical ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory]]>
+</select>
+
+<select id="getAllLaborResult" parameterClass="map" resultMap="allLaborResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,count(ledger.id) count,sum(lpp.RESPONSEGROUPNO) responseGroupNo,
+	decode(sum(relationNumber),null,0,sum(relationNumber)) relationNumber,decode(sum(money),null,0,sum(money)) money
+	from ledgerlabor ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory]]>
+</select>
+<select id="getSubLaborResult" parameterClass="map" resultMap="subLaborResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.projectSubCategory projectSubCategory,count(ledger.id) count
+	from ledgerlabor ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.projectSubCategory]]>
+</select>
+<select id="getSubCotentLaborResult" parameterClass="map" resultMap="subCotentLaborResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.projectSubCategory projectSubCategory,ledger.projectSubContentCategory projectSubContentCategory,
+	count(ledger.id) count from ledgerlabor ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.projectSubCategory,ledger.projectSubContentCategory]]>
+</select>
+
+<select id="getAllEnvironmentResult" parameterClass="map" resultMap="allEnvironmentResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,count(ledger.id) count,sum(lpp.RESPONSEGROUPNO) responseGroupNo,
+	decode(sum(PLANNEDINVESTMENT),null,0,sum(PLANNEDINVESTMENT)) plannedInvestment,decode(sum(SELFFUND),null,0,sum(SELFFUND)) selfFund,decode(sum(GAPFUND),null,0,sum(GAPFUND)) gapFund,
+	decode(sum(BENEFICIARYNUMBER),null,0,sum(BENEFICIARYNUMBER)) beneficiaryNumber
+	from ledgerenvironment ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory]]>
+</select>
+<select id="getSubEnvironmentResult" parameterClass="map" resultMap="subEnvironmentResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.projectSubCategory projectSubCategory,count(ledger.id) count
+	from ledgerenvironment ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.projectSubCategory]]>
+</select>
+
+<select id="getAllTownResult" parameterClass="map" resultMap="allTownResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,count(ledger.id) count,sum(lpp.RESPONSEGROUPNO) responseGroupNo,
+	decode(sum(PLANNEDINVESTMENT),null,0,sum(PLANNEDINVESTMENT)) plannedInvestment,decode(sum(SELFFUND),null,0,sum(SELFFUND)) selfFund,decode(sum(GAPFUND),null,0,sum(GAPFUND)) gapFund,
+	decode(sum(BENEFICIARYNUMBER),null,0,sum(BENEFICIARYNUMBER)) beneficiaryNumber,
+	decode(sum(scopeNumber),null,0,sum(scopeNumber)) scopeNumber,
+	decode(sum(area),null,0,sum(area)) area,decode(sum(mileage),null,0,sum(mileage)) mileage
+	from ledgertown ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory]]>
+</select>
+
+<select id="getAllAgricultureResult" parameterClass="map" resultMap="allAgricultureResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,count(ledger.id) count,sum(lpp.RESPONSEGROUPNO) responseGroupNo,
+	decode(sum(PLANNEDINVESTMENT),null,0,sum(PLANNEDINVESTMENT)) plannedInvestment,decode(sum(SELFFUND),null,0,sum(SELFFUND)) selfFund,decode(sum(GAPFUND),null,0,sum(GAPFUND)) gapFund,
+	decode(sum(BENEFICIARYNUMBER),null,0,sum(BENEFICIARYNUMBER)) beneficiaryNumber
+	from ledgeragriculture ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory]]>
+</select>
+<select id="getSubAgricultureResult" parameterClass="map" resultMap="subAgricultureResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,ledger.projectSubCategory projectSubCategory,
+	decode(sum(scopeNumber),null,0,sum(scopeNumber)) scopeNumber,decode(sum(quantities),null,0,sum(quantities)) quantities,decode(sum(num),null,0,sum(num)) num,
+	decode(sum(trainNumber),null,0,sum(trainNumber)) trainNumber,decode(sum(trainPeopleNumber),null,0,sum(trainPeopleNumber)) trainPeopleNumber
+	from ledgeragriculture ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory,ledger.projectSubCategory]]>
+</select>
+
+<select id="getAllOtherResult" parameterClass="map" resultMap="allOtherResult">
+	<![CDATA[ select ledger.projectCategory projectCategory,count(ledger.id) count,sum(lpp.RESPONSEGROUPNO) responseGroupNo,
+	decode(sum(PLANNEDINVESTMENT),null,0,sum(PLANNEDINVESTMENT)) plannedInvestment,decode(sum(SELFFUND),null,0,sum(SELFFUND)) selfFund,decode(sum(GAPFUND),null,0,sum(GAPFUND)) gapFund,
+	decode(sum(BENEFICIARYNUMBER),null,0,sum(BENEFICIARYNUMBER)) beneficiaryNumber
+	from ledgerother ledger,ledgerpeopleaspirations lpp where lpp.id = ledger.ledgerpeopleaspirationsid
+	and lpp.orginternalcode like #orgCode#||'%']]>
+	<include refid="sql_people_select" />
+	<include refid="sql_resources_select" />
+	<![CDATA[ group by ledger.projectCategory]]>
+</select>
+</sqlMap>

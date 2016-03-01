@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="user">
+	<!-- 注释说明 -->
+	<typeAlias alias="User" type="com.tianque.domain.User" />
+	<typeAlias alias="Role" type="com.tianque.domain.Role" />
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+
+	<parameterMap id="userParams" class="User">
+		<parameter property="id" />
+		<parameter property="userName" />
+		<parameter property="name" />
+		<parameter property="password" />
+		<parameter property="mobile" />
+		<parameter property="isLock" />
+		<parameter property="isAdmin" />
+		<parameter property="changePassword" />
+		<parameter property="hasNewMessage" />
+		<parameter property="fullPinyin" />
+		<parameter property="simplePinyin" />
+
+		<parameter property="organization.id" />
+		<parameter property="credits1" />
+		<parameter property="credits2" />
+		<parameter property="email" />
+		<parameter property="workCompany" />
+		<parameter property="workPhone" />
+		<parameter property="homePhone" />
+
+		<parameter property="lastLoginTime" />
+		<parameter property="lastLoginIp" />
+		<parameter property="previousLoginTime" />
+		<parameter property="previousLoginIp" />
+
+		<parameter property="createDate" />
+		<parameter property="createUser" />
+		<parameter property="updateUser" />
+		<parameter property="updateDate" />
+		<parameter property="orgInternalCode" />
+		<parameter property="failureTimes" />
+		<parameter property="vpdn" />
+		<parameter property="isShutDown" />
+		<parameter property="connectVpdn" />
+		<parameter property="isFristWorkBench" />
+	</parameterMap>
+
+	<resultMap id="baseUserInfoResult" class="User">
+		<result property="id" column="id" />
+		<result property="userName" column="userName" />
+		<result property="name" column="name" />
+		<result property="organization.id" column="organizationId" />
+		<result property="isFristWorkBench" column="isFristWorkBench" />
+		<result property="headerUrl" column="headerUrl"/>
+	</resultMap>
+
+	<resultMap id="userResult" extends="baseUserInfoResult" class="User">
+		<result property="mobile" column="mobile" />
+		<result property="workCompany" column="workCompany" />
+		<result property="workPhone" column="workPhone" />
+		<result property="homePhone" column="homePhone" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="password" column="password" />
+		<result property="isAdmin" column="isAdmin" />
+		<result property="isLock" column="isLock" />
+		<result property="changePassword" column="changePassword" />
+		<result property="email" column="email" />
+
+		<result property="hasNewMessage" column="hasNewMessage" />
+		<result property="lastLoginTime" column="lastLoginTime" />
+		<result property="lastLoginIp" column="lastLoginIp" />
+		<result property="previousLoginTime" column="previousLoginTime" />
+		<result property="previousLoginIp" column="previousLoginIp" />
+
+		<result property="credits1" column="credits1" />
+		<result property="credits2" column="credits2" />
+
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="failureTimes" column="failureTimes" />
+		<result property="vpdn" column="vpdn"/>
+		<result property="isShutDown" column="isShutDown"/>
+		<result property="connectVpdn" column="connectVpdn"/>
+	</resultMap>
+
+	<resultMap id="fullUserRsult" extends="userResult" class="User">
+		<result property="roles" column="id" select="user.loadUserRoles"/>
+		<result property="multiZone" column="id" select="user.loadUserMultiZone"/>
+	</resultMap>
+
+	<resultMap id="organizationResult" class="Organization">
+		<result property="id" column="id" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="orgName" column="orgName" />
+		<result property="orgType.id" column="orgType" />
+		<result property="orgLevel.id" column="orgLevel" />
+		<result property="contactWay" column="contactWay" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="subCount" column="subCount" />
+		<result property="parentOrg.id" column="parentId" />
+		<result property="maxCode" column="maxCode" />
+		<result property="seq" column="seq" />
+		<result property="remark" column="remark" />
+	</resultMap>
+
+	<resultMap id="roleResult" class="Role">
+		<result property="id" column="id" />
+		<result property="roleName" column="roleName" />
+		<result property="description" column="description" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="useInLevel.id" column="useInLevel"/>
+	</resultMap>
+
+	<insert id="addUser" parameterClass="User">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_users.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO users
+		(id,userName,name,mobile,workCompany,workPhone,homePhone,fullPinyin,simplePinyin,
+		password,isAdmin,isLock,changePassword,email,hasNewMessage,credits1,credits2,
+		createUser,createDate,organizationId,orgInternalCode,failureTimes,vpdn,isShutDown,connectVpdn)
+		VALUES(#id#,#userName#,#name#,#mobile#,#workCompany#,#workPhone#,#homePhone#,#fullPinyin#,#simplePinyin#,
+		#password#,#isAdmin#,#isLock#,#changePassword#,#email#,#hasNewMessage#,
+		#credits1#,#credits2#,#createUser#,#createDate#,#organization.id#,#orgInternalCode#,#failureTimes#,
+		#vpdn#,#isShutDown#,#connectVpdn#)
+	</insert>
+	<insert id="addUserRoleRela" parameterClass="java.util.Map">
+		INSERT INTO userHasRoles (roleId,userId)
+		VALUES(#roleId#,#userId#)
+	</insert>
+	<insert id="addUserMultiZone" parameterClass="java.util.Map">
+		INSERT INTO userHasMultizones (organizationId,userId)
+		VALUES(#organizationId#,#userId#)
+	</insert>
+	<delete id="deleteUserById" parameterClass="java.lang.Long">
+		delete from users
+		where id=#value#
+	</delete>
+	<delete id="deleteUserRoleRelasByUserId" parameterClass="java.lang.Long">
+		delete
+		from userHasRoles where userId=#value#
+	</delete>
+	<delete id="deleteUserMultiZoneByUserId" parameterClass="java.lang.Long">
+		delete
+		from userHasMultizones where userId=#value#
+	</delete>
+	<select id="getSimpleUserById" parameterClass="java.lang.Long"
+		resultMap="userResult">
+		<![CDATA[select * from users where id=#value#]]>
+	</select>
+	<select id="getFullUserById" parameterClass="java.lang.Long"
+		resultMap="fullUserRsult">
+		<![CDATA[select * from users where id=#value#]]>
+	</select>
+	<select id="getFullUserByUerName" parameterClass="java.lang.String"
+		resultMap="fullUserRsult">
+		<![CDATA[select * from users where userName=#userName#]]>
+	</select>
+
+	<select id="findUserForAutocomplete" parameterClass="map"
+		resultMap="baseUserInfoResult">
+		select u.id,u.userName,u.name,u.organizationId,u.isFristWorkBench from users u
+		<dynamic prepend="where">
+			<isPropertyAvailable property="organizationId" prepend="and">
+				u.organizationId = #organizationId#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInnerCode" prepend="and">
+				u.orgInternalCode like #orgInnerCode#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="searchLockStatus" prepend="and">
+				u.isLock = #searchLockStatus#
+			</isPropertyAvailable>
+			<isPropertyAvailable property="condition" prepend="and">
+				(u.userName like #condition# or u.name like #condition#
+					or u.fullPinyin like #condition# or u.simplePinyin like #condition#)
+			</isPropertyAvailable>
+		</dynamic>
+		order by u.name
+	</select>
+
+	<select id="loadUserRoles" resultMap="roleResult">
+		<![CDATA[select r.* from userHasRoles uroles
+		left join roles r on r.id=uroles.roleId where uroles.userId=#value#]]>
+	</select>
+
+	<select id="loadUserMultiZone" resultMap="organizationResult">
+		<![CDATA[select org.* from userHasMultizones uzones
+		left join organizations org on org.id=uzones.organizationId where uzones.userId=#value#]]>
+	</select>
+
+	<update id="updateUser" parameterClass="User">
+		update users set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="userName">
+				userName=#userName#
+			</isNotNull>
+			<isNotNull prepend="," property="password">
+				password=#password#
+			</isNotNull>
+			<isNotNull prepend="," property="email">
+				email=#email#
+			</isNotNull>
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="workCompany">
+				workCompany=#workCompany#
+			</isNotNull>
+			<isNotNull prepend="," property="workPhone">
+				workPhone=#workPhone#
+			</isNotNull>
+			<isNotNull prepend="," property="mobile">
+				mobile=#mobile#
+			</isNotNull>
+			<isNotNull prepend="," property="homePhone">
+				homePhone=#homePhone#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="changePassword">
+				changePassword=#changePassword#
+			</isNotNull>
+			<isNotNull prepend="," property="isAdmin">
+				isAdmin=#isAdmin#
+			</isNotNull>
+			<isNotNull prepend="," property="lastLoginTime">
+				lastLoginTime=#lastLoginTime#
+			</isNotNull>
+			<isNotNull prepend="," property="lastLoginIp">
+				lastLoginIp=#lastLoginIp#
+			</isNotNull>
+			<isNotNull prepend="," property="previousLoginTime">
+				previousLoginTime=#previousLoginTime#
+			</isNotNull>
+			<isNotNull prepend="," property="previousLoginIp">
+				previousLoginIp=#previousLoginIp#
+			</isNotNull>
+			<isNotNull prepend="," property="failureTimes">
+				failureTimes=#failureTimes#
+			</isNotNull>
+			<isNotNull prepend="," property="isShutDown">
+				isShutDown=#isShutDown#
+			</isNotNull>
+			<isNotNull prepend="," property="connectVpdn">
+				connectVpdn=#connectVpdn#
+			</isNotNull>
+			<isNotNull prepend="," property="vpdn">
+				vpdn=#vpdn#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	<sql id="sql_where">
+		from users
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="userName">
+				<isNotNull property="userName" prepend=" and ">
+					userName=#userName#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="password">
+				<isNotNull property="password" prepend=" and ">
+					password=#password#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organizationId">
+				<isNotNull property="organizationId" prepend=" and ">
+					organizationId = #organizationId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotNull property="orgInternalCode" prepend=" and ">
+					orgInternalCode like #orgInternalCode#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isLock">
+				<isNotNull property="isLock" prepend=" and ">
+					isLock=#isLock#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="connectVpdn">
+				<isNotNull property="connectVpdn" prepend=" and ">
+					isLock=#connectVpdn#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<sql id="search_user_sql_where">
+		from users
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="userName">
+				<isNotEmpty property="userName" prepend=" and ">
+					userName like '$userName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					name like '$name$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobile">
+				<isNotEmpty  property="mobile" prepend=" and " >
+					mobile like '$mobile$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="organization.id">
+				<isNotNull  property="organization.id" prepend=" and " >
+					organizationId=#organization.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="workPhone">
+				<isNotEmpty property="workPhone" prepend=" and ">
+					workPhone like '$workPhone$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="homePhone">
+				<isNotEmpty property="homePhone" prepend=" and ">
+					homePhone like '$homePhone$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="lastLoginTime">
+				<isNotEmpty property="lastLoginTime" prepend=" and ">
+					to_char(lastLoginTime,'yyyy-mm-dd') = to_char(#lastLoginTime#,'yyyy-mm-dd')
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="timeforQuery">
+				<isNotEmpty property="timeforQuery" prepend=" and ">
+				<![CDATA[
+					to_char(lastLoginTime,'yyyy-mm-dd') < to_char(#timeforQuery#,'yyyy-mm-dd')
+					]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isEqual prepend="AND" property="ignoreIsAdminOrNot" compareValue="1">
+                    isAdmin = 0
+            </isEqual>
+            <isEqual prepend="AND" property="ignoreIsAdminOrNot" compareValue="2">
+                    isAdmin = 1
+            </isEqual>
+			<isEqual prepend="AND" property="ignoreIsShutDownOrNot" compareValue="1">
+                    isShutDown = 0
+            </isEqual>
+            <isEqual prepend="AND" property="ignoreIsShutDownOrNot" compareValue="2">
+                    isShutDown = 1
+            </isEqual>
+			<isPropertyAvailable property="connectVpdn">
+				<isNotNull property="connectVpdn" prepend=" and ">
+					connectVpdn = #connectVpdn#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<select id="findUsers" parameterClass="java.util.Map" resultMap="userResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findUsersByUserCondition" parameterClass="User" resultMap="fullUserRsult">
+		<include refid="common.sql_select" />
+		<include refid="search_user_sql_where" />
+		<isPropertyAvailable property="isLock" prepend="and">
+				isLock = #isLock#
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findUsersByUserConditionBylockStatus" parameterClass="User" resultMap="fullUserRsult">
+		<include refid="common.sql_select" />
+		<include refid="search_user_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="findChildUsersByEnameAndOrgCode" parameterClass="java.util.Map" resultMap="userResult">
+		<![CDATA[
+			select distinct t.* from users t,userhasroles ur,rolehaspermissions rp,permissions p
+			where t.id=ur.userid and ur.roleid=rp.roleid and rp.permissionid=p.id and p.ename=#ename#
+			and t.ORGANIZATIONID in($orgcode$)
+		]]>
+	</select>
+	<select id="findChildUsersByEnameAndInternalCode" parameterClass="java.util.Map" resultMap="userResult">
+		<![CDATA[
+			select t.* from users t,userhasroles ur,rolehaspermissions rp,permissions p
+			where t.id=ur.userid and ur.roleid=rp.roleid and rp.permissionid=p.id and p.ename=#ename#
+			and t.ORGINTERNALCODE =#internalCode#
+		]]>
+	</select>
+	<select id="findChildUsersByEnameAndPrentOrgId" parameterClass="java.util.Map" resultMap="userResult">
+		<![CDATA[
+			select distinct t.* from users t,userhasroles ur,rolehaspermissions rp,permissions p
+			where t.id=ur.userid and ur.roleid=rp.roleid and rp.permissionid=p.id and p.ename=#ename#
+			and exists (select 1 from (select * from organizations t where exists(select 1 from organizations t1 where t.parentid=t1.id and t1.id=#orgid#)) where t.ORGANIZATIONID=id)
+		]]>
+	</select>
+	<select id="countUsers" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	<select id="countUsersByUserCondition" parameterClass="User" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="search_user_sql_where" />
+		<isPropertyAvailable property="isLock" prepend="and">
+			isLock = #isLock#
+		</isPropertyAvailable>
+	</select>
+	<select id="countUsersByUserConditionBylockStatus" parameterClass="User" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="search_user_sql_where" />
+	</select>
+
+	<select id="usedRoleCount" parameterClass="java.lang.Long"
+		resultClass="java.lang.Integer">
+		select count(*)  from userHasRoles uhr
+		where uhr.roleId = #value#
+	</select>
+	<select id="countUsersByOrgInternalCode" parameterClass="java.lang.String"
+		resultClass="java.lang.Integer">
+		select count(*)  from users where orgInternalCode like '$value$%'
+	</select>
+
+	<update id="updateIsLockById" parameterClass="java.util.Map">
+		update users set isLock=#isLock# where id=#id#
+	</update>
+
+	<update id="updateFailureTimesById" parameterClass="java.util.Map">
+		update users set failureTimes=#failureTimes# where id=#id#
+	</update>
+
+	<update id="updateUserPassword" parameterClass="java.util.Map">
+		update users set password=#password#,changePassword=0
+		<isPropertyAvailable property="email">
+			<isNotNull property="email" prepend=",">
+				email=#email#
+			</isNotNull>
+		</isPropertyAvailable>
+		where id=#id#
+	</update>
+<!-- modify by FCY at 2011.12.26 start -->
+	<update id="resetUserPassword2" parameterClass="java.util.Map">
+		update users set password=#password#
+		where
+		userName=#userName#
+	</update>
+<!-- modify by FCY at 2011.12.26 end -->
+	<update id="resetUserPassword" parameterClass="java.util.Map">
+		update users set password=#password#
+		<isPropertyAvailable property="email">
+			<isNotNull property="email" prepend=",">
+				email=#email#
+			</isNotNull>
+		</isPropertyAvailable>
+		where id=#id#
+	</update>
+
+	<delete id="deleteMultizoneByUserId" parameterClass="java.lang.Long">
+		delete from userHasMultizones where userId=#value#
+	</delete>
+	<delete id="deleteMultizoneByUserIdAndZoneIds" parameterClass="java.util.Map">
+		delete from userHasMultizones where userId=#userId# and organizationId in
+		<iterate property="zoneIds" close=")" open="("
+		   	conjunction=",">
+		   	#zoneIds[]#
+	  	</iterate>
+	</delete>
+	<insert id="addMultizoneByUserIdAndZoneId" parameterClass="java.util.Map">
+		insert into userHasMultizones (userId,organizationId) values (#userId#,#zoneId#)
+	</insert>
+
+	<delete id="deleteRoleByUserIdAndRoleIds" parameterClass="java.util.Map">
+		delete from userHasRoles where userId=#userId# and roleId in
+		<iterate property="roleIds" close=")" open="("
+		   	conjunction=",">
+		   	#roleIds[]#
+	  	</iterate>
+	</delete>
+	<insert id="addRoleByUserIdAndRoleId" parameterClass="java.util.Map">
+		insert into userHasRoles (userId,roleId) values (#userId#,#roleId#)
+	</insert>
+	<update id="updateOrgIdByOldOrgId" parameterClass="java.util.Map" >
+		update users set organizationId=#organizationId# where organizationId=#oldOrganizationId#
+	</update>
+
+	<select id="hasPermissionByEname" parameterClass="map" resultClass="long">
+		select count(*) from roles rs,rolehaspermissions rhp,permissions p,
+		(select u.id,org.orgtype,org.orglevel from users u,organizations org where org.id=u.organizationid) ul,
+		userhasroles uhr
+		where rhp.roleid=rs.id and p.id=rhp.permissionid and p.ename=#permissionEname#
+		and ul.id=$userId$
+		and rs.useinlevel=ul.orglevel
+		and uhr.userid=$userId$ and rs.id=uhr.roleid
+	</select>
+
+	<update id="updateUserDetails" parameterClass="map" >
+	    update users set
+	    <dynamic>
+            id=#id#
+            <isNotNull prepend="," property="userName">
+                userName=#userName#
+            </isNotNull>
+            <isNotNull prepend="," property="name">
+                name=#name#
+            </isNotNull>
+            <isNotNull prepend="," property="workCompany">
+                workCompany=#workCompany#
+            </isNotNull>
+            <isNotNull prepend="," property="workPhone">
+                workPhone=#workPhone#
+            </isNotNull>
+            <isNotNull prepend="," property="mobile">
+                mobile=#mobile#
+            </isNotNull>
+            <isNotNull prepend="," property="homePhone">
+                homePhone=#homePhone#
+            </isNotNull>
+            <isNotNull prepend="," property="headerUrl">
+                headerUrl=#headerUrl#
+            </isNotNull>
+            where id=#id#
+        </dynamic>
+	</update>
+
+	<update id="initWorkBench" parameterClass="java.util.Map">
+	update users set isFristWorkBench=#isFristWorkBench#
+	     where id=#id#
+	</update>
+
+	<select id="findUserIdsByRoleId" parameterClass="java.lang.Long" resultClass="long">
+		<![CDATA[select userId from userHasRoles where roleId=#value#]]>
+	</select>
+
+	<select id="findUserIdsByOrgIds" parameterClass="java.util.Map" resultClass="long">
+		select id from users where organizationId in
+		<iterate property="orgIdList" open="("  close=")"  conjunction=",">
+		    #orgIdList[]#
+		</iterate>
+	</select>
+</sqlMap>

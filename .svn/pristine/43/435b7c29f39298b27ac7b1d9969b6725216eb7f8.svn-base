@@ -1,0 +1,256 @@
+package com.tianque.plugin.account.dao;
+
+import java.util.List;
+
+import com.tianque.plugin.account.domain.Agriculture;
+import com.tianque.plugin.account.domain.Education;
+import com.tianque.plugin.account.domain.Energy;
+import com.tianque.plugin.account.domain.Environment;
+import com.tianque.plugin.account.domain.Labor;
+import com.tianque.plugin.account.domain.LedgerPeopleAspirations;
+import com.tianque.plugin.account.domain.Medical;
+import com.tianque.plugin.account.domain.Other;
+import com.tianque.plugin.account.domain.Science;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.Town;
+import com.tianque.plugin.account.domain.Traffic;
+import com.tianque.plugin.account.domain.WaterResources;
+
+public interface PeopleAspirationDao {
+
+	/**
+	 * 修改
+	 * 
+	 * @param peopleAspirations
+	 * @return
+	 */
+	LedgerPeopleAspirations updatePeopleAspirations(
+			LedgerPeopleAspirations peopleAspirations);
+
+	LedgerPeopleAspirations addPeopleAspirations(
+			LedgerPeopleAspirations peopleAspirations);
+
+	LedgerPeopleAspirations getPeopleAspirations(Long id);
+
+	public void deletePeopleAspirationById(Long id);
+
+	public LedgerPeopleAspirations getFullById(Long id);
+
+	void updateLedgerCurrentStepAndOrg(LedgerPeopleAspirations peopleAspirations);
+
+	WaterResources addWaterResources(WaterResources resource);
+
+	WaterResources updateWaterResources(WaterResources resource);
+
+	public void deleteWaterResourcesByAspirationId(Long id);
+
+	WaterResources getWaterResourcesByAspirationId(Long id);
+
+	public WaterResources getWaterResourcesById(Long id);
+
+	public Traffic getTrafficById(Long id);
+
+	Traffic addTraffic(Traffic resource);
+
+	Traffic updateTraffic(Traffic resource);
+
+	/*
+	 * 根据peopleAspiration 编号删除交通信息
+	 */
+	public void deleteTrafficByAspirationId(Long id);
+
+	/*
+	 * 根据peopleAspiration 编号查询交通信息
+	 */
+	Traffic getTrafficByAspirationId(Long id);
+
+	public Agriculture getAgricultureById(Long id);
+
+	Agriculture addAgriculture(Agriculture resource);
+
+	Agriculture updateAgriculture(Agriculture resource);
+
+	/*
+	 * 根据peopleAspiration 编号删除农业信息
+	 */
+	public void deleteAgricultureByAspirationId(Long id);
+
+	/*
+	 * 根据peopleAspiration 编号查询农业信息
+	 */
+	Agriculture getAgricultureByAspirationId(Long id);
+
+	public Other getOtherById(Long id);
+
+	Other addOther(Other resource);
+
+	Other updateOther(Other resource);
+
+	/*
+	 * 根据peopleAspiration 编号删除其它信息
+	 */
+	public void deleteOtherByAspirationId(Long id);
+
+	/*
+	 * 根据peopleAspiration 编号查询其它信息
+	 */
+	Other getOtherByAspirationId(Long id);
+
+	public Environment getEnvironmentById(Long id);
+
+	Environment addEnvironment(Environment resource);
+
+	Environment updateEnvironment(Environment resource);
+
+	/*
+	 * 根据peopleAspiration 编号删除环境保护信息
+	 */
+	public void deleteEnvironmentByAspirationId(Long id);
+
+	/*
+	 * 根据peopleAspiration 编号查询环境保护信息
+	 */
+	Environment getEnvironmentByAspirationId(Long id);
+
+	public Education getEducationById(Long id);
+
+	Education addEducation(Education resource);
+
+	Education updateEducation(Education resource);
+
+	/*
+	 * 根据peopleAspiration 编号删除教育信息
+	 */
+	public void deleteEducationByAspirationId(Long id);
+
+	/*
+	 * 根据peopleAspiration 编号查询教育信息
+	 */
+	Education getEducationByAspirationId(Long id);
+
+	public Energy getEnergyById(Long id);
+
+	Energy addEnergy(Energy resource);
+
+	Energy updateEnergy(Energy resource);
+
+	/*
+	 * 根据peopleAspiration 编号删除能源信息
+	 */
+	public void deleteEnergyByAspirationId(Long id);
+
+	/*
+	 * 根据peopleAspiration 编号查询能源信息
+	 */
+	Energy getEnergyByAspirationId(Long id);
+
+	public Labor getLaborById(Long id);
+
+	Labor addLabor(Labor resource);
+
+	Labor updateLabor(Labor resource);
+
+	/*
+	 * 根据peopleAspiration 编号删除劳动和社会保障信息
+	 */
+	public void deleteLaborByAspirationId(Long id);
+
+	/*
+	 * 根据peopleAspiration 编号查询劳动和社会保障信息
+	 */
+	Labor getLaborByAspirationId(Long id);
+
+	public Medical getMedicalById(Long id);
+
+	Medical addMedical(Medical resource);
+
+	Medical updateMedical(Medical resource);
+
+	/*
+	 * 根据peopleAspiration 编号删除医疗卫生信息
+	 */
+	public void deleteMedicalByAspirationId(Long id);
+
+	/*
+	 * 根据peopleAspiration 编号查询医疗卫生信息
+	 */
+	Medical getMedicalByAspirationId(Long id);
+
+	public Science getScienceById(Long id);
+
+	Science addScience(Science resource);
+
+	Science updateScience(Science resource);
+
+	/*
+	 * 根据peopleAspiration 编号删除科技文体表信息
+	 */
+	public void deleteScienceByAspirationId(Long id);
+
+	/*
+	 * 根据peopleAspiration 编号查询科技文体表信息
+	 */
+	Science getScienceByAspirationId(Long id);
+
+	public Town getTownById(Long id);
+
+	Town addTown(Town resource);
+
+	Town updateTown(Town resource);
+
+	/*
+	 * 根据peopleAspiration 编号删除城乡规划建设表信息
+	 */
+	public void deleteTownByAspirationId(Long id);
+
+	/*
+	 * 根据peopleAspiration 编号查询城乡规划建设表信息
+	 */
+	Town getTownByAspirationId(Long id);
+
+	/**
+	 * 新增台账附件
+	 * 
+	 * @param files
+	 */
+	// LedgerAttachFileReturnVo addPeopleAspirationAttachFiles(
+	// List<ThreeRecordsIssueAttachFile> files);
+
+	/**
+	 * 根据id删除台账附件
+	 * 
+	 * @param fileId
+	 *            附件id
+	 */
+	void deleteAttachFileByAttachfilesId(Long fileId);
+
+	/**
+	 * 根据id获取台账附件
+	 * 
+	 * @param id
+	 *            附件id
+	 * @return
+	 */
+	ThreeRecordsIssueAttachFile getPeopleAspirationAttachFileById(Long id);
+
+	List<ThreeRecordsIssueAttachFile> loadLedgerAttachFilesByLedgerIdAndType(
+			Long ledgerId, int type);
+
+	public List<LedgerPeopleAspirations> getPeopleAspirationByHistoryId(
+			String id);
+
+	/**
+	 * 更新民生反馈信息状态
+	 * 
+	 * @param ledgerId
+	 * @param isFeedBack
+	 */
+	public void updateFeedBackStatus(Long ledgerId, int isFeedBack);
+
+	/**
+	 * 统计台账数，数据导入用，判断是否已经导入过
+	 * @param oldHistoryId
+	 * @return
+	 */
+	public int countLedgerByOldHistoryId(String oldHistoryId);
+}

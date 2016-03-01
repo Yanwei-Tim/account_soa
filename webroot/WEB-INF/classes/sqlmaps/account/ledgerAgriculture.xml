@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="ledgerPeopleAspirations">
+
+	<typeAlias alias="agriculture"
+		type="com.tianque.plugin.account.domain.Agriculture" />
+
+	<resultMap id="agricultureResult" class="agriculture">
+		<result property="id" column="id" />
+		<result property="beneficiaryNumber" column="beneficiaryNumber" />
+		<result property="buildType.id" column="buildType" />
+		<result property="projectName" column="projectName" />
+		<result property="projectCategory.id" column="projectCategory" />
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="plannedInvestment" column="plannedInvestment" />
+		<result property="selfFund" column="selfFund" />
+		<result property="gapFund" column="gapFund" />
+		<result property="fromAddress" column="fromAddress" />
+		<result property="toAddress" column="toAddress" />
+		<result property="otherContent" column="otherContent" />
+		<result property="peopleAspiration.id" column="ledgerPeopleAspirationsId" />
+		<result property="scopeNumber" column="scopeNumber" />
+		<result property="trainNumber" column="trainNumber" />
+		<result property="quantities" column="quantities" />
+		<result property="trainPeopleNumber" column="trainPeopleNumber" />
+		<result property="num" column="num" />
+		<result property="capacity" column="capacity" />
+		<result property="waterYield" column="waterYield" />
+		<result property="machineCategory.id" column="machineCategory" />
+		<result property="farmCategory.id" column="farmCategory" />
+		
+		
+		
+	</resultMap>
+
+
+	<select id="getAgricultureByAspirationsId" parameterClass="java.lang.Long"
+		resultMap="agricultureResult">
+		select * from ledgerAgriculture where ledgerPeopleAspirationsId=#value#
+	</select>
+
+	<select id="getAgricultureById" parameterClass="java.lang.Long"
+		resultMap="agricultureResult">
+		select * from ledgerAgriculture where id=#value#
+	</select>
+
+	<insert id="addAgriculture" parameterClass="agriculture">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_ledgerAgriculture.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerAgriculture (  ID,ledgerPeopleAspirationsId,beneficiaryNumber  ,buildType  ,projectName  ,projectCategory   ,plannedInvestment  ,selfFund     ,gapFund      ,fromAddress  ,toAddress    ,createUser   ,updateUser  
+		 ,createDate   ,updateDate ,scopeNumber ,projectSubCategory,otherContent,waterYield ,capacity,num,trainPeopleNumber,quantities,trainNumber,farmCategory,machineCategory)
+		values( #id#,#peopleAspiration.id#,#beneficiaryNumber#,#buildType.id#,#projectName#,#projectCategory.id#,#plannedInvestment#,#selfFund#,#gapFund#,#fromAddress#,#toAddress#,#createUser#,#updateUser#
+		,#createDate#,#updateDate# ,#scopeNumber#,#projectSubCategory.id#,#otherContent#,#waterYield#,#capacity#,#num#,#trainPeopleNumber#,#quantities#,#trainNumber#,#farmCategory.id#,#machineCategory.id#)
+	</insert>
+
+	<update id="updateAgriculture" parameterClass="agriculture">
+		update ledgerAgriculture set 
+			beneficiaryNumber = #beneficiaryNumber#,
+			projectCategory = #projectCategory.id#,
+			buildType = #buildType.id#,
+			projectName = #projectName#,
+			projectSubCategory = #projectSubCategory.id#,
+			plannedInvestment = #plannedInvestment#,
+			selfFund  = #selfFund#,
+			gapFund = #gapFund#,
+			fromAddress = #fromAddress#,
+			toAddress = #toAddress#,
+			updateDate = #updateDate#,
+			UPDATEUSER = #updateUser#,
+			scopeNumber = #scopeNumber#,
+			otherContent = #otherContent#,
+			trainNumber = #trainNumber#,
+			quantities = #quantities#,
+			trainPeopleNumber = #trainPeopleNumber#,
+			num = #num#,
+			capacity = #capacity#,
+			waterYield = #waterYield#,
+			farmCategory = #farmCategory.id#,
+			machineCategory = #machineCategory.id#
+				
+		where id = #id#
+	</update>
+
+	<delete id="deleteAgricultureByAspirationId" parameterClass="java.lang.Long">
+		delete from ledgerAgriculture where ledgerPeopleAspirationsId = #value#	
+	</delete>
+
+
+</sqlMap>

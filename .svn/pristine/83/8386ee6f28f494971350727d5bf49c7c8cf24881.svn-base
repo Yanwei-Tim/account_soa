@@ -1,0 +1,162 @@
+package com.tianque.plugin.account.dao;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.account.domain.BaseWorking;
+import com.tianque.plugin.account.domain.LedgerAttachFile;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStep;
+import com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject;
+
+public interface ThreeRecordsIssueDao {
+
+	/**
+	 * 根据台账处理步骤id获取简要对象
+	 * 
+	 * @param stepId
+	 *            台账处理步骤id
+	 * @return
+	 */
+	BaseWorking getSimpleBaseWorkByStepId(Long stepId);
+
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsFollow(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord, Long issueType,Integer year,Integer month);
+
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsFeedBack(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord, Long issueType,Integer year,Integer month);
+
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsDone(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord, Long issueType,Integer year,Integer month);
+
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubStanceDone(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord, Long issueType,Integer year,Integer month);
+
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsPeriodDone(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord, Long issueType,Integer year,Integer month);
+
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsNeedDo(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord,
+			Long issueType, Integer isSupported,Integer year,Integer month);
+
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsAssgin(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord, Long issueType,Integer year,Integer month);
+
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubmit(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord, Long issueType,Integer year,Integer month);
+
+	/**
+	 * 根据id获取台账附件
+	 * 
+	 * @param id
+	 *            附件id
+	 * @return
+	 */
+	ThreeRecordsIssueAttachFile getIssueAttachFileById(Long id);
+
+	/***
+	 * 获取台账的所有附件
+	 * 
+	 * @param issueId
+	 *            台账id
+	 * @return
+	 */
+	List<ThreeRecordsIssueAttachFile> getIssueAttachFileByIssueId(Long issueId);
+
+	/**
+	 * 获取台账的处理记录附件
+	 * 
+	 * @param issueId
+	 *            台账id
+	 * @param logId
+	 *            处理记录id
+	 * @return
+	 */
+	List<ThreeRecordsIssueAttachFile> loadIssueAttachFilesByIssueAndLog(
+			Long issueId, Long logId);
+
+	List<ThreeRecordsIssueAttachFile> loadIssueAttachFilesByLedgerIdAndLedgerType(
+			Long issueId, int type);
+
+	public List<ThreeRecordsIssueStep> searchIssueStepsByIssueId(Long issueId,
+			int ledgerType);
+
+	public List<ThreeRecordsIssueStep> searchAllIssueStepsByStepId(Long issueId);
+
+	/**
+	 * 统计已办的台账数量
+	 * 
+	 * @param map
+	 * @return
+	 */
+	public int getMyDoneCount(Map map);
+
+	/**
+	 * 查询待办的数量
+	 * 
+	 * @param map
+	 * @return
+	 */
+	public int getJurisdictionsNeedDoCount(Map<String, Object> map);
+
+	public List<ThreeRecordsIssueAttachFile> loadLedgerAttachFilesByLedgerIdAndType(
+			Long ledgerId, int type);
+
+	public Long addIssueAttachFile(ThreeRecordsIssueAttachFile file);
+
+	public void addAttachFile(ThreeRecordsIssueAttachFile file, Long id);
+	public void addAttachFile(LedgerAttachFile file);
+
+	public void removeAllAttachFilesFromBaseFile(Long issueId, int ledgerType);
+
+	public void removeAllAttachFiles(Long issueId, int ledgerType);
+
+	/**
+	 * 根据台账编号 ，类型查询回复单附件
+	 * 
+	 * @param ledgerId
+	 * @param type
+	 * @return
+	 */
+	public List<ThreeRecordsIssueAttachFile> findReplyFormFiles(Long ledgerId,
+			int type);
+
+	/**
+	 * 根据回复单编号查询回复单的附件
+	 * 
+	 * @param replyId
+	 * @return
+	 */
+	public List<ThreeRecordsIssueAttachFile> findReplyFormFilesByReplyId(
+			Long replyId);
+
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsCreateAndDone(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord, Long issueType,Integer year,Integer month);
+	
+	
+	public int getJurisdictionsFeedBack(Map<String, Object> map);
+	public int getJurisdictionsDone(Map<String, Object> map);
+	public int getJurisdictionsPeriodDone(Map<String, Object> map);
+	public int getJurisdictionsSubstanceDone(Map<String, Object> map);
+	public int getJurisdictionsSubmit(Map<String, Object> map);
+	public int getJurisdictionsAssginCount(Map<String, Object> map);
+	public int getJurisdictionsCreateAndDone(Map<String, Object> map);
+	
+	public List<ThreeRecordsIssueAttachFile> getAccounthasattachfilesByLedgerIdAndLedgerType(int ledgerType, Long ledgerId);
+	
+	public List<ThreeRecordsIssueAttachFile> getAccounthasattachfilesByLogId(Long logId);
+	
+	public List<LedgerAttachFile> getLedgerattachfilesByModuleObjectId(String moudleObjectId);
+}

@@ -1,0 +1,136 @@
+package com.tianque.core.util;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.UUID;
+
+import org.apache.commons.io.IOUtils;
+
+
+public class FileUtil {
+
+	public static StoredFile copyTmpFileToStoredFile(String tmpFileName,
+			String storedFileDir) throws Exception {
+		File fromFile = getFileFromTmpFolder(tmpFileName);
+		String[] storedPaths = createStoreFilePath(storedFileDir, tmpFileName);
+		String storedFileName = createStoreFileName(tmpFileName);
+		File storedFile = new File(storedPaths[0] + File.separator
+				+ storedFileName);
+		copyFile(fromFile, storedFile);
+		fromFile.delete();
+		StoredFile file = new StoredFile();
+		file.setStoredTruthFileName(tmpFileName);
+		file.setStoredFilePath(storedPaths[1]);
+		file.setStoredFileName(storedFileName);
+		file.setFileSize(storedFile.length());
+		return file;
+	}
+
+	public static void copyFile(File fromFile, File toFile)
+			throws FileNotFoundException, IOException {
+		FileInputStream fileInputStream = new FileInputStream(fromFile);
+		BufferedInputStream bufferedInputStream = new BufferedInputStream(
+				fileInputStream);
+		FileOutputStream fileOutputStream = new FileOutputStream(toFile);
+		BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(
+				fileOutputStream);
+		IOUtils.copy(bufferedInputStream, bufferedOutputStream);
+		bufferedInputStream.close();
+		fileInputStream.close();
+
+		bufferedOutputStream.close();
+		fileOutputStream.close();
+	}
+	
+	public static File createTmpStoreFile(String uploadFileFileName) throws Exception {
+		File directoryFile = new File(FileUtil.getWebRoot()+ File.separator + GridProperties.TMP + File.separator
+				+ ThreadVariable.getUser().getId());
+		if (!(directoryFile.exists() && directoryFile.isDirectory())) {
+			directoryFile.mkdirs();
+		}
+		File storedFile = new File(FileUtil.getWebRoot() + File.separator + GridProperties.TMP + File.separator
+				+ ThreadVariable.getUser().getId() + File.separator + uploadFileFileName);
+		if (!storedFile.exists()) {
+			storedFile.createNewFile();
+		}
+		return storedFile;
+	}
+	
+	private static File getFileFromTmpFolder(String fileName) {
+		return new File(new StringBuffer(getWebRoot() + File.separator + GridProperties.TMP).append(
+				File.separator).append(ThreadVariable.getUser().getId())
+				.append(File.separator).append(fileName).toString());
+	}
+
+	private static String getFileSuffix(String uploadFileName) {
+		return uploadFileName.substring(uploadFileName.lastIndexOf("."));
+	}
+
+	public static String createStoreFileName(String fileName) {
+		String storedFileName = new StringBuffer().append(
+				Calendar.getInstance().get(Calendar.HOUR_OF_DAY)).append(
+				Calendar.getInstance().get(Calendar.MINUTE)).append(
+				Calendar.getInstance().get(Calendar.SECOND)).append(
+				Calendar.getInstance().get(Calendar.MILLISECOND)).append(
+				(int) Math.random() * 1000).append(getFileSuffix(fileName))
+				.toString();
+		return storedFileName;
+	}
+
+	private static String getWebClassesPath() {
+		String path = FileUtil.class.getProtectionDomain().getCodeSource()
+				.getLocation().getPath();
+		return path;
+	}
+	
+	public static StoredFile fileCopyTo(StoredFile file,String rootPath) throws FileNotFoundException, IOException{
+		String newFileName=UUID.randomUUID().toString()+getFileSuffix(file.getStoredFileName());
+		String[] storedPaths = FileUtil.createStoreFilePath(rootPath, newFileName);
+		File storedFile = new File(storedPaths[0] + File.separator+ newFileName);
+		File fromFile = new File(getWebRoot() + File.separator+file.getStoredFilePath()+File.separator+file.getStoredFileName());
+		copyFile(fromFile,storedFile);
+		StoredFile result = new StoredFile();
+		result.setStoredTruthFileName(file.getStoredTruthFileName());
+		result.setStoredFilePath(storedPaths[1]);
+		result.setStoredFileName(newFileName);
+		result.setFileSize(file.getFileSize());
+		return result;
+	}
+
+	public static String getWebRoot() throws RuntimeException {
+		String path = getWebClassesPath();
+		if (path.indexOf("WEB-INF") > 0) {
+			path = path.substring(0, path.indexOf("WEB-INF")-1);
+		} else {
+			throw new RuntimeException("路径获取错误");
+		}
+		return path;
+	}
+
+	public static String[] createStoreFilePath(String storeFileDir,
+			String tmpFileName) {
+		String fileWebPath = new StringBuffer(storeFileDir).append(
+				File.separator).append(getFileSuffix(tmpFileName).substring(1))
+				.append(File.separator).append(
+						Calendar.getInstance().get(Calendar.YEAR)).append(
+						File.separator).append(
+						Calendar.getInstance().get(Calendar.MONTH) + 1).append(
+						File.separator).append(
+						Calendar.getInstance().get(Calendar.DAY_OF_MONTH))
+				.toString();
+		String storedFilePath = new StringBuffer(getWebRoot()).append(
+				File.separator).append(fileWebPath).toString();
+		File file = new File(storedFilePath);
+		if (!file.isDirectory()) {
+			file.mkdirs();
+		}
+		return new String[] { storedFilePath, fileWebPath };
+	}
+
+}

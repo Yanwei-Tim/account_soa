@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="propertyDomain">
+	<typeAlias alias="PropertyDomain" type="com.tianque.domain.PropertyDomain" />
+
+	<select id="findPropertyDomain" resultClass="PropertyDomain" parameterClass="java.util.Map">
+		Select * from propertyDomains   
+	</select>
+
+	<!-- 新增系统域属性信息 -->
+	<insert id="addPropertyDomain" parameterClass="PropertyDomain">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_propertyDomains.NEXTVAL as id from dual ]]>
+		</selectKey>
+			INSERT INTO propertyDomains(
+				id,domainName,systemSensitive,systemRestrict
+			)VALUES(
+				#id#,#domainName#,#systemSensitive#,#systemRestrict#
+			) 
+	</insert>
+	
+	<select id="getPropertyDomainById" parameterClass="java.lang.Long" resultClass="PropertyDomain">
+		select * from propertyDomains where id=#value#
+	</select>
+	
+	<select id="getPropertyDomainByDomainName" parameterClass="String" resultClass="PropertyDomain">
+		select * from propertyDomains where domainName=#value#
+	</select>
+	
+</sqlMap>

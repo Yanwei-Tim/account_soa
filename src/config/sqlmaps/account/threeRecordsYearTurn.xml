@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="threeRecordsYearTurn">
+	<typeAlias alias="ThreeRecordsYearTurn" type="com.tianque.plugin.account.domain.ThreeRecordsYearTurn" />
+
+	<!-- 新增事件处理步骤 -->
+	<insert id="addThreeRecordsYearTurn" parameterClass="ThreeRecordsYearTurn">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_threeRecordsYearTurn.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO	threeRecordsYearTurn
+		(id, year, turnOrg, ledgerType, newLedgerId, oldLedgerId, createOrg, createUser, updateUser, createDate, updateDate)
+		VALUES
+		(#id#,#year#,#turnOrg.id#,#ledgerType#,#newLedgerId#,#oldLedgerId#,#createOrg.id#,#createUser#,#updateUser#,#createDate#,#updateDate#)
+	</insert>
+	
+	<delete id="deleteAllTurnInfo" parameterClass="java.lang.Long">
+		<![CDATA[delete from threeRecordsYearTurn]]>
+	</delete>
+</sqlMap>

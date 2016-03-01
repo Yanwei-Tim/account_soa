@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="session">
+
+	<typeAlias alias="Session"
+		type="com.tianque.domain.Session" />
+
+	<parameterMap id="sessionParams" class="Session">
+		<parameter property="id" />
+		<parameter property="sessionId"/>
+		<parameter property="userId"/>
+		<parameter property="userName" />
+		<parameter property="userRealName" />
+		<parameter property="organization" />
+		<parameter property="accessIp" />
+		<parameter property="accessTime" />
+		<parameter property="isLogin" />
+		<parameter property="loginDate" />
+		<parameter property="lastUrl" />
+		<parameter property="loginIp" />
+		<parameter property="validateCode" />
+		<parameter property="orgInternalCode" />
+	</parameterMap>
+
+	<resultMap id="sessionResult" class="Session">
+		<result property="id" column="id" />
+		<result property="sessionId" column="sessionId" />
+		<result property="userId" column="userId"/>
+		<result property="userName" column="userName" />
+		<result property="userRealName" column="userRealName" />
+		<result property="organization.id" column="orgId" />
+		<result property="accessIp" column="accessIp" />
+		<result property="accessTime" column="accessTime" />
+		<result property="isLogin" column="isLogin" />
+		<result property="loginDate" column="loginDate" />
+		<result property="lastUrl" column="lastUrl" />
+		<result property="loginIp" column="loginIp" />
+		<result property="validateCode" column="validateCode" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+	</resultMap>
+
+	<insert id="addSession" parameterClass="Session">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_userSessions.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into userSessions
+		(id,sessionId,userId,userName,userRealName,orgId,loginIp,isLogin,accessIp,accessTime,loginDate,lastUrl,validateCode,orgInternalCode)
+		values(#id#,#sessionId#,#userId#,#userName#,#userRealName#,#organization.id#,#loginIp#,#isLogin#
+		,#accessIp#,#accessTime#,#loginDate#,#lastUrl#,#validateCode#,#orgInternalCode#)
+	</insert>
+	
+	<select id="countSessions" resultClass="java.lang.Integer">
+		select count(*) from userSessions 
+	</select>
+	
+	<select id="countSessionsByOrgCode" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from userSessions where validateCode is null and orgInternalCode like '$orgCode$%'
+		<dynamic>
+			<isNotNull property="isLogin" prepend=" and ">
+				isLogin = #isLogin#
+			</isNotNull>
+		</dynamic>
+	</select>
+	
+	<select id="findSessions" parameterClass="java.util.Map" resultMap="sessionResult">
+		<include refid="common.sql_select" />
+		from userSessions where validateCode is null
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+			  <isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findSessionsByOrgCode" parameterClass="java.util.Map" resultMap="sessionResult">
+		select * from userSessions where validateCode is null and orgInternalCode like '$orgCode$%'
+		<dynamic>
+			<isNotNull property="isLogin" prepend=" and ">
+				isLogin = #isLogin#
+			</isNotNull>
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findSessionBySessionId"
+		parameterClass="java.lang.String" resultMap="sessionResult">
+		select * from userSessions where sessionId = #value#
+	</select>
+	
+	<update id="updateSessionAccessTimeBySessionId" parameterClass="Session">
+	    update userSessions set accessTime=#accessTime#,accessIp=#accessIp#,lastUrl=#lastUrl# where sessionId=#sessionId#
+	</update>
+	
+	<update id="updateSessionHasLoginedByUserName" parameterClass="java.util.Map">
+	    update userSessions set islogin=#logined# where username=#userName#
+	</update>
+	
+	<update id="updateSessionHasLogined" parameterClass="java.util.Map">
+	    update userSessions set islogin=#logined# where id=#id#
+	</update>
+	
+	<delete id="deleteSessionsWhenTimeOut" parameterClass="String">
+	    <![CDATA[delete from userSessions where accessTime < to_date(#calendarTime#, 'yyyy-mm-dd hh24:mi:ss')]]>
+	</delete>
+	
+	<delete id="validateUserSessionByUserName" parameterClass="String">
+	    <![CDATA[delete from userSessions where userName = #value# ]]>
+	</delete>
+
+	<select id="findSessionsWhenTimeOut" parameterClass="java.util.Map" resultMap="sessionResult">
+	    <![CDATA[select * from userSessions where accessTime < #calendarTime#]]>
+	</select>
+	
+	<delete id="deleteSessionBySessionId" parameterClass="java.lang.String">
+	     delete from userSessions where sessionId=#value#
+	</delete>
+	<select id="findSessionBySessionUserNameNotEqLoginIp" parameterClass="java.util.Map" resultMap="sessionResult">
+	     <![CDATA[select * from userSessions where userName=#userName# and loginIp<>#loginIp#]]>
+	</select>
+	<select id="findSessionByUserName" parameterClass="java.lang.String" resultMap="sessionResult">
+	     <![CDATA[select * from userSessions where userName=#value#]]>
+	</select>
+</sqlMap>

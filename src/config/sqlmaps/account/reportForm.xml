@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="reportForm">
+	<typeAlias alias="reportForm" type="com.tianque.plugin.account.domain.ReportForm" />
+	<typeAlias alias="reportFormVo" type="com.tianque.plugin.account.vo.ReportFormVo" />
+	<resultMap class="reportForm" id="reportFormMap">
+		<result property="id" column="id"/>
+		<result property="stepId" column="stepId"/>
+		<result property="ledgerId" column="ledgerId"/>
+		<result property="ledgerType" column="ledgerType"/>
+		<result property="sourceOrg.id" column="sourceOrg"/>
+		<result property="targetOrg.id" column="targetOrg"/>
+		<result property="reason" column="reason"/>
+		<result property="handleContent" column="handleContent"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="name" column="name"/>
+		<result property="mobile" column="mobile"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="reportDate" column="reportDate"/>
+		<result property="ledgerSerialNumber" column="ledgerSerialNumber"/>
+		
+	</resultMap>
+	<insert id="addReportForm" parameterClass="reportForm">
+		<selectKey keyProperty="id" resultClass="long">
+			<![CDATA[SELECT S_accountReportForm.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into accountReportForm(id ,stepId ,ledgerId ,ledgerType ,sourceOrg ,targetOrg ,reason ,handleContent ,serialNumber ,name ,mobile , CREATEUSER , UPDATEUSER ,CREATEDATE , UPDATEDATE,ledgerSerialNumber,reportDate )
+		values(#id# ,#stepId# ,#ledgerId# ,#ledgerType# ,#sourceOrg.id# ,#targetOrg.id# ,#reason# ,#handleContent# ,#serialNumber# ,#name# ,#mobile#, #createUser#, #updateUser#,  #createDate#, #updateDate#,#ledgerSerialNumber#,#reportDate# )
+	</insert>
+	<sql id="search_sql_where">
+		<dynamic>
+			<isNotNull property="id" prepend=" and ">
+			id = #id#
+			</isNotNull>
+			<isNotNull property="stepId" prepend=" and ">
+			stepId = #stepId#
+			</isNotNull>
+			<isNotNull property="ledgerId" prepend=" and ">
+			ledgerId = #ledgerId#
+			</isNotNull>
+			<isNotNull property="ledgerType" prepend=" and ">
+			ledgerType = #ledgerType#
+			</isNotNull>
+			<isNotNull property="sourceOrg" prepend=" and ">
+			sourceOrg = #sourceOrg#
+			</isNotNull>
+			<isNotNull property="targetOrg" prepend=" and ">
+			targetOrg = #targetOrg#
+			</isNotNull>
+			<isNotNull property="reason" prepend=" and ">
+			reason = #reason#
+			</isNotNull>
+			<isNotNull property="handleContent" prepend=" and ">
+			handleContent = #handleContent#
+			</isNotNull>
+			<isNotNull property="serialNumber" prepend=" and ">
+			serialNumber = #serialNumber#
+			</isNotNull>
+			<isNotNull property="name" prepend=" and ">
+			name = #name#
+			</isNotNull>
+			<isNotNull property="mobile" prepend=" and ">
+			mobile = #mobile#
+			</isNotNull>
+		</dynamic>
+	</sql>
+	<select id="countFindReportForms" parameterClass="reportFormVo" resultClass="java.lang.Integer">
+		select count(id) from accountReportForm where 1=1
+		<include refid="search_sql_where"/>
+	</select>
+	<select id="findReportForms" parameterClass="reportFormVo" resultMap="reportFormMap">
+		select * from accountReportForm where 1=1
+		<include refid="search_sql_where"/>
+		order by id desc
+	</select>
+	
+	<update id="updateReportForm" parameterClass="reportForm">
+		update accountReportForm set id=#id#
+		  <isNotNull property="stepId" prepend=",">
+			  stepId = #stepId#
+		  </isNotNull>
+		  <isNotNull property="ledgerId" prepend=",">
+			  ledgerId = #ledgerId#
+		  </isNotNull>
+		  <isNotNull property="ledgerType" prepend=",">
+			  ledgerType = #ledgerType#
+		  </isNotNull>
+		  <isNotNull property="sourceOrg" prepend=",">
+			  sourceOrg = #sourceOrg.id#
+		  </isNotNull>
+		  <isNotNull property="targetOrg" prepend=",">
+			  targetOrg = #targetOrg.id#
+		  </isNotNull>
+		  <isNotNull property="reason" prepend=",">
+			  reason = #reason#
+		  </isNotNull>
+		  <isNotNull property="handleContent" prepend=",">
+			  handleContent = #handleContent#
+		  </isNotNull>
+		  <isNotNull property="serialNumber" prepend=",">
+			  serialNumber = #serialNumber#
+		  </isNotNull>
+		  <isNotNull property="name" prepend=",">
+			  name = #name#
+		  </isNotNull>
+		  <isNotNull property="mobile" prepend=",">
+			  mobile = #mobile#
+		  </isNotNull>
+		  <isNotNull prepend="," property="updateUser">
+			 UPDATEUSER = #updateUser#
+		  </isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				UPDATEDATE = #updateDate#
+		  </isNotNull>
+		  <isNotNull prepend="," property="reportDate">
+				reportDate = #reportDate#
+		  </isNotNull>
+		  <isNotNull prepend="," property="ledgerSerialNumber">
+				ledgerSerialNumber = #ledgerSerialNumber#
+		  </isNotNull>
+		  
+	   
+		where id=#id#
+	</update>
+	
+	<select id="getSimpleReportFormById" parameterClass="java.lang.Long"
+		resultMap="reportFormMap">
+		<![CDATA[select * from accountReportForm where id=#value#]]>
+	</select>
+	
+	<select id="getSimpleReportFormByStepId" parameterClass="java.lang.Long"
+		resultMap="reportFormMap">
+		<![CDATA[select * from accountReportForm where stepId=#value# order by id desc]]>
+	</select>
+	
+</sqlMap>

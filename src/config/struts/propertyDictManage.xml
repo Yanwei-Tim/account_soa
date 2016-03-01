@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="propertyDictManage" extends="default" namespace="/sysadmin/propertyManage">
+		<default-class-ref class="propertyDictController"></default-class-ref>
+		<action name="findPropertyDomainById" method="findPropertyDict">
+			<result  name="success" type="json">
+				<param name="root">propertyDomain</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="ajaxPropertyDict" method="findPropertyDictByPropertyDomainId">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="getPropertyDictById" method="getPropertyDictById">
+			<result name="success" type="json">
+				<param name="root">propertyDict</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="validateDisplayName" method="validateDisplayName">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="ajaxAddPropertyDict" method="addPropertyDict">
+			<result  name="success" type="json">
+				<param name="root">propertyDict</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="prepareProperty" method="prepareProperty">
+			<result name="success">/sysadmin/propertyManage/maintainPropertyDlg.jsp</result>
+			<param name="ignoreHierarchy">false</param>
+		</action>
+
+		<action name="propertyDetail" method="prepareProperty">
+			<result name="success">/sysadmin/propertyManage/propertyDetailDlg.jsp</result>
+			<param name="ignoreHierarchy">false</param>
+		</action>
+
+		<action name="updatePropertyDict" method="updatePropertyDict">
+			<result  name="success" type="json">
+				<param name="root">propertyDict</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="deletePropertyDict" method="deletePropertyDict">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="movePropertyDict" method="movePropertyDict">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+		</action>
+
+		<action name="findPropertyDictByDomainName" method="findPropertyDictByDomainName">
+			<result name="success" type="json">
+				<param name="root">propertyDicts</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="findPropertyDictById" method="findPropertyDict">
+			<result type="json">
+				<param name="root">propertyDict</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+
+		<action name="deletePropertyDictById" method="deletePropertyDictById">
+			<result name="success" type="json">
+				<param name="root">count</param>
+			</result>
+		</action>
+
+	</package>
+</struts>

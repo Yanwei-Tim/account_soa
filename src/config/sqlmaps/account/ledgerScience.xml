@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="ledgerPeopleAspirations">
+
+	<typeAlias alias="Science"
+		type="com.tianque.plugin.account.domain.Science" />
+
+	<resultMap id="scienceResult" class="science">
+		<result property="id" column="id" />
+		<result property="beneficiaryNumber" column="beneficiaryNumber" />
+		<result property="buildType.id" column="buildType" />
+		<result property="projectName" column="projectName" />
+		<result property="projectCategory.id" column="projectCategory" />
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="projectLevelCategory.id" column="projectLevelCategory" />
+		<result property="plannedInvestment" column="plannedInvestment" />
+		<result property="selfFund" column="selfFund" />
+		<result property="gapFund" column="gapFund" />
+		<result property="fromAddress" column="fromAddress" />
+		<result property="toAddress" column="toAddress" />
+		<result property="peopleAspiration.id" column="ledgerPeopleAspirationsId" />
+		<result property="scienceScope" column="scienceScope" />
+		<result property="otherContent" column="otherContent" />
+		<result property="publicizeNum" column="publicizeNum" />
+		<result property="contentCategory.id" column="contentCategory" />
+		<result property="itemName" column="itemName" />
+		<result property="content" column="content" />
+	</resultMap>
+
+
+	<select id="getScienceByAspirationsId" parameterClass="java.lang.Long"
+		resultMap="scienceResult">
+		select * from ledgerScience where ledgerPeopleAspirationsId=#value#
+	</select>
+
+	<select id="getScienceById" parameterClass="java.lang.Long"
+		resultMap="scienceResult">
+		select * from ledgerScience where id=#value#
+	</select>
+
+	<insert id="addScience" parameterClass="science">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_ledgerScience.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerScience (  ID,ledgerPeopleAspirationsId,beneficiaryNumber  ,buildType  ,projectName  ,projectCategory    ,projectSubCategory ,plannedInvestment  ,selfFund     ,gapFund      ,fromAddress  ,toAddress    ,createUser   ,updateUser   ,createDate   ,updateDate ,projectLevelCategory,scienceScope
+		 ,otherContent ,contentCategory,publicizeNum,itemName,content   )
+		values( #id#,#peopleAspiration.id#,#beneficiaryNumber#,#buildType.id#,#projectName#,#projectCategory.id#,#projectSubCategory.id#,#plannedInvestment#,#selfFund#,#gapFund#,#fromAddress#,#toAddress#,#createUser#,#updateUser#,#createDate#,#updateDate# ,#projectLevelCategory.id#,#scienceScope#
+		,#otherContent#,#contentCategory.id#,#publicizeNum#,#itemName#,#content#)
+	</insert>
+
+	<update id="updateScience" parameterClass="science">
+	update ledgerScience set
+		beneficiaryNumber = #beneficiaryNumber#,
+		projectCategory = #projectCategory.id#,
+		buildType = #buildType.id#,
+		projectName = #projectName#,
+		projectSubCategory = #projectSubCategory.id#,
+		plannedInvestment = #plannedInvestment#,
+		selfFund = #selfFund#,
+		gapFund = #gapFund#,
+		fromAddress = #fromAddress#,
+		toAddress = #toAddress#,
+		updateDate = #updateDate#,
+		UPDATEUSER = #updateUser#,
+		projectLevelCategory = #projectLevelCategory.id#,
+		scienceScope = #scienceScope#,
+		otherContent = #otherContent#,
+		publicizeNum = #publicizeNum#,
+		contentCategory = #contentCategory.id#,
+		content = #content#,
+		itemName = #itemName#
+	where id = #id#
+	</update>
+
+	<delete id="deleteScienceByAspirationId" parameterClass="java.lang.Long">
+		delete from ledgerScience where ledgerPeopleAspirationsId = #value#	
+	</delete>
+
+
+</sqlMap>

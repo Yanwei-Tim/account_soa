@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="ledgerPeopleAspirations">
+
+	<typeAlias alias="traffic"
+		type="com.tianque.plugin.account.domain.Traffic" />
+
+	<resultMap id="trafficResult" class="traffic">
+		<result property="id" column="id" />
+		<result property="beneficiaryNumber" column="beneficiaryNumber" />
+		<result property="buildType.id" column="buildType" />
+		<result property="projectName" column="projectName" />
+		<result property="projectCategory.id" column="projectCategory" />
+		<result property="roadCategory.id" column="roadCategory" />
+		<result property="roadSurfaceCategory.id" column="roadSurfaceCategory" />
+		<result property="securityCategory.id" column="securityCategory" />
+		<result property="passengerCategory.id" column="passengerCategory" />
+		<result property="publicTransportCategory.id" column="publicTransportCategory" />
+		<result property="passengerManageCategory.id" column="passengerManageCategory" />
+		<result property="passengerBuildCategory.id" column="passengerBuildCategory" />
+		<result property="plannedInvestment" column="plannedInvestment" />
+		<result property="selfFund" column="selfFund" />
+		<result property="gapFund" column="gapFund" />
+		<result property="fromAddress" column="fromAddress" />
+		<result property="toAddress" column="toAddress" />
+		<result property="peopleAspiration.id" column="ledgerPeopleAspirationsId" />
+		<result property="mileage" column="mileage" />
+		<result property="rodeWide" column="rodeWide" />
+		<result property="wide" column="wide" />
+		<result property="rodeLength" column="rodeLength" />
+		<result property="otherContent" column="otherContent" />
+		<result property="passengerLevelCategory.id" column="passengerLevelCategory" />
+		<result property="contentCategory.id" column="contentCategory" />
+		<result property="remark" column="remark" />
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		
+		
+	</resultMap>
+
+
+	<select id="getTrafficByAspirationsId" parameterClass="java.lang.Long"
+		resultMap="trafficResult">
+		select * from ledgerTraffic where ledgerPeopleAspirationsId=#value#
+	</select>
+
+	<select id="getTrafficById" parameterClass="java.lang.Long"
+		resultMap="trafficResult">
+		select * from ledgerTraffic where id=#value#
+	</select>
+
+	<insert id="addTraffic" parameterClass="traffic">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_ledgerTraffic.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerTraffic (  ID,ledgerPeopleAspirationsId,beneficiaryNumber  ,buildType  ,projectName  ,projectCategory    ,passengerBuildCategory ,plannedInvestment  ,selfFund     ,gapFund      ,fromAddress  ,toAddress    ,createUser   ,updateUser   ,createDate   ,updateDate ,mileage,rodeWide,rodeLength,passengerManageCategory ,publicTransportCategory ,passengerCategory,securityCategory ,roadSurfaceCategory ,roadCategory,otherContent,passengerLevelCategory,remark,contentCategory,wide,projectSubCategory )
+		values( #id#,#peopleAspiration.id#,#beneficiaryNumber#,#buildType.id#,#projectName#,#projectCategory.id#,#passengerBuildCategory.id#,#plannedInvestment#,#selfFund#,#gapFund#,#fromAddress#,#toAddress#,#createUser#,#updateUser#,#createDate#,#updateDate# ,#mileage#,#rodeWide#,#rodeLength#,#passengerManageCategory.id#,#publicTransportCategory.id#,#passengerCategory.id#,#securityCategory.id#,#roadSurfaceCategory.id#,#roadCategory.id#,#otherContent#,#passengerLevelCategory.id#,#remark#,#contentCategory.id#,#wide#,#projectSubCategory.id#)
+	</insert>
+
+	
+	<update id="updateTraffic" parameterClass="traffic">
+		update ledgerTraffic set 
+			beneficiaryNumber = #beneficiaryNumber#,
+			projectCategory = #projectCategory.id#,
+			buildType = #buildType.id#,
+			projectName = #projectName#,
+			roadCategory = #roadCategory.id#,
+			roadSurfaceCategory = #roadSurfaceCategory.id#,
+			securityCategory = #securityCategory.id#,
+			passengerCategory = #passengerCategory.id#,
+			publicTransportCategory = #publicTransportCategory.id#,
+			passengerManageCategory = #passengerManageCategory.id#,
+			passengerBuildCategory = #passengerBuildCategory.id#,
+			plannedInvestment = #plannedInvestment#,
+			 selfFund  = #selfFund#,
+			gapFund = #gapFund#,
+			fromAddress = #fromAddress#,
+			toAddress = #toAddress#,
+			updateDate = #updateDate#,
+			UPDATEUSER = #updateUser#,
+			mileage = #mileage#,
+			rodeWide = #rodeWide#,
+			rodeLength = #rodeLength#,
+			otherContent = #otherContent#,
+			passengerLevelCategory = #passengerLevelCategory.id#,
+			remark = #remark#,
+			wide = #wide#,
+			contentCategory = #contentCategory.id#,
+			projectSubCategory = #projectSubCategory.id#
+		where id = #id#
+	</update>
+
+	<delete id="deleteTrafficByAspirationId" parameterClass="java.lang.Long">
+		delete from ledgerTraffic where ledgerPeopleAspirationsId = #value#	
+	</delete>
+
+
+</sqlMap>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="ledgerPeopleAspirations">
+
+	<typeAlias alias="town"
+		type="com.tianque.plugin.account.domain.Town" />
+
+	<resultMap id="townResult" class="town">
+		<result property="id" column="id" />
+		<result property="beneficiaryNumber" column="beneficiaryNumber" />
+		<result property="buildType.id" column="buildType" />
+		<result property="projectName" column="projectName" />
+		<result property="projectNumber" column="projectNumber" />
+		<result property="projectCategory.id" column="projectCategory" />
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="plannedInvestment" column="plannedInvestment" />
+		<result property="selfFund" column="selfFund" />
+		<result property="gapFund" column="gapFund" />
+		<result property="fromAddress" column="fromAddress" />
+		<result property="toAddress" column="toAddress" />
+		<result property="peopleAspiration.id" column="ledgerPeopleAspirationsId" />
+		<result property="mileage" column="mileage" />
+		<result property="scopeNumber" column="scopeNumber" />
+		<result property="area" column="area" />
+		<result property="otherContent" column="otherContent" />
+		<result property="securityType.id" column="securityType" />
+		
+		
+	</resultMap>
+
+
+	<select id="getTownByAspirationsId" parameterClass="java.lang.Long"
+		resultMap="townResult">
+		select * from ledgerTown where ledgerPeopleAspirationsId=#value#
+	</select>
+
+	<select id="getTownById" parameterClass="java.lang.Long"
+		resultMap="townResult">
+		select * from ledgerTown where id=#value#
+	</select>
+
+	<insert id="addTown" parameterClass="town">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_ledgerTown.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerTown (  ID,ledgerPeopleAspirationsId,beneficiaryNumber  ,buildType  ,projectName  ,projectCategory   ,plannedInvestment  ,selfFund     ,gapFund      ,fromAddress  ,toAddress    ,createUser   ,updateUser   ,createDate   ,updateDate ,mileage,scopeNumber,area,projectSubCategory,projectNumber,otherContent,securityType )
+		values( #id#,#peopleAspiration.id#,#beneficiaryNumber#,#buildType.id#,#projectName#,#projectCategory.id#,#plannedInvestment#,#selfFund#,#gapFund#,#fromAddress#,#toAddress#,#createUser#,#updateUser#,#createDate#,#updateDate# ,#mileage#,#scopeNumber#,#area#,#projectSubCategory.id#,#projectNumber# ,#otherContent#,#securityType.id#)
+	</insert>
+
+	<update id="updateTown" parameterClass="town">
+		update ledgerTown set 
+			beneficiaryNumber = #beneficiaryNumber#,
+			projectCategory = #projectCategory.id#,
+			projectNumber = #projectNumber#,
+			buildType = #buildType.id#,
+			projectName = #projectName#,
+			projectSubCategory = #projectSubCategory.id#,
+			plannedInvestment = #plannedInvestment#,
+			 selfFund  = #selfFund#,
+			gapFund = #gapFund#,
+			fromAddress = #fromAddress#,
+			toAddress = #toAddress#,
+			updateDate = #updateDate#,
+			UPDATEUSER = #updateUser#,
+			mileage = #mileage#,
+			scopeNumber = #scopeNumber#,
+			area = #area#,
+			otherContent = #otherContent#,
+			securityType = #securityType.id#
+				
+		where id = #id#
+	</update>
+
+	<delete id="deleteTownByAspirationId" parameterClass="java.lang.Long">
+		delete from ledgerTown where ledgerPeopleAspirationsId = #value#	
+	</delete>
+
+
+</sqlMap>

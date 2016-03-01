@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ledgerConvert">
+	<typeAlias alias="ledgerConvert" type="com.tianque.plugin.account.domain.LedgerConvert" />
+	<typeAlias alias="ledgerConvertVo" type="com.tianque.plugin.account.vo.LedgerConvertVo" />
+	<resultMap class="ledgerConvert" id="ledgerConvertMap">
+		<result property="id" column="ID"/>
+		<result property="issueName" column="issueName"/>
+		<result property="issueTypeName" column="issueTypeName"/>
+		<result property="occurOrg.id" column="occurOrg"/>
+		<result property="occurOrgInternalCode" column="occurOrgInternalCode"/>
+		<result property="createOrg.id" column="createOrg"/>
+		<result property="createOrgInternalCode" column="createOrgInternalCode"/>
+		<result property="occurDate" column="occurDate"/>
+		<result property="issueId" column="issueId"/>
+		<result property="name" column="name"/>
+		<result property="description" column="description"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="mobile" column="mobile"/>
+		<result property="status" column="status"/>
+		<result property="ledgerId" column="ledgerId"/>
+		<result property="ledgerType" column="ledgerType"/>
+		<result property="ledgerSerialNumber" column="ledgerSerialNumber"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="convertDate" column="convertDate"/>
+	</resultMap>
+	<insert id="addLedgerConvert" parameterClass="ledgerConvert">
+		<selectKey keyProperty="id" resultClass="long">
+			<![CDATA[SELECT S_LEDGERCONVERT.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerConvert(
+			id,ledgerId,ledgerType,issueTypeName,createOrg,createOrgInternalCode,issueName,occurOrg,occurOrgInternalCode,description,createuser,createdate,issueId,occurDate,serialNumber,ledgerSerialNumber,mobile,name) 
+		values
+		(#id#,#ledgerId#,#ledgerType#,#issueTypeName#,#createOrg.id#,#createOrg.orgInternalCode#,#issueName#,#occurOrg.id#,#occurOrg.orgInternalCode#,#description#,#createUser#,#createDate#,#issueId#,#occurDate#,#serialNumber#,#ledgerSerialNumber#,#mobile#,#name#)
+	</insert>
+	<sql id="search_sql_where">
+		<dynamic>
+		  	<isNotNull prepend=" and " property="status">
+		  		status=#status#
+		  	</isNotNull>
+		  	<isNull prepend=" and " property="status">
+		  		status=0
+		  	</isNull>
+		  	<isPropertyAvailable property="serialNumber">
+				<isNotEmpty property="serialNumber" prepend=" and ">
+				<![CDATA[
+					serialNumber like #serialNumber#||'%'
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+		  	<isPropertyAvailable property="occurOrg">
+				<isNotNull property="occurOrg.id" prepend=" and ">
+			    	occurOrg = #occurOrg.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="createOrg">
+				<isNotNull property="createOrg.id" prepend=" and ">
+			    	createOrg = #createOrg.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurFrom">
+				<isNotEmpty property="occurFrom" prepend=" and ">
+				<![CDATA[
+					occurDate >= #occurFrom#
+				]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="occurEnd">
+				<isNotNull property="occurEnd" prepend=" and ">
+				 <![CDATA[
+					occurDate <= #occurEnd#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>	
+			
+			<isPropertyAvailable property="convertEnd">
+				<isNotNull property="convertEnd" prepend=" and ">
+				 <![CDATA[
+					convertDate <= #convertEnd#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>	
+			<isPropertyAvailable property="convertBegin">
+				<isNotNull property="convertBegin" prepend=" and ">
+				 <![CDATA[
+					convertDate >= #convertBegin#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>	
+			<isPropertyAvailable property="ledgerType">
+				<isNotNull property="ledgerType" prepend=" and ">
+				 <![CDATA[
+					ledgerType = #ledgerType#
+				]]>
+				</isNotNull>
+			</isPropertyAvailable>	
+			
+			
+					
+		</dynamic>
+	</sql>
+	<select id="countFindLedgerConverts" parameterClass="ledgerConvertVo" resultClass="java.lang.Integer">
+		select count(id) from ledgerConvert where 1=1
+		<include refid="search_sql_where"/>
+	</select>
+	<select id="findLedgerConverts" parameterClass="ledgerConvertVo" resultMap="ledgerConvertMap">
+		select * from ledgerConvert where 1=1
+		<include refid="search_sql_where"/>
+		order by id desc
+	</select>
+	
+	<update id="updateLedgerConvert" parameterClass="ledgerConvert">
+		update ledgerConvert set	status=#status#	
+		<isNotNull prepend="," property="ledgerId">
+			ledgerId = #ledgerId#
+		</isNotNull>
+		<isNotNull prepend="," property="ledgerType">
+			ledgerType = #ledgerType#
+		</isNotNull>
+		<isNotNull prepend="," property="ledgerSerialNumber">
+			ledgerSerialNumber = #ledgerSerialNumber#
+		</isNotNull>
+		<isNotNull prepend="," property="convertDate">
+			convertDate = #convertDate#
+		</isNotNull>
+		where id=#id#
+	</update>
+	
+	<select id="getSimpleLedgerConvertById" parameterClass="java.lang.Long"
+		resultMap="ledgerConvertMap">
+		<![CDATA[select * from ledgerConvert where id=#value#]]>
+	</select>
+	
+	
+	
+</sqlMap>

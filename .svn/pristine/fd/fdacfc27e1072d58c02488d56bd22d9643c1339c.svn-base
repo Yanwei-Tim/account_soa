@@ -1,0 +1,110 @@
+package com.tianque.plugin.account.service;
+
+import java.util.List;
+
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.account.vo.SearchComprehensiveVo;
+import com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject;
+
+public interface ThreeRecordsComprehensiveService {
+	/**
+	 * 待办/抄告/协办
+	 * @param searchVo
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @param isSupported
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsNeedDo(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Integer isSupported);
+	
+	/**
+	 * 程序性办结
+	 * @param searchVo
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	/**
+	 * 阶段性办结
+	 * @param searchVo
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsPeriodDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	
+	/**
+	 * 实质性办结
+	 * @param searchVo
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubStanceDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	
+	/**
+	 * 待反馈
+	 * @param searchVo
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsFeedBack(
+			SearchComprehensiveVo searchVo,  List<Long> orgIds,
+			Integer page, Integer rows);
+
+	
+	/**
+	 * 交办
+	 * @param searchVo
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsAssgin(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+
+	/**
+	 * 上报
+	 * @param searchVo
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubmit(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	
+	/**
+	 * 已办
+	 * @param searchVo
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @return
+	 */
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsCreateAndDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+}

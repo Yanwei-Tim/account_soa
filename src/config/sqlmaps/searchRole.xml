@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchRole">
+
+	<typeAlias alias="Role" type="com.tianque.domain.Role" />
+	<resultMap id="roleResult" class="Role">
+		<result property="id" column="id" />
+		<result property="roleName" column="roleName" />
+		<result property="description" column="description" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="useInLevel.id" column="useInLevel"/>
+	</resultMap>
+
+    <select id="countSearchRoles" parameterClass="Role" resultClass="java.lang.Integer">
+		select count(*) from roles t
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="roleName">
+				<isNotNull property="roleName" prepend=" and ">
+					t.roleName like '$roleName$%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="description">
+				<isNotEmpty property="description" prepend=" and ">
+					t.description like '$description$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="useInLevel.id">
+				<isNotNull property="useInLevel.id" prepend=" and ">
+					t.useinlevel = #useInLevel.id#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="searchRoles" parameterClass="Role" resultMap="roleResult">
+		select * from roles t where t.useinlevel is not null
+		<dynamic>
+			<isPropertyAvailable property="roleName">
+				<isNotEmpty property="roleName" prepend=" and ">
+					t.roleName like '$roleName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="description">
+				<isNotEmpty property="description" prepend=" and ">
+					t.description like '$description$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="useInLevel.id">
+				<isNotNull property="useInLevel.id" prepend=" and ">
+					t.useinlevel = #useInLevel.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			 
+		</dynamic>
+		
+	</select>
+</sqlMap>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx-2.5.xsd 
+	http://www.springframework.org/schema/jee 
+	http://www.springframework.org/schema/jee/spring-jee-2.5.xsd 
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-2.5.xsd
+	http://code.alibabatech.com/schema/dubbo
+    http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:jdbc.properties</value>
+				<value>classpath*:grid.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<tx:annotation-driven transaction-manager="txManager" />
+	<context:component-scan base-package="com.tianque" />
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+
+	<!-- Spring提供的iBatis的SqlMap配置-->
+	<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation">
+			<value>classpath:/SqlMapConfig.xml</value>
+		</property>
+		<property name="mappingLocations">
+			<list>
+				<value>classpath*:/sqlmaps/*.xml</value>
+				<value>classpath*:/sqlmaps/account/*.xml</value>
+			</list>
+		</property>
+		<property name="dataSource" ref="zzGrid_main_ds" />
+		<property name="lobHandler" ref="lobHandler" />
+	</bean>
+
+	<!-- Spring提供的iBatis的大字段处理-->
+	<bean id="lobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler" />
+
+    <!-- 定义事务管理器（声明式的事务） -->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="zzGrid_main_ds" />
+    </bean>
+    
+     <bean id="threeRecordsDefaultIssueListeners" class="java.util.ArrayList">
+   		<constructor-arg>
+   			<list>
+   				<ref bean="threeRecordsAdjustCurrentStepAndOrg"/>
+   				<ref bean="threeRecordsSavingOperationLog"/>
+   			</list>
+   		</constructor-arg>
+   </bean>
+    
+    <!-- 取消jta事务
+	<bean id="atomikosUserTransaction"
+        class="com.atomikos.icatch.jta.UserTransactionImp">
+        <property name="transactionTimeout" value="300"/>
+    </bean>
+
+    <bean id="atomikosTransactionManager"
+        class="com.atomikos.icatch.jta.UserTransactionManager"
+        init-method="init" destroy-method="close">
+        <property name="forceShutdown">
+            <value>true</value>
+        </property>
+    </bean>
+    
+	<bean id="txManager" class="org.springframework.transaction.jta.JtaTransactionManager" >
+        <property name="transactionManager">
+            <ref bean="atomikosTransactionManager" />
+        </property>
+		<property name="userTransaction" ref="atomikosUserTransaction" /> 
+	</bean>
+    -->
+    <bean id="SpringBeanUtil " class="com.tianque.core.util.SpringBeanUtil " scope="singleton" lazy-init="false"/>
+    
+    <!-- 基于注解方式使用异常处理框架 -->
+	<bean class="com.tianque.exception.processor.ExceptionalAnnotationBeanPostProcessor" />
+   
+<!--    由于job太多或其他原因，TBSchedule经常出现zookeeper连接丢失问题，暂时关闭TBSchedule功能  @by wangxioahu 20150409 -->
+<!-- 	<bean id="scheduleManagerFactory" class="com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory" -->
+<!-- 		init-method="init" autowire="byName"> -->
+<!-- 		<property name="zkConfig"> -->
+<!--            <map> -->
+<!--               <entry key="zkConnectString" value="${TBSchedule.zkConnectString}" /> -->
+<!--               <entry key="rootPath" value="${TBSchedule.rootPath}" /> -->
+<!--               <entry key="zkSessionTimeout" value="${TBSchedule.zkSessionTimeout}" /> -->
+<!--               <entry key="userName" value="${TBSchedule.userName}" /> -->
+<!--               <entry key="password" value="${TBSchedule.password}" /> -->
+<!--               <entry key="isCheckParentPath" value="${TBSchedule.isCheckParentPath}" /> -->
+<!--            </map> -->
+<!--        </property>	 -->
+<!-- 	</bean> -->
+</beans>

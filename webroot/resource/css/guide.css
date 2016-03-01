@@ -1,0 +1,129 @@
+@charset "utf-8";
+html{overflow:hidden;}
+body{background:#69A2DA;}
+#header{height:24px;padding:0 7px;}
+#header-top{height:24px;}
+#date{padding-left:10px;}
+#header-left{background:url(../images/guide/header-left.jpg) no-repeat;width:25px;height:24px;position:absolute;top:0px;left:7px;}
+#header-center{background:url(../images/guide/header-center.jpg) repeat-x;line-height:24px;color:#BDC3CA;margin-left:25px;}
+#header-center strong{padding:5px;color:#99FF00;font-weight:bold; font-family:Arial;}
+#header-center a.top-info{color:#EEF0F2;padding-left:10px;}
+#user{color:#BDC3CA;font-weight:normal;}
+#header-center ul{background:url(../images/guide/header-center-right.jpg) no-repeat right top;width:220px;position:absolute;top:0px;right:0px;padding-left:80px;}
+#header-center ul li{float:left;width:70px;}
+#header-center ul li.message{width:auto;padding:0;margin:0;color:#fff; cursor:pointer;text-align:right;}
+#messageContent{padding:5px 10px 5px 5px;line-height:22px;}
+#messageContent a{color:#FF9900;text-decoration:underline;font-weight:bold;}
+.message-tip{position:absolute;top:30px;right:125px;}
+.message-tip a.tip-close{background:url(../images/guide/close.gif) no-repeat left;width:9px;height:9px;display:block;position:absolute;top:5px;right:5px;}
+.message-tip a.tip-close:hover{background-image:url(../images/guide/close_on.gif);}
+#header-center ul li b{font-weight:normal;}
+#header-center ul li.message span.nomessage{background:url(../images/guide/message.gif) no-repeat left;display:block;float:left;width:18px;height:15px;margin-top:5px;}
+#header-center ul li.message span.newmessage{background:url(../images/guide/message-new.gif) no-repeat left;display:block;float:left;width:18px;height:15px;margin-top:5px;}
+#header-center ul li a.link {color:#fff;display:block;width:57px;float:left;text-indent:15px;}
+#header-center ul li a.link:hover{background:url(../images/guide/header-hover.png) no-repeat left;color:#003366;}
+#header-center ul li a.link span{float:left;margin-left:8px;display:inline;cursor:pointer;}
+#header-center ul li.help{padding-left:5px;}
+#header-center ul li.help a.link{text-indent:18px;}
+#header-center ul li.help a span{background:url(../images/guide/help.gif) no-repeat left;}
+#header-center ul li.help a:hover span{background:url(../images/guide/help1.gif) no-repeat left;text-shadow: 2px 2px 5px #ffffff;Filter: dropshadow(color=#ffffff,offx=1,offy=1);}
+#header-center ul li.home{padding-left:30px;}
+#header-center ul li.home a span{background:url(../images/guide/home.gif) no-repeat left;}
+#header-center ul li.home a:hover span{background:url(../images/guide/home1.gif) no-repeat left;text-shadow: 2px 2px 5px #ffffff;Filter: dropshadow(color=#ffffff,offx=1,offy=1);}
+#header-center ul li.exit a span{background:url(../images/guide/exit.gif) no-repeat left;}
+#header-center ul li.exit a:hover span{background:url(../images/guide/exit1.gif) no-repeat left;text-shadow: 2px 2px 5px #ffffff;Filter: dropshadow(color=#ffffff,offx=1,offy=1);}
+#bottom{background:url(../images/guide/bottom.jpg) repeat-x;height:27px;position:absolute;bottom:0px;left:0px;width:100%;color:#C4CAD0;text-align:center;}
+#bottom p{line-height:27px;width:100%;}
+.middle {
+	POSITION: relative;
+	margin: 0px auto;
+	WIDTH: 940px
+}
+.mLeft {
+	POSITION: absolute;
+	WIDTH: 600px;
+	FLOAT: left;
+	TOP: 60px;
+	PADDING-TOP: 15px;
+	LEFT: 25px
+}
+.mRight {
+	WIDTH: 170px;
+	FLOAT: right;
+	PADDING-TOP: 130px
+}
+.infomenu LI {
+	TEXT-ALIGN: center;
+	LINE-HEIGHT: 36px;
+	WIDTH: 169px;
+	MARGIN-BOTTOM: 15px;
+	_margin-bottom:0;
+	HEIGHT: 36px
+}
+.infomenu A {
+	FONT-FAMILY: "微软雅黑";
+	COLOR: #fff;
+	FONT-SIZE: 20px;
+	TEXT-DECORATION: none
+}
+.infomenu A:hover {
+	FONT-WEIGHT: bold
+}
+.infobox {
+	LINE-HEIGHT: 26px;
+	WIDTH: 157px;
+	COLOR: #fff;
+	MARGIN-LEFT: 8px;
+	PADDING-TOP: 12px
+}
+.infobox P {
+	BORDER-BOTTOM: 0px;
+	BORDER-LEFT: #7994c9 1px solid;
+	PADDING-BOTTOM: 0px;
+	PADDING-LEFT: 12px;
+	PADDING-RIGHT: 5px;
+	BACKGROUND: #1c5db9;
+	BORDER-TOP: 0px;
+	BORDER-RIGHT: #7994c9 1px solid;
+	PADDING-TOP: 0px
+}
+
+.dock {POSITION: relative;MARGIN: 80px auto 0px;WIDTH: 560px;HEIGHT: 350px}
+.dock-container {POSITION: absolute;HEIGHT: 350px;TOP: 0px;LEFT: 0px}
+.dock A {POSITION: absolute;TEXT-ALIGN: center;	WIDTH: 160px;FLOAT: left;COLOR: #fff;TOP: 0px;TEXT-DECORATION: none}
+.dock A IMG {BORDER-BOTTOM: medium none;BORDER-LEFT: medium none;MARGIN: 10px;WIDTH: 100%;BORDER-TOP: medium none;BORDER-RIGHT: medium none;}
+.dock A SPAN {PADDING-BOTTOM: 0px;MARGIN-TOP: -45px;PADDING-LEFT: 50px;PADDING-RIGHT: 40px;DISPLAY: none;PADDING-TOP: 0px}
+
+/*getdetails*/
+#getdetails{position: absolute;width:476px;height:302px;left:50%;top:50%;margin-left:-238px;margin-top:-151px;background:url(../images/guide/getdetails.jpg) no-repeat;}
+#getdetails #top{line-height:22px;text-align:right;margin:35px 10px 0 0;color:#666;}
+
+/*getpassword*/
+#getpassword{position: absolute;width:476px;height:302px;left:50%;top:50%;margin-left:-238px;margin-top:-151px;background:url(../images/guide/getpassword.jpg) no-repeat;}
+#getpassword #top{line-height:22px;text-align:right;margin:35px 10px 0 0;color:#666;}
+.form-list{position:relative;font-size:12px; line-height:1.5; font-family:Tahoma;margin:0 auto;width:380px;margin-top:35px;color:#333;}/*这里使用Tahoma字体使表单对齐*/
+.form-list .form-position-right{position:absolute; right:10px; top:0;}
+.form-list .form-txt{height: 25px; padding-left:3px; line-height:20px;background-color:#FFFFFF; border:1px solid #B9B9B9; vertical-align:middle;width:210px;}
+.form-list .row{margin-bottom:10px;}/*每行间距*/
+.form-list input{vertical-align:middle;}
+.form-list .form-label{display:inline-block; width:110px; *display:inline; *zoom:1; text-align:right; vertical-align:middle;}/*width控制左列宽,text-align设置对齐方式*/
+.form-list label.vt{vertical-align:top;}
+.form-list label.vb{vertical-align:bottom;}
+.form-list .form-label em{color:red; margin-right:5px; font-family:simsun; font-style:normal;}
+.form-list .collection{display:inline-block; *display:inline; *zoom:1; vertical-align:middle;}
+.form-list .rc{ margin-right:10px;}
+.form-list .rc input{vertical-align:text-top; width:13px; height:15px;  margin-right:5px;}
+.form-list select{height:22px; border:1px solid #bbb; vertical-align:middle;font-family:Tahoma; font-size:12px;}
+.form-list .textarea{padding:3px; border:1px solid #bbb; width:400px; height:60px; font:12px/1.5em Tahoma;overflow-y:auto;}
+.form-list span.mark{color:red; padding-left:10px;}
+.form-list p.mark{color:red; padding-left:0; padding-top:3px;}
+.form-list .form-file{vertical-align:middle; *height:22px;}
+.form-list .form-btn{overflow:visible; padding:3px 10px;}
+
+#announcement{padding:0;margin:0;z-index:99999;line-height:22px;background:#FFFBD6;color:#333;border:1px solid #C5B270;position:absolute;top:24px;left:7px;}
+#announcementBody{padding:0 40px 0 20px;position:relative;}
+#announcementBody a{color:blue;text-decoration:underline;}
+#announcementBody a:hover{text-decoration:none;}
+#announcementClose{position:absolute;top:0px;right:3px;width:20px;}
+#announcementClose a{background:url(../images/guide/close.gif) no-repeat left;display:block;float:left;width:9px;height:22px;}
+#announcementClose a:hover{background:url(../images/guide/close_on.gif) no-repeat left;}

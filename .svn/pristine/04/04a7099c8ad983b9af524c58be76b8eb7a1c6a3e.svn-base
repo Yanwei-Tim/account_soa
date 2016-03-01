@@ -1,0 +1,5 @@
+com.atomikos.icatch.service =  com.atomikos.icatch.standalone.UserTransactionServiceFactory
+com.atomikos.icatch.no_file = true
+com.atomikos.icatch.enable_logging = false
+com.atomikos.icatch.max_actives = 2000
+com.atomikos.icatch.console_log_level = WARN   

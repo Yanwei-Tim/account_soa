@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="assignFormReceiver">
+	<typeAlias alias="assignFormReceiver" type="com.tianque.plugin.account.domain.AssignFormReceiver" />
+	<resultMap class="assignFormReceiver" id="assignFormReceiverMap">
+		<result property="id" column="id"/>
+		<result property="stepId" column="stepId"/>
+		<result property="assignId" column="assignId"/>
+		<result property="name" column="name"/>
+		<result property="mobile" column="mobile"/>
+		<result property="targetOrg.id" column="targetOrg"/>
+		<result property="manager" column="manager"/>
+		<result property="isManage" column="isManage"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="receiveDate" column="receiveDate"/>
+	</resultMap>
+	<insert id="addAssignFormReceiver" parameterClass="assignFormReceiver">
+		<selectKey keyProperty="id" resultClass="long">
+			<![CDATA[SELECT S_accountAssignFormReceiver.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into accountAssignFormReceiver(id ,stepId,assignId ,name ,mobile ,targetOrg ,manager ,isManage  , CREATEUSER , UPDATEUSER ,CREATEDATE , UPDATEDATE )
+		values(#id#,#stepId# ,#assignId# ,#name# ,#mobile# ,#targetOrg.id# ,#manager# ,#isManage#, #createUser#, #updateUser#,  #createDate#, #updateDate#)
+	</insert>
+	
+	<update id="updateAssignFormReceiver" parameterClass="assignFormReceiver">
+		update accountAssignFormReceiver set id=#id#
+		  <isNotNull property="name" prepend=",">
+			  name = #name#
+		  </isNotNull>
+		  <isNotNull property="mobile" prepend=",">
+			  mobile = #mobile#
+		  </isNotNull>
+		  <isNotNull property="manager" prepend=",">
+			  manager = #manager#
+		  </isNotNull>
+		  <isNotNull prepend="," property="updateDate">
+			 updateDate = #updateDate#
+		  </isNotNull>
+		   <isNotNull prepend="," property="updateUser">
+			 UPDATEUSER = #updateUser#
+		  </isNotNull>
+		  <isNotNull prepend="," property="receiveDate">
+				receiveDate = #receiveDate#
+		  </isNotNull>
+		   <isNotNull prepend="," property="stepId">
+				stepId = #stepId#
+		  </isNotNull>
+		   <isNotNull prepend="," property="isManage">
+				isManage = #isManage#
+		  </isNotNull>
+		  
+		  
+		where id=#id#
+	</update>
+	
+	<select id="getSimpleAssignFormReceiverById" parameterClass="java.lang.Long"
+		resultMap="assignFormReceiverMap">
+		<![CDATA[select * from accountAssignFormReceiver where id=#value#]]>
+	</select>
+	
+	<select id="findAssignFormReceiversByAssignId" parameterClass="java.lang.Long"
+		resultMap="assignFormReceiverMap">
+		<![CDATA[select * from accountAssignFormReceiver where assignId=#value#]]>
+	</select>
+	
+	<select id="getSimpleAssignFormReceiverByStepIdAndTargetOrg" parameterClass="java.util.Map"
+		resultMap="assignFormReceiverMap">
+		<![CDATA[select * from accountAssignFormReceiver where stepId=#stepId# and targetOrg=#targetOrg#]]>
+	</select>
+	
+	
+</sqlMap>

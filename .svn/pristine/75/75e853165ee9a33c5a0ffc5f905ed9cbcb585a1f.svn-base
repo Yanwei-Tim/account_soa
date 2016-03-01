@@ -1,0 +1,98 @@
+package com.tianque.plugin.account.constants;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class CompleteType {
+
+	// 类型判断 - 实质性办结
+	public static final int REALCOMPLETE = 1;
+	// 类型判断 - 问题中止
+	public static final int QUESTIONEND = 2;
+	// 类型判断 - 实质性化解
+	public static final int REALCOMPLETE_SOLVE = 14;
+	// 类型判断 - 程序性终结
+	public static final int PROGRAM_COMPLETE = 15;
+	// 类型判断 - 完成
+	public static final int COMPLETE = 16;
+	public static final String REALCOMPLETE_NAME = "实质性办结";
+	public static final String PROGRAM_COMPLETE_NAME = "程序性终结";
+	public static final String COMPLETE_NAME = "实质性终结";
+	public static final String REALCOMPLETE_SOLVE_NAME = "实质性化解";
+	public static final String QUESTIONEND_NAME = "问题中止";
+
+	// 政策解答
+	public static final int POLICYSOLUTION = 3;
+	// 纳入项目库
+	public static final int ITEM = 4;
+	// 落实帮扶
+	public static final int IMPLEMENT = 5;
+	// 整合项目
+	public static final int INTEGRATE_PROJECT = 6;
+	// 呈报市委市政府
+	public static final int REPORT_TO_DISTRICT = 7;
+	// 其他措施帮扶
+	public static final int OTHER = 8;
+	public static final String POLICYSOLUTION_NAME = "政策解答";
+	public static final String IMPLEMENT_NAME = "落实帮扶";
+	public static final String INTEGRATE_PROJECT_NAME = "整合项目";
+	public static final String ITEM_NAME = "纳入项目库";
+	public static final String REPORT_TO_DISTRICT_NAME = "呈报市委市政府";
+	public static final String OTHER_NAME = "其他措施帮扶";
+
+	// 实质性解决困难
+	public static final int REAL_SOLVE_TROUBLE = 9;
+	// 已脱贫
+	public static final int NOT_POOR = 10;
+	// 临时救助和纳入低保
+	public static final int LOW_INDEMNITY = 11;
+	// 五保等尚未完全脱贫还需持续帮扶
+	public static final int FIVE_INDEMNITY = 12;
+	public static final String REAL_SOLVE_TROUBLE_NAME = "实质性解决困难";
+	public static final String NOT_POOR_NAME = "已脱贫";
+	public static final String LOW_INDEMNITY_NAME = "临时救助和纳入低保";
+	public static final String FIVE_INDEMNITY_NAME = "五保等尚未完全脱贫还需持续帮扶";
+
+	// 稳控中
+	public static final int STEADY_CONTROL = 13;
+	public static final String STEADY_CONTROL_NAME = "稳控中";
+	// 台账评论反馈的反馈方式
+	public static final int TYPE_VERBAL = 11;
+	// 台账评论反馈的反馈方式
+	public static final int TYPE_PHONE = 12;
+	// 台账评论反馈的反馈方式
+	public static final int TYPE_WRITTEN = 13;
+	// 台账评论反馈的反馈意见
+	public static final int OPINION_SATISFACTION = 21;
+	// 台账评论反馈的反馈满意
+	public static final int OPINION_RUDIMENTARY_SATISFACTION = 22;
+	// 台账评论反馈的反馈不满意
+	public static final int OPINION_NOT_SATISFACTION = 23;
+	// 台账评论反馈的其他反馈
+	public static final int OPINION_OTHER = 24;
+
+	public static final Map<Integer, String> COMPLETETYPE = new HashMap<Integer, String>();
+	static {
+		COMPLETETYPE.put(REALCOMPLETE, REALCOMPLETE_NAME);
+		COMPLETETYPE.put(QUESTIONEND, QUESTIONEND_NAME);
+		COMPLETETYPE.put(POLICYSOLUTION, POLICYSOLUTION_NAME);
+		COMPLETETYPE.put(NOT_POOR, NOT_POOR_NAME);
+		COMPLETETYPE.put(LOW_INDEMNITY, LOW_INDEMNITY_NAME);
+		COMPLETETYPE.put(FIVE_INDEMNITY, FIVE_INDEMNITY_NAME);
+		COMPLETETYPE.put(POLICYSOLUTION, POLICYSOLUTION_NAME);
+		COMPLETETYPE.put(ITEM, ITEM_NAME);
+		COMPLETETYPE.put(IMPLEMENT, IMPLEMENT_NAME);
+		COMPLETETYPE.put(INTEGRATE_PROJECT, INTEGRATE_PROJECT_NAME);
+		COMPLETETYPE.put(REPORT_TO_DISTRICT, REPORT_TO_DISTRICT_NAME);
+		COMPLETETYPE.put(OTHER, OTHER_NAME);
+		COMPLETETYPE.put(STEADY_CONTROL, STEADY_CONTROL_NAME);
+		COMPLETETYPE.put(REALCOMPLETE_SOLVE, REALCOMPLETE_SOLVE_NAME);
+		COMPLETETYPE.put(PROGRAM_COMPLETE, PROGRAM_COMPLETE_NAME);
+		COMPLETETYPE.put(COMPLETE, COMPLETE_NAME);
+
+	}
+
+	public static String getChineseName(int key) {
+		return COMPLETETYPE.get(key);
+	}
+}

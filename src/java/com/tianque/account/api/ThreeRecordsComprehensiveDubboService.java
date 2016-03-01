@@ -1,0 +1,159 @@
+package com.tianque.account.api;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Component;
+
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.account.vo.LedgerPoorPeopleVo;
+import com.tianque.plugin.account.vo.LedgerSteadyWorkVo;
+import com.tianque.plugin.account.vo.SearchComprehensiveVo;
+import com.tianque.plugin.account.vo.ThreeRecordsCatalogVo;
+import com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject;
+import com.tianque.plugin.account.vo.ThreeRecordsViewObject;
+
+@Component
+public interface ThreeRecordsComprehensiveDubboService {
+	//民生
+	public Map<Integer, BigDecimal> getPeopleDetail(SearchComprehensiveVo searchVo, Organization org);
+	
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsNeedDo(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsNoticeDo(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSupportDo(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsPeriodDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubStanceDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsFeedBack(
+			SearchComprehensiveVo searchVo,  List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsAssgin(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+
+	PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubmit(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsCreateAndDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	public PageInfo<ThreeRecordsViewObject> exportCreateAndDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	public Integer countfindJurisdictionsCreateAndDone(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows);
+	
+	public PageInfo<ThreeRecordsCatalogVo> exportCataLog(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows);
+	
+	public Integer countCataLog(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows);
+	
+	
+	//困难
+	public Map<Integer, BigDecimal> getPoorPeopleDetail(SearchComprehensiveVo searchVo, Organization org);
+	
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsPoorNeedDo(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess, Long sourceType);
+	
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsPoorNoticeDo(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess, Long sourceType);
+	
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsPoorSupportDo(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess, Long sourceType);
+	
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsPoorDone(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess, Long sourceType);
+	
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsPoorFeedBack(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess, Long sourceType);
+	
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsPoorSubStanceDone(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess, Long sourceType);
+	
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsPoorPeriodDone(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess, Long sourceType);
+	
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsPoorAssgin(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess, Long sourceType);
+	
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsPoorSubmit(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess, Long sourceType);
+	
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsPoorCreateAndDone(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess, Long sourceType);
+	
+	public Integer countPoorPeopleCreateAndDone(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows);
+	
+	public PageInfo<ThreeRecordsViewObject> exportPoorPeopleCreateAndDone(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows);
+	
+	public PageInfo<ThreeRecordsCatalogVo> exportPoorPeopleCataLog(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows);
+	
+	public Integer countPoorPeopleCataLog(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows);
+	
+	
+	
+	
+	//稳定
+	public Map<Integer, BigDecimal> getSteadyWorkDetail(SearchComprehensiveVo searchVo, Organization org);
+	
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSteadyWorkNeedDo(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess);
+	
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSteadyWorkNoticeDo(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess);
+	
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSteadyWorkSupportDo(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess);
+	
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSteadyWorkDone(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess);
+	
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSteadyWorkFeedBack(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess);
+	
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSteadyWorkSubStanceDone(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess);
+	
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSteadyWorkPeriodDone(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess);
+	
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSteadyWorkAssgin(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess);
+	
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSteadyWorkSubmit(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess);
+	
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSteadyWorkCreateAndDone(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess);
+	
+	public Integer countSteadyWorkCreateAndDone(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows);
+	
+	public PageInfo<ThreeRecordsViewObject> exportSteadyWorkCreateAndDone(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows);
+	
+	public PageInfo<ThreeRecordsCatalogVo> exportSteadyWorkCataLog(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows);
+	
+	public Integer countSteadyWorkCataLog(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows);
+}

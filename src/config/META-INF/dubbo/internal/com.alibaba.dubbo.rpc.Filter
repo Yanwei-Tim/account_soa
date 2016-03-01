@@ -1,0 +1,2 @@
+dubboRPCFilter=com.tianque.core.dubbo.filter.DubboRPCFilter
+dubboRPCRequestFilter=com.tianque.core.dubbo.filter.DubboRPCRequestFilter

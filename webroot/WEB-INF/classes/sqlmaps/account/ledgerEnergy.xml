@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="ledgerPeopleAspirations">
+
+	<typeAlias alias="energy"
+		type="com.tianque.plugin.account.domain.Energy" />
+
+	<resultMap id="energyResult" class="energy">
+		<result property="id" column="id" />
+		<result property="beneficiaryNumber" column="beneficiaryNumber" />
+		<result property="buildType.id" column="buildType" />
+		<result property="projectName" column="projectName" />
+		<result property="projectCategory.id" column="projectCategory" />
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="lineCategory.id" column="lineCategory" />
+		<result property="pipeLineCategory.id" column="pipeLineCategory" />
+		<result property="pipeMaterialCategory.id" column="pipeMaterialCategory" />
+		<result property="securityCategory.id" column="securityCategory" />
+		<result property="unitCategory.id" column="unitCategory" />
+		<result property="plannedInvestment" column="plannedInvestment" />
+		<result property="selfFund" column="selfFund" />
+		<result property="gapFund" column="gapFund" />
+		<result property="fromAddress" column="fromAddress" />
+		<result property="toAddress" column="toAddress" />
+		<result property="peopleAspiration.id" column="ledgerPeopleAspirationsId" />
+		<result property="energyNumber" column="energyNumber" />
+		<result property="otherContent" column="otherContent" />
+		<result property="capacity" column="capacity" />
+		<result property="mileage" column="mileage" />
+		<result property="depth" column="depth" />
+		<result property="securityNum" column="securityNum" />
+		
+		
+		
+	</resultMap>
+
+
+	<select id="getEnergyByAspirationsId" parameterClass="java.lang.Long"
+		resultMap="energyResult">
+		select * from ledgerEnergy where ledgerPeopleAspirationsId=#value#
+	</select>
+
+	<select id="getEnergyById" parameterClass="java.lang.Long"
+		resultMap="energyResult">
+		select * from ledgerEnergy where id=#value#
+	</select>
+
+	<insert id="addEnergy" parameterClass="energy">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_ledgerEnergy.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerEnergy (  ID,ledgerPeopleAspirationsId,beneficiaryNumber  ,buildType  ,projectName  ,projectCategory    ,projectSubCategory ,plannedInvestment  ,selfFund     ,gapFund      ,fromAddress  ,toAddress    ,createUser   ,updateUser   ,createDate   ,updateDate ,energyNumber,lineCategory,pipeLineCategory,pipeMaterialCategory ,securityCategory ,unitCategory,otherContent,capacity,depth,mileage ,securityNum   )
+		values( #id#,#peopleAspiration.id#,#beneficiaryNumber#,#buildType.id#,#projectName#,#projectCategory.id#,#projectSubCategory.id#,#plannedInvestment#,#selfFund#,#gapFund#,#fromAddress#,#toAddress#,#createUser#,#updateUser#,#createDate#,#updateDate# ,#energyNumber#,#lineCategory.id#,#pipeLineCategory.id#,#pipeMaterialCategory.id#,#securityCategory.id#,#unitCategory.id#,#otherContent#,#capacity#,#depth#,#mileage#,#securityNum#)
+	</insert>
+
+	 <update id="updateEnergy" parameterClass="energy">
+		update ledgerEnergy set 
+			beneficiaryNumber = #beneficiaryNumber#,
+			projectCategory = #projectCategory.id#,
+			buildType = #buildType.id#,
+			projectName = #projectName#,
+			projectSubCategory = #projectSubCategory.id#,
+			securityCategory = #securityCategory.id#,
+			pipeMaterialCategory = #pipeMaterialCategory.id#,
+			unitCategory = #unitCategory.id#,
+			pipeLineCategory = #pipeLineCategory.id#,
+			lineCategory = #lineCategory.id#,
+			plannedInvestment = #plannedInvestment#,
+			selfFund  = #selfFund#,
+			gapFund = #gapFund#,
+			fromAddress = #fromAddress#,
+			toAddress = #toAddress#,
+			updateDate = #updateDate#,
+			UPDATEUSER = #updateUser#,
+			energyNumber = #energyNumber#,
+			otherContent = #otherContent#,
+			mileage = #mileage#,
+			depth = #depth#,
+			capacity = #capacity#,
+			securityNum = #securityNum#
+		where id = #id#
+	</update>
+	
+
+	<delete id="deleteEnergyByAspirationId" parameterClass="java.lang.Long">
+		delete from ledgerEnergy where ledgerPeopleAspirationsId = #value#	
+	</delete>
+
+
+</sqlMap>

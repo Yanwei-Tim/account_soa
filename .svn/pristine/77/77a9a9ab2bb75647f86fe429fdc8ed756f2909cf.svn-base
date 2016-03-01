@@ -1,0 +1,609 @@
+package com.tianque.plugin.account.service.impl;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.util.DateUtil;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.plugin.account.constants.CompleteType;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueTag;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueViewType;
+import com.tianque.plugin.account.dao.LedgerPoorPeopleComprehensiveDao;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.service.LedgerPoorPeopleComprehensiveService;
+import com.tianque.plugin.account.service.ThreeRecordsIssueLogService;
+import com.tianque.plugin.account.state.ThreeRecordsIssueOperate;
+import com.tianque.plugin.account.state.ThreeRecordsIssueSourceState;
+import com.tianque.plugin.account.state.ThreeRecordsIssueState;
+import com.tianque.plugin.account.util.ComparisonAttribute;
+import com.tianque.plugin.account.util.ThreeRecordsIssueOperationUtil;
+import com.tianque.plugin.account.vo.LedgerPeopleSubstanceDesc;
+import com.tianque.plugin.account.vo.LedgerPoorPeopleDetail;
+import com.tianque.plugin.account.vo.LedgerPoorPeopleVo;
+import com.tianque.plugin.account.vo.SearchComprehensiveVo;
+import com.tianque.plugin.account.vo.ThreeRecordsCatalogVo;
+import com.tianque.plugin.account.vo.ThreeRecordsViewObject;
+import com.tianque.userAuth.api.OrganizationDubboRemoteService;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+
+@Service("ledgerPoorPeopleComprehensiveService")
+@Transactional
+public class LedgerPoorPeopleComprehensiveServiceImpl implements
+		LedgerPoorPeopleComprehensiveService {
+
+	@Autowired
+	private OrganizationDubboRemoteService organizationDubboService;
+	@Autowired
+	private LedgerPoorPeopleComprehensiveDao comprehensiveDao;
+	@Autowired
+	private ThreeRecordsIssueLogService issueLogService;
+	@Autowired
+	private PropertyDictDubboService propertyDictDubboService;
+	
+	private List<Organization> getOrgs(List<Long> orgIds){
+		List<Organization> orgs = new ArrayList<Organization>();
+		for(Long orgId : orgIds){
+			Organization org = organizationDubboService.getFullOrgById(orgId);
+			orgs.add(org);
+		}
+		return orgs;
+	}
+	
+	private List<Long> getChildIds(List<Organization> orgs){
+		List<Long> childOrg = new ArrayList<Long>();
+		for(Organization org : orgs){
+			List<Long> childIds = ComparisonAttribute.getOrgIds(organizationDubboService.findOrganizationsByParentId(org.getId()));
+			if(childIds != null && !childIds.isEmpty()){
+				childOrg.addAll(childIds);
+			}
+		}
+		return childOrg;
+	}
+	
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsNeedDo(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess,
+			Long sourceType, int supportType) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerPoorPeopleVo> pageInfo = comprehensiveDao.findJurisdictionsNeedDo(searchVo, orgs, childOrg, page, rows, 
+				functionalorgType, viewProcess, sourceType, supportType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerPoorPeopleVo> pageInfo = comprehensiveDao.findJurisdictionsDone(searchVo, orgs, childOrg, page, rows, functionalorgType, viewProcess, sourceType);
+		if(StringUtil.isStringAvaliable(searchVo.getDetailDoneType()) && !searchVo.getDetailDoneType().equals(CompleteType.ALL_QUERY)){
+			pageInfo = getDeatilIssues(searchVo, page, rows, pageInfo);
+		}
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsFeedBack(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerPoorPeopleVo> pageInfo = comprehensiveDao.findJurisdictionsFeedBack(searchVo, orgs, childOrg, page, rows, functionalorgType, viewProcess, sourceType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsSubStanceDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerPoorPeopleVo> pageInfo = comprehensiveDao.findJurisdictionsSubStanceDone(searchVo, orgs, childOrg, page, rows, functionalorgType, viewProcess, sourceType);
+		if(StringUtil.isStringAvaliable(searchVo.getDetailDoneType()) && !searchVo.getDetailDoneType().equals(CompleteType.ALL_QUERY)){
+			pageInfo = getDeatilIssues(searchVo, page, rows, pageInfo);
+		}
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsPeriodDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerPoorPeopleVo> pageInfo = comprehensiveDao.findJurisdictionsPeriodDone(searchVo, orgs, childOrg, page, rows, functionalorgType, viewProcess, sourceType);
+		if(StringUtil.isStringAvaliable(searchVo.getDetailDoneType()) && !searchVo.getDetailDoneType().equals(CompleteType.ALL_QUERY)){
+			pageInfo = getDeatilIssues(searchVo, page, rows, pageInfo);
+		}
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsAssgin(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerPoorPeopleVo> pageInfo = comprehensiveDao.findJurisdictionsAssgin(searchVo, orgs, childOrg, page, rows, functionalorgType, viewProcess, sourceType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsSubmit(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerPoorPeopleVo> pageInfo = comprehensiveDao.findJurisdictionsSubmit(searchVo, orgs, childOrg, page, rows, functionalorgType, viewProcess, sourceType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsCreateAndDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Long functionalorgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerPoorPeopleVo> pageInfo = comprehensiveDao.findJurisdictionsCreateAndDone(searchVo, orgs, childOrg, page, rows, functionalorgType, viewProcess, sourceType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+	
+	private void orgIsFun(List<Organization> orgs, SearchComprehensiveVo searchVo){
+		for(Organization org : orgs){
+			org.setOrgType(propertyDictDubboService.getPropertyDictById(org.getOrgType().getId()));
+			if(ThreeRecordsIssueOperationUtil.orgIsFunctional(org)){
+				searchVo.setSearchValue("present");
+				break;
+			}
+		}
+	}
+	
+	private PageInfo<LedgerPoorPeopleVo> getDeatilIssues(SearchComprehensiveVo searchVo, Integer page, Integer rows, 
+			PageInfo<LedgerPoorPeopleVo> result){
+		List<LedgerPoorPeopleVo> list = new ArrayList<LedgerPoorPeopleVo>();
+		for(LedgerPoorPeopleVo issue : result.getResult()){
+			List<ThreeRecordsIssueLogNew> logs = issueLogService.getLogsByStepId(issue.getStepId());
+			for(ThreeRecordsIssueLogNew log : logs){
+				if(log.getDealDescription().contains(searchVo.getDetailDoneType())){
+					list.add(issue);
+					break;
+				}
+			}
+		}
+		PageInfo<LedgerPoorPeopleVo> results = createIssueVoPageInfoInstance(list.size(), rows, page);
+		results.setResult(list);
+		return results;
+	}
+	
+	private PageInfo<LedgerPoorPeopleVo> createIssueVoPageInfoInstance(
+			int totalRecord, int pageSize, int pageIndex) {
+		PageInfo<LedgerPoorPeopleVo> result = new PageInfo<LedgerPoorPeopleVo>();
+		result.setTotalRowSize(totalRecord);
+		result.setCurrentPage(pageIndex);
+		result.setPerPageSize(pageSize);
+		return result;
+	}
+	
+	private void loadIssueOccurOrgAndCurrentOrgAndIssueTypes(
+			PageInfo<LedgerPoorPeopleVo> pageInfo) {
+		if (null != pageInfo.getResult() && pageInfo.getResult().size() > 0) {
+			for (LedgerPoorPeopleVo poorPeopleVo : pageInfo.getResult()) {
+				poorPeopleVo
+						.setOccurOrg(organizationDubboService
+								.getSimpleOrgById(poorPeopleVo.getOccurOrg() == null ? null
+										: poorPeopleVo.getOccurOrg().getId()));
+				poorPeopleVo
+						.setCurrentOrg(organizationDubboService
+								.getSimpleOrgById(poorPeopleVo.getCurrentOrg() == null ? null
+										: poorPeopleVo.getCurrentOrg().getId()));
+				poorPeopleVo
+						.setCreateOrg(organizationDubboService
+								.getSimpleOrgById(poorPeopleVo.getCreateOrg() == null ? null
+										: poorPeopleVo.getCreateOrg().getId()));
+			}
+		}
+	}
+	
+	@Override
+	public Integer countCataLog(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows){
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		Map<String, Object> map = new HashMap<String, Object>();
+		initDoneTypeMap(map, searchVo);
+		return comprehensiveDao.countCataLog(searchVo, orgs, childOrg, page, rows, map);
+	}
+	@Override
+	public PageInfo<ThreeRecordsCatalogVo> exportCataLog(SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows){
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		String query = "getNeedoneCataLog";
+		Map<String, Object> map = new HashMap<String, Object>();
+		initDoneTypeMap(map, searchVo);
+		if (ThreeRecordsIssueViewType.NEED.equalsIgnoreCase(searchVo.getDoneType())) {
+			query = "getNeedoneCataLog";
+		} else if (ThreeRecordsIssueViewType.DONE.equalsIgnoreCase(searchVo.getDoneType())) {
+			query = "getDoneCataLog";
+		} else if (ThreeRecordsIssueViewType.PERIOD.equalsIgnoreCase(searchVo.getDoneType())) {
+			query = "getPeriodDoneCataLog";
+		} else if (ThreeRecordsIssueViewType.COMPLETED.equalsIgnoreCase(searchVo.getDoneType())) {
+			query = "getSubstanceDoneCataLog";
+		} else if (ThreeRecordsIssueViewType.FEEDBACK.equalsIgnoreCase(searchVo.getDoneType())) {
+			query = "getFeedBackCataLog";
+		} else if (ThreeRecordsIssueViewType.ASSIGN.equalsIgnoreCase(searchVo.getDoneType())) {
+			query = "getAssginCataLog";
+		} else if (ThreeRecordsIssueViewType.SUBMIT.equalsIgnoreCase(searchVo.getDoneType())) {
+			query = "getSubmitCataLog";
+		} else if (ThreeRecordsIssueViewType.SUPPORT.equalsIgnoreCase(searchVo.getDoneType())) {
+			query = "getNeedoneCataLog";
+		} else if (ThreeRecordsIssueViewType.NOTICE.equalsIgnoreCase(searchVo.getDoneType())) {
+			query = "getNeedoneCataLog";
+		} else if (ThreeRecordsIssueViewType.CREATE_DONE.equalsIgnoreCase(searchVo.getDoneType())) {
+			query = "getCreateAndDoneCataLog";
+		} else {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		return comprehensiveDao.exportCataLog(searchVo, orgs, childOrg, page, rows, map, query);
+	}
+	
+	private void initDoneTypeMap(Map<String, Object> map, SearchComprehensiveVo searchVo){
+		if (ThreeRecordsIssueViewType.NEED.equalsIgnoreCase(searchVo.getDoneType())) {
+			map.put("isSupported", LedgerConstants.OPERATE_TYPE_SPONSOR);
+			map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		} else if (ThreeRecordsIssueViewType.DONE.equalsIgnoreCase(searchVo.getDoneType())) {
+			map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+			map.put("substanceCode", ThreeRecordsIssueState.SUBSTANCE_CODE);
+			map.put("issueTag", ThreeRecordsIssueTag.DONE_ISSUE);
+			map.put("complete", ThreeRecordsIssueOperate.COMPLETE_CODE);
+		} else if (ThreeRecordsIssueViewType.PERIOD.equalsIgnoreCase(searchVo.getDoneType())) {
+			map.put("completeCode", ThreeRecordsIssueState.PERIOD_CODE);
+		} else if (ThreeRecordsIssueViewType.COMPLETED.equalsIgnoreCase(searchVo.getDoneType())) {
+			map.put("completeCode", ThreeRecordsIssueState.SUBSTANCE_CODE);
+		} else if (ThreeRecordsIssueViewType.FEEDBACK.equalsIgnoreCase(searchVo.getDoneType())) {
+			map.put("verification", ThreeRecordsIssueState.VERIFICATION);// 台账表中已验证状态，值为300
+			map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);// 台账流程表中办理中的状态，值为500
+			map.put("periodCode", ThreeRecordsIssueState.PERIOD_CODE);// 台账流程表中阶段办结的状态，值为600
+			map.put("issueCompleteCode", ThreeRecordsIssueState.SUBSTANCE_CODE);// 台账流程表中已实质办结的状态，值为700
+			map.put("issueTag", ThreeRecordsIssueTag.DONE_ISSUE);
+		} else if (ThreeRecordsIssueViewType.ASSIGN.equalsIgnoreCase(searchVo.getDoneType())) {
+			map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+			map.put("assgin", ThreeRecordsIssueSourceState.assign);
+			map.put("issueTag", ThreeRecordsIssueTag.ASSIGN_ISSUE);
+		} else if (ThreeRecordsIssueViewType.SUBMIT.equalsIgnoreCase(searchVo.getDoneType())) {
+			map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+			map.put("submit", ThreeRecordsIssueSourceState.submit);
+			map.put("issueTag", ThreeRecordsIssueTag.SUBMIT_ISSUE);
+		} else if (ThreeRecordsIssueViewType.SUPPORT.equalsIgnoreCase(searchVo.getDoneType())) {
+			map.put("isSupported", LedgerConstants.OPERATE_TYPE_SUPPORT);
+		} else if (ThreeRecordsIssueViewType.NOTICE.equalsIgnoreCase(searchVo.getDoneType())) {
+			map.put("isSupported", LedgerConstants.OPERATE_TYPE_NOTICE);
+		} else if (ThreeRecordsIssueViewType.CREATE_DONE.equalsIgnoreCase(searchVo.getDoneType())) {
+			map.put("issueTag", ThreeRecordsIssueTag.DONE_ISSUE);
+		}
+	}
+	
+	@Override
+	public Integer countPoorPeopleCreateAndDone(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows){
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		return comprehensiveDao.exportCountCreateAndDone(searchVo, orgs, childOrg, page, rows);
+	}
+	@Override
+	public PageInfo<ThreeRecordsViewObject> exportPoorPeopleCreateAndDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows){
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<ThreeRecordsViewObject> result = comprehensiveDao.exportCreateAndDone(searchVo, orgs, childOrg, page, rows);
+		List<PropertyDict> poorTypes = propertyDictDubboService.findPropertyDictByDomainName(PropertyTypes.LEDGER_POOR_PEOPLE_DIFFICULT_TYPE);
+		List<PropertyDict> poorSourceTypes = propertyDictDubboService.findPropertyDictByDomainName(PropertyTypes.LEDGER_POOR_PEOPLE_DIFFICULT_CAUSE);
+		for(ThreeRecordsViewObject view : result.getResult()){
+			String poorType = view.getPoorType();
+			String poorSource = view.getPoorSource();
+			String[] pType = poorType.split(",");
+			StringBuffer typeSb = new StringBuffer();
+			for(String type : pType){
+				typeSb.append(getDisplayName(poorTypes, Integer.parseInt(type))).append(",");
+			}
+			typeSb.deleteCharAt(typeSb.lastIndexOf(","));
+			view.setPoorType(typeSb.toString());
+			
+			String[] sType = poorSource.split(",");
+			StringBuffer sourceSb = new StringBuffer();
+			for(String source : sType){
+				sourceSb.append(getDisplayName(poorSourceTypes, Integer.parseInt(source))).append(",");
+			}
+			sourceSb.deleteCharAt(sourceSb.lastIndexOf(","));
+			view.setPoorSource(sourceSb.toString());
+		}
+		return result;
+	}
+	
+	
+	
+	@Override
+	public Map<Integer, BigDecimal> getPoorPeopleDetail(SearchComprehensiveVo searchVo, Organization org){
+		Map<String, Object> map = new HashMap<String, Object>();
+		initMap(map, searchVo, org);
+		Map<Integer, BigDecimal> rMap = new HashMap<Integer, BigDecimal>();
+		for(int i = 1; i <= 53; i++){
+			rMap.put(i, new BigDecimal(0));
+		}
+		List<LedgerPoorPeopleDetail> pList = comprehensiveDao.getCountGroupByPoorType(map);
+		List<LedgerPoorPeopleDetail> rList = comprehensiveDao.getCountGroupByRequiredType(map);
+		List<PropertyDict> poorTypes = propertyDictDubboService.findPropertyDictByDomainName(PropertyTypes.LEDGER_POOR_PEOPLE_DIFFICULT_TYPE);
+		List<PropertyDict> poorSourceTypes = propertyDictDubboService.findPropertyDictByDomainName(PropertyTypes.LEDGER_POOR_PEOPLE_DIFFICULT_CAUSE);
+		List<PropertyDict> requireTypes = propertyDictDubboService.findPropertyDictByDomainName(PropertyTypes.LEDGER_POOR_PEOPLE_SPECIFIC_NEED);
+		int sCount = 0,yCount = 0,zCount = 0,jxCount = 0,jyCount = 0;
+		for(LedgerPoorPeopleDetail poorPeople : pList){
+			if(getDisplayName(poorTypes, poorPeople.getPoorType()).equals("生活")){
+				if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("因病")){
+					sCount = sCount + poorPeople.getCount();
+					rMap.put(3, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("因残")){
+					sCount = sCount + poorPeople.getCount();
+					rMap.put(4, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("因灾")){
+					sCount = sCount + poorPeople.getCount();
+					rMap.put(5, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("缺乏劳动能力")){
+					sCount = sCount + poorPeople.getCount();
+					rMap.put(6, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("生活-其他")){
+					sCount = sCount + poorPeople.getCount();
+					rMap.put(7, new BigDecimal(poorPeople.getCount()));
+				}
+			}else if(getDisplayName(poorTypes, poorPeople.getPoorType()).equals("医疗")){
+				if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("重大疾病")){
+					yCount = yCount + poorPeople.getCount();
+					rMap.put(9, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("医疗-其他")){
+					yCount = yCount + poorPeople.getCount();
+					rMap.put(10, new BigDecimal(poorPeople.getCount()));
+				}
+			}else if(getDisplayName(poorTypes, poorPeople.getPoorType()).equals("住房")){
+				if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("水灾")){
+					zCount = zCount + poorPeople.getCount();
+					rMap.put(12, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("地灾")){
+					zCount = zCount + poorPeople.getCount();
+					rMap.put(13, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("火灾")){
+					zCount = zCount + poorPeople.getCount();
+					rMap.put(14, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("危房改造")){
+					zCount = zCount + poorPeople.getCount();
+					rMap.put(15, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("住房-其他")){
+					zCount = zCount + poorPeople.getCount();
+					rMap.put(16, new BigDecimal(poorPeople.getCount()));
+				}
+			}else if(getDisplayName(poorTypes, poorPeople.getPoorType()).equals("就学")){
+				if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("学前教育")){
+					jxCount = jxCount + poorPeople.getCount();
+					rMap.put(18, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("小学")){
+					jxCount = jxCount + poorPeople.getCount();
+					rMap.put(19, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("初中")){
+					jxCount = jxCount + poorPeople.getCount();
+					rMap.put(20, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("高中职高")){
+					jxCount = jxCount + poorPeople.getCount();
+					rMap.put(21, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("大学")){
+					jxCount = jxCount + poorPeople.getCount();
+					rMap.put(22, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("就学-其他")){
+					jxCount = jxCount + poorPeople.getCount();
+					rMap.put(23, new BigDecimal(poorPeople.getCount()));
+				}
+			}else if(getDisplayName(poorTypes, poorPeople.getPoorType()).equals("就业")){
+				if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("城镇登记失业人员")){
+					jyCount = jyCount + poorPeople.getCount();
+					rMap.put(25, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("4050人员")){
+					jyCount = jyCount + poorPeople.getCount();
+					rMap.put(26, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("残疾人员")){
+					jyCount = jyCount + poorPeople.getCount();
+					rMap.put(27, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("低收入家庭人员")){
+					jyCount = jyCount + poorPeople.getCount();
+					rMap.put(28, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("按城镇人口安置的被征地农民")){
+					jyCount = jyCount + poorPeople.getCount();
+					rMap.put(29, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("连续失业一年以上的人员")){
+					jyCount = jyCount + poorPeople.getCount();
+					rMap.put(30, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("土地（林地）被依法征用或流转的农村劳动者")){
+					jyCount = jyCount + poorPeople.getCount();
+					rMap.put(31, new BigDecimal(poorPeople.getCount()));
+				}else if(getDisplayName(poorSourceTypes, poorPeople.getPoorSource()).equals("就业-其他")){
+					jyCount = jyCount + poorPeople.getCount();
+					rMap.put(32, new BigDecimal(poorPeople.getCount()));
+				}
+			}
+		}
+		rMap.put(1, new BigDecimal(sCount+yCount+zCount+jxCount+jyCount));
+		rMap.put(2, new BigDecimal(sCount));
+		rMap.put(8, new BigDecimal(yCount));
+		rMap.put(11, new BigDecimal(zCount));
+		rMap.put(17, new BigDecimal(jxCount));
+		rMap.put(24, new BigDecimal(jyCount));
+		for(LedgerPoorPeopleDetail poorPeople : rList){
+			if(getDisplayName(requireTypes, poorPeople.getRequiredType()).equals("口粮")){
+				rMap.put(33, new BigDecimal(poorPeople.getCount()));
+			}else if(getDisplayName(requireTypes, poorPeople.getRequiredType()).equals("五保")){
+				rMap.put(34, new BigDecimal(poorPeople.getCount()));
+			}else if(getDisplayName(requireTypes, poorPeople.getRequiredType()).equals("低保")){
+				rMap.put(35, new BigDecimal(poorPeople.getCount()));
+			}else if(getDisplayName(requireTypes, poorPeople.getRequiredType()).equals("救助资金")){
+				rMap.put(36, new BigDecimal(poorPeople.getCount()));
+			}else if(getDisplayName(requireTypes, poorPeople.getRequiredType()).equals("救助物资")){
+				rMap.put(37, new BigDecimal(poorPeople.getCount()));
+			}else if(getDisplayName(requireTypes, poorPeople.getRequiredType()).equals("住房")){
+				rMap.put(38, new BigDecimal(poorPeople.getCount()));
+			}else if(getDisplayName(requireTypes, poorPeople.getRequiredType()).equals("职业培训")){
+				rMap.put(39, new BigDecimal(poorPeople.getCount()));
+			}else if(getDisplayName(requireTypes, poorPeople.getRequiredType()).equals("职业指导")){
+				rMap.put(40, new BigDecimal(poorPeople.getCount()));
+			}else if(getDisplayName(requireTypes, poorPeople.getRequiredType()).equals("求职登记")){
+				rMap.put(41, new BigDecimal(poorPeople.getCount()));
+			}else if(getDisplayName(requireTypes, poorPeople.getRequiredType()).equals("职业介绍")){
+				rMap.put(42, new BigDecimal(poorPeople.getCount()));
+			}else if(getDisplayName(requireTypes, poorPeople.getRequiredType()).equals("其他")){
+				rMap.put(43, new BigDecimal(poorPeople.getCount()));
+			}  
+		}
+		List<LedgerPeopleSubstanceDesc> sDescs = comprehensiveDao.getCountGroupByDesc(map);
+		for(LedgerPeopleSubstanceDesc sDesc : sDescs){
+			if(sDesc.getDealdescription().trim().equals(CompleteType.REALCOMPLETE_NAME)){//实质性办结
+				rMap.put(44, new BigDecimal(sDesc.getCount()));
+			}else if(sDesc.getDealdescription().trim().equals(CompleteType.NOT_POOR_NAME)){//已脱贫 
+				rMap.put(45, new BigDecimal(sDesc.getCount()));
+			}else if(sDesc.getDealdescription().trim().equals(CompleteType.QUESTIONEND_NAME)){//问题终止
+				rMap.put(46, new BigDecimal(sDesc.getCount()));
+			}else if(sDesc.getDealdescription().trim().equals(CompleteType.POLICYSOLUTION_NAME)){//政策解答
+				rMap.put(47, new BigDecimal(sDesc.getCount()));
+			}else if(sDesc.getDealdescription().trim().equals(CompleteType.IMPLEMENT_NAME)){//纳入低保
+				rMap.put(48, new BigDecimal(sDesc.getCount()));
+			}else if(sDesc.getDealdescription().trim().equals(CompleteType.LOW_INDEMNITY_NAME)){//纳入五保
+				rMap.put(49, new BigDecimal(sDesc.getCount()));
+			}else if(sDesc.getDealdescription().trim().equals(CompleteType.ITEM_NAME)){//纳入项目库
+				rMap.put(50, new BigDecimal(sDesc.getCount()));
+			}else if(sDesc.getDealdescription().trim().equals(CompleteType.FIVE_INDEMNITY_NAME)){//临时救助
+				rMap.put(51, new BigDecimal(sDesc.getCount()));
+			}else if(sDesc.getDealdescription().trim().equals(CompleteType.IMPLEMENT_HELP_NAME)){//落实帮扶
+				rMap.put(52, new BigDecimal(sDesc.getCount()));
+			}else if(sDesc.getDealdescription().trim().equals(CompleteType.OTHERS_NAME)){//其他
+				rMap.put(53, new BigDecimal(sDesc.getCount()));
+			}
+		}
+		return rMap;
+	}
+	
+	private String getDisplayName(List<PropertyDict> proTypes, int dId){
+		for(PropertyDict dict : proTypes){
+			if(dict.getId().longValue() == dId){
+				return dict.getDisplayName().trim();
+			}
+		}
+		return "";
+	}
+	
+	private void initMap(Map<String, Object> map, SearchComprehensiveVo searchVo, Organization org){
+		map.put("orgCode", org.getOrgInternalCode());
+		if(StringUtil.isStringAvaliable(searchVo.getPoorType())){
+			map.put("poorType", searchVo.getPoorType());
+		}
+		if(StringUtil.isStringAvaliable(searchVo.getPermanentAddress())){
+			map.put("permanentAddress", searchVo.getPermanentAddress());
+		}
+		if(StringUtil.isStringAvaliable(searchVo.getSearchValue())){
+			map.put("seachValue", searchVo.getSearchValue());
+		}
+		if(searchVo.getBeginCreateDate() != null){
+			map.put("beginCreateDate", searchVo.getBeginCreateDate());
+		}
+		if(searchVo.getEndCreateDate() != null){
+			map.put("endCreateDate", DateUtil.getEndTime(searchVo.getEndCreateDate()));
+		}
+	}
+
+}

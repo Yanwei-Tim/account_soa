@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+	
+<sqlMap namespace="ledgerPoorPeopleMember">	
+	
+	<typeAlias alias="ledgerPoorPeopleMember" type="com.tianque.plugin.account.domain.LedgerPoorPeopleMember"/>
+	
+	<resultMap id="ledgerPoorPeopleMemberResult" class="ledgerPoorPeopleMember">
+		<result property="id" column="ID"/>
+		<result property="name" column="name"/>
+		<result property="gender.id" column="gender"/>
+		<result property="telephone" column="telephone"/>
+		<result property="fixPhone" column="fixPhone"/>
+		<result property="idCardNo" column="idCardNo"/>
+		<result property="securityType.id" column="securityType"/>
+		<result property="ledgerPoorPeople.id" column="ledgerPoorPeopleId"/>
+		
+		<result property="birthday" column="BIRTHDAY"/>
+		<result property="headHouseholdRelation" column="HEADHOUSEHOLDRELATION"/>
+		<result property="unemployment" column="ISUNEMPLOYMENT"/>
+		<result property="healthCondition" column="HEALTHCONDITION"/>
+		
+        <result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+
+
+	<select id="getLedgerPoorPeopleMemberById" parameterClass="java.lang.Long" resultMap="ledgerPoorPeopleMemberResult">
+		select * from ledgerPoorPeopleMember where id=#value#
+	</select>
+
+	<insert id="addLedgerPoorPeopleMember" parameterClass="ledgerPoorPeopleMember">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_ledgerPoorPeopleMember.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerPoorPeopleMember (ID, name, gender, telephone, fixPhone, idCardNo, securityType, ledgerPoorPeopleId,
+		BIRTHDAY, HEADHOUSEHOLDRELATION, ISUNEMPLOYMENT, HEALTHCONDITION, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE) 
+		values(#id#, #name#, #gender.id#, #telephone#, #fixPhone#, #idCardNo#, #securityType.id#, #ledgerPoorPeople.id#, 
+		#birthday#, #headHouseholdRelation#, #unemployment#, #healthCondition#, #createUser#, #updateUser#, #createDate#, #updateDate#)	
+	</insert>
+	
+	
+	<update id="updateLedgerPoorPeopleMember" parameterClass="ledgerPoorPeopleMember">
+		update ledgerPoorPeopleMember set 
+		<dynamic>
+		    id = #id# 
+				<isNotNull prepend="," property="name">
+					name = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="gender.id">
+					gender = #gender.id#
+				</isNotNull>
+				<isNotNull prepend="," property="telephone">
+					telephone = #telephone#
+				</isNotNull>
+				<isNotNull prepend="," property="fixPhone">
+					fixPhone = #fixPhone#
+				</isNotNull>
+				<isNotNull prepend="," property="idCardNo">
+					idCardNo = #idCardNo#
+				</isNotNull>
+				<isNotNull prepend="," property="securityType.id">
+					securityType = #securityType.id#
+				</isNotNull>
+				<isNotNull prepend="," property="ledgerPoorPeople.id">
+					ledgerPoorPeopleId = #ledgerPoorPeople.id#
+				</isNotNull>
+				<isNotNull prepend="," property="birthday">
+					BIRTHDAY = #birthday#
+				</isNotNull>
+				<isNotNull prepend="," property="headHouseholdRelation">
+					HEADHOUSEHOLDRELATION = #headHouseholdRelation#
+				</isNotNull>
+				<isNotNull prepend="," property="unemployment">
+					ISUNEMPLOYMENT = #unemployment#
+				</isNotNull>
+				<isNotNull prepend="," property="healthCondition">
+					HEALTHCONDITION = #healthCondition#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+		  where id = #id#
+		</dynamic>
+	</update>
+	
+	<delete id="deleteLedgerPoorPeopleMemberById" parameterClass="java.lang.Long">	
+		delete  from ledgerPoorPeopleMember where id = #value#	
+	</delete>
+
+	<select id="getFullById" parameterClass="long" resultMap="ledgerPoorPeopleMemberResult">
+		select * from ledgerPoorPeopleMember where id=#value#
+	</select>
+	
+	<select id="findByLedgerPoorPeople" parameterClass="map" resultMap="ledgerPoorPeopleMemberResult">
+		select * from ledgerPoorPeopleMember where ledgerPoorPeopleId=#ledgerPoorPeopleId#
+	</select>
+	
+	<delete id="deleteLedgerPoorPeopleMemberByLedgerPoorPeopleId" parameterClass="java.lang.Long">	
+		delete  from ledgerPoorPeopleMember where ledgerPoorPeopleId = #value#	
+	</delete>
+	
+</sqlMap>

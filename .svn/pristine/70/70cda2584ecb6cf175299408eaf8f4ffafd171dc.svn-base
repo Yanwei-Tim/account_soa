@@ -1,0 +1,16 @@
+package com.tianque.plugin.account.dao;
+
+import java.util.List;
+import java.util.Map;
+
+import com.tianque.plugin.account.domain.LedgerReportGroupCount;
+
+public interface LedgerReportDao {
+
+	public List<LedgerReportGroupCount> getReportAccountStepsCount(Map searchMap);
+
+	public List<LedgerReportGroupCount> getReportGroupCount(Map searchMap);
+
+	public List<LedgerReportGroupCount> getReportStateCodeCount(Map searchMap);
+
+}

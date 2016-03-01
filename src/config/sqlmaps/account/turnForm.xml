@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="turnForm">
+	<typeAlias alias="turnForm" type="com.tianque.plugin.account.domain.TurnForm" />
+	<typeAlias alias="turnFormVo" type="com.tianque.plugin.account.vo.TurnFormVo" />
+	<resultMap class="turnForm" id="turnFormMap">
+		<result property="id" column="id"/>
+		<result property="stepId" column="stepId"/>
+		<result property="ledgerId" column="ledgerId"/>
+		<result property="ledgerType" column="ledgerType"/>
+		<result property="targetOrg.id" column="targetOrg"/>
+		<result property="reason" column="reason"/>
+		<result property="handleResult" column="handleResult"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="name" column="name"/>
+		<result property="mobile" column="mobile"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="turnDate" column="turnDate"/>
+		<result property="receiveDate" column="receiveDate"/>
+		<result property="manager" column="manager"/>
+		<result property="handleStartDate" column="handleStartDate"/>
+		<result property="handleEndDate" column="handleEndDate"/>
+		<result property="opinion" column="opinion"/>
+		<result property="subOpinion" column="subOpinion"/>
+		<result property="ledgerSerialNumber" column="ledgerSerialNumber"/>
+		
+	</resultMap>
+	<insert id="addTurnForm" parameterClass="turnForm">
+		<selectKey keyProperty="id" resultClass="long">
+			<![CDATA[SELECT S_accountTurnForm.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into accountTurnForm(id ,stepId ,ledgerId ,ledgerType ,targetOrg ,reason ,handleResult ,serialNumber ,name ,mobile , CREATEUSER , UPDATEUSER ,CREATEDATE , UPDATEDATE,ledgerSerialNumber,turnDate,manager,receiveDate,handleStartDate,handleEndDate,opinion,subOpinion )
+		values(#id# ,#stepId# ,#ledgerId# ,#ledgerType# ,#targetOrg.id# ,#reason# ,#handleResult# ,#serialNumber# ,#name# ,#mobile#, #createUser#, #updateUser#,  #createDate#, #updateDate#,#ledgerSerialNumber#,#turnDate#,#manager#,#receiveDate#,#handleStartDate#,#handleEndDate#,#opinion#,#subOpinion# )
+	</insert>
+	<sql id="search_sql_where">
+		<dynamic>
+			<isNotNull property="id" prepend=" and ">
+			id = #id#
+			</isNotNull>
+			<isNotNull property="stepId" prepend=" and ">
+			stepId = #stepId#
+			</isNotNull>
+			<isNotNull property="ledgerId" prepend=" and ">
+			ledgerId = #ledgerId#
+			</isNotNull>
+			<isNotNull property="ledgerType" prepend=" and ">
+			ledgerType = #ledgerType#
+			</isNotNull>
+			<isNotNull property="targetOrg" prepend=" and ">
+			targetOrg = #targetOrg#
+			</isNotNull>
+			<isNotNull property="reason" prepend=" and ">
+			reason = #reason#
+			</isNotNull>
+			<isNotNull property="handleResult" prepend=" and ">
+			handleResult = #handleResult#
+			</isNotNull>
+			<isNotNull property="serialNumber" prepend=" and ">
+			serialNumber = #serialNumber#
+			</isNotNull>
+			<isNotNull property="name" prepend=" and ">
+			name = #name#
+			</isNotNull>
+			<isNotNull property="mobile" prepend=" and ">
+			mobile = #mobile#
+			</isNotNull>
+			<isNotNull property="turnDate" prepend=" and ">
+			turnDate = #turnDate#
+			</isNotNull>
+			<isNotNull property="receiveDate" prepend=" and ">
+			receiveDate = #receiveDate#
+			</isNotNull>
+			<isNotNull property="manager" prepend=" and ">
+			manager = #manager#
+			</isNotNull>
+			<isNotNull property="handleStartDate" prepend=" and ">
+			handleStartDate = #handleStartDate#
+			</isNotNull>
+			<isNotNull property="handleEndDate" prepend=" and ">
+			handleEndDate = #handleEndDate#
+			</isNotNull>
+			<isNotNull property="opinion" prepend=" and ">
+			opinion = #opinion#
+			</isNotNull>
+			<isNotNull property="subOpinion" prepend=" and ">
+			subOpinion = #subOpinion#
+			</isNotNull>
+		</dynamic>
+	</sql>
+	<select id="countFindTurnForms" parameterClass="turnFormVo" resultClass="java.lang.Integer">
+		select count(id) from accountTurnForm where 1=1
+		<include refid="search_sql_where"/>
+	</select>
+	<select id="findTurnForms" parameterClass="turnFormVo" resultMap="turnFormMap">
+		select * from accountTurnForm where 1=1
+		<include refid="search_sql_where"/>
+		order by id desc
+	</select>
+	
+	<update id="updateTurnForm" parameterClass="turnForm">
+		update accountTurnForm set id=#id#
+		  <isNotNull property="stepId" prepend=",">
+			  stepId = #stepId#
+		  </isNotNull>
+		  <isNotNull property="ledgerId" prepend=",">
+			  ledgerId = #ledgerId#
+		  </isNotNull>
+		  <isNotNull property="ledgerType" prepend=",">
+			  ledgerType = #ledgerType#
+		  </isNotNull>
+		  <isNotNull property="targetOrg" prepend=",">
+			  targetOrg = #targetOrg.id#
+		  </isNotNull>
+		  <isNotNull property="reason" prepend=",">
+			  reason = #reason#
+		  </isNotNull>
+		  <isNotNull property="handleResult" prepend=",">
+			  handleResult = #handleResult#
+		  </isNotNull>
+		  <isNotNull property="serialNumber" prepend=",">
+			  serialNumber = #serialNumber#
+		  </isNotNull>
+		  <isNotNull property="name" prepend=",">
+			  name = #name#
+		  </isNotNull>
+		  <isNotNull property="mobile" prepend=",">
+			  mobile = #mobile#
+		  </isNotNull>
+		  <isNotNull prepend="," property="updateUser">
+			 UPDATEUSER = #updateUser#
+		  </isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				UPDATEDATE = #updateDate#
+		  </isNotNull>
+		  <isNotNull prepend="," property="turnDate">
+				turnDate = #turnDate#
+		  </isNotNull>
+		  <isNotNull property="receiveDate" prepend=",">
+			receiveDate = #receiveDate#
+			</isNotNull>
+			<isNotNull property="manager" prepend=",">
+			manager = #manager#
+			</isNotNull>
+			<isNotNull property="handleStartDate" prepend=",">
+			handleStartDate = #handleStartDate#
+			</isNotNull>
+			<isNotNull property="handleEndDate" prepend=",">
+			handleEndDate = #handleEndDate#
+			</isNotNull>
+			<isNotNull property="opinion" prepend=",">
+			opinion = #opinion#
+			</isNotNull>
+			<isNotNull property="subOpinion" prepend=",">
+			subOpinion = #subOpinion#
+			</isNotNull>
+	   
+		where id=#id#
+	</update>
+	
+	<select id="getSimpleTurnFormById" parameterClass="java.lang.Long"
+		resultMap="turnFormMap">
+		<![CDATA[select * from accountTurnForm where id=#value#]]>
+	</select>
+	
+	<select id="getSimpleTurnFormByStepId" parameterClass="java.lang.Long"
+		resultMap="turnFormMap">
+		<![CDATA[select * from accountTurnForm where stepId=#value#]]>
+	</select>
+	
+</sqlMap>

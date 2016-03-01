@@ -1,0 +1,1172 @@
+package com.tianque.plugin.account.turn.service.impl;
+
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.job.JobHelper;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.dao.LedgerPoorPeopleDao;
+import com.tianque.plugin.account.dao.LedgerSteadyWorkDao;
+import com.tianque.plugin.account.dao.PeopleAspirationDao;
+import com.tianque.plugin.account.dao.ThreeRecordsIssueDao;
+import com.tianque.plugin.account.dao.ThreeRecordsIssueLogDao;
+import com.tianque.plugin.account.dao.ThreeRecordsIssueProcessDao;
+import com.tianque.plugin.account.domain.AcceptForm;
+import com.tianque.plugin.account.domain.Agriculture;
+import com.tianque.plugin.account.domain.AssignForm;
+import com.tianque.plugin.account.domain.BaseWorking;
+import com.tianque.plugin.account.domain.DeclareForm;
+import com.tianque.plugin.account.domain.Education;
+import com.tianque.plugin.account.domain.Energy;
+import com.tianque.plugin.account.domain.Environment;
+import com.tianque.plugin.account.domain.Labor;
+import com.tianque.plugin.account.domain.LedgerAttachFile;
+import com.tianque.plugin.account.domain.LedgerPeopleAspirations;
+import com.tianque.plugin.account.domain.LedgerPoorPeople;
+import com.tianque.plugin.account.domain.LedgerPoorPeopleMember;
+import com.tianque.plugin.account.domain.LedgerSteadyWork;
+import com.tianque.plugin.account.domain.LedgerSteadyWorkPeopleInfo;
+import com.tianque.plugin.account.domain.Medical;
+import com.tianque.plugin.account.domain.Other;
+import com.tianque.plugin.account.domain.ReportForm;
+import com.tianque.plugin.account.domain.Science;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStep;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStepGroup;
+import com.tianque.plugin.account.domain.ThreeRecordsYearTurn;
+import com.tianque.plugin.account.domain.Town;
+import com.tianque.plugin.account.domain.Traffic;
+import com.tianque.plugin.account.domain.TurnForm;
+import com.tianque.plugin.account.domain.WaterResources;
+import com.tianque.plugin.account.service.AcceptFormService;
+import com.tianque.plugin.account.service.AssignFormService;
+import com.tianque.plugin.account.service.DeclareFormService;
+import com.tianque.plugin.account.service.LedgerPoorPeopleMemberService;
+import com.tianque.plugin.account.service.LedgerSteadyWorkPeopleInfoService;
+import com.tianque.plugin.account.service.ReportFormService;
+import com.tianque.plugin.account.service.ThreeRecordsKeyGeneratorService;
+import com.tianque.plugin.account.service.TurnFormService;
+import com.tianque.plugin.account.state.ThreeRecordsIssueState;
+import com.tianque.plugin.account.turn.service.ThreeRecordsLastYearService;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+
+@Service("threeRecordsLastYearServiceImpl")
+@Transactional
+public class ThreeRecordsLastYearServiceImpl implements ThreeRecordsLastYearService {
+	@Autowired
+	private PeopleAspirationDao peopleAspirationDao;
+	@Autowired
+	private ThreeRecordsIssueLogDao threeRecordsIssueLogDao;
+	@Autowired
+	private ThreeRecordsIssueProcessDao threeRecordsIssueProcessDao;
+	@Autowired
+	private ThreeRecordsIssueDao threeRecordsIssueDao;
+	@Autowired
+	private ThreeRecordsKeyGeneratorService threeRecordsKeyGeneratorService;
+	@Autowired
+    private PropertyDictDubboService propertyDictDubboService;
+	@Autowired
+	private LedgerPoorPeopleDao poorDao;
+	@Autowired
+	private LedgerSteadyWorkDao steadyWorkDao;
+	@Autowired
+	private LedgerPoorPeopleMemberService ledgerPoorPeopleMemberService;
+	@Autowired
+	private LedgerSteadyWorkPeopleInfoService ledgerSteadyWorkPeopleInfoService;
+	@Autowired
+	private ReportFormService reportFormService;
+	@Autowired
+	private AcceptFormService acceptFormService;
+	@Autowired
+	private TurnFormService turnFormService;
+	@Autowired
+	private DeclareFormService declareFormService;
+	@Autowired
+	private AssignFormService assignFormService;
+	
+	
+	public void addThreeRecordsYearTurn(ThreeRecordsYearTurn yearTurn) {
+		threeRecordsIssueProcessDao.addThreeRecordsYearTurn(yearTurn);
+	}
+
+	@Override
+	public void lastYearTurn(){
+		new Thread(){
+			public void run(){
+				JobHelper.createMockAdminSession();
+//				System.out.println("三本台账开始上年接转...");
+				List<PropertyDict> createTypeList = propertyDictDubboService.findPropertyDictByDomainName(PropertyTypes.LEDGER_PEOPLEASPIRATION_CREATE_TABLE_TYPE);
+				PropertyDict turnDict = new PropertyDict();
+				for(PropertyDict dict : createTypeList){
+					if(dict.getDisplayName().equals("上年接转")){
+						turnDict = dict;
+						break;
+					}
+				}
+				turnPeopleAspirations(turnDict);//民生接转
+				turnPoorPeople(turnDict);//困难接转
+				turnSteadyWork(turnDict);//稳定接转
+//				System.out.println("三本台账上年接转结束...");
+			}
+		}.start();
+	}
+	
+	/**
+	 * 困难台账上年接转
+	 * @param turnDict
+	 */
+	private void turnPoorPeople(PropertyDict turnDict) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.SUBSTANCE_CODE);
+		map.put("ledgerPoorPeopleType", LedgerConstants.POORPEOPLE);
+		List<LedgerPoorPeople> poorList = poorDao.needTurnLedgerPoorPeople(map);//需要接转的困难台账列表
+		for(LedgerPoorPeople oldPoor : poorList){
+			LedgerPoorPeople newPoor = poorDao.addTurnLedgerPoorPeople(cloneLedgerPoorPeople(oldPoor, turnDict));
+			
+			turn(oldPoor, newPoor);
+			
+			List<LedgerPoorPeopleMember> poorPeopleMemberList = ledgerPoorPeopleMemberService.findByLedgerPoorPeople(oldPoor);//接转家庭成员
+			if(!poorPeopleMemberList.isEmpty()){
+				newPoor.setLedgerPoorPeopleMembers(poorPeopleMemberList);
+				ledgerPoorPeopleMemberService.addPoorPeopleMembers(newPoor);
+			}
+		}
+	}
+	
+	/**
+	 * 稳定台账上年接转
+	 * @param turnDict
+	 */
+	private void turnSteadyWork(PropertyDict turnDict){
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.SUBSTANCE_CODE);
+		map.put("ledgerSteadyWorkType", LedgerConstants.STEADYWORK);
+		
+		List<LedgerSteadyWork> steadyWorkList = steadyWorkDao.needTurnLedgerSteadyWork(map);
+		for(LedgerSteadyWork oldSteadyWork : steadyWorkList){
+			LedgerSteadyWork newSteadyWork = steadyWorkDao.addTurnLedgerSteadyWork(cloneLedgerSteadyWork(oldSteadyWork, turnDict));
+			
+			turn(oldSteadyWork, newSteadyWork);
+			
+			List<LedgerSteadyWorkPeopleInfo> steadyWorkPeopleInfoList = ledgerSteadyWorkPeopleInfoService.findByLedgerSteadyWork(oldSteadyWork);//接转涉稳人员
+			if(!steadyWorkPeopleInfoList.isEmpty()){
+				newSteadyWork.setLedgerSteadyWorkPeopleInfos(steadyWorkPeopleInfoList);
+				ledgerSteadyWorkPeopleInfoService.addLedgerSteadyWorkPeopleInfos(newSteadyWork);
+			}
+		}
+	}
+	
+	/**
+	 * 民生台账上年接转
+	 * @param turnDict
+	 */
+	private void turnPeopleAspirations(PropertyDict turnDict){
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.SUBSTANCE_CODE);
+		map.put("ledgerPoorPeopleType", LedgerConstants.POORPEOPLE);
+		map.put("ledgerSteadyWorkType", LedgerConstants.STEADYWORK);
+		
+		List<LedgerPeopleAspirations> peopleList = peopleAspirationDao.getNeedTurnPeopleAspirations(map);//需要接转的民生台账列表
+		for(LedgerPeopleAspirations oldPeople : peopleList){
+			LedgerPeopleAspirations newPeople = peopleAspirationDao.addPeopleAspirations(cloneLedgerPeopleAspirations(oldPeople, turnDict));//接转后people
+			
+			turnResearch(oldPeople.getId(), newPeople);//民生台账分类相关的研究整理接转
+			
+			turn(oldPeople, newPeople);
+		}
+	}
+	
+	/**
+	 * 保存接转记录
+	 * @param oldLedger
+	 * @param newLedger
+	 */
+	private void dealTurnLedger(BaseWorking oldLedger, BaseWorking newLedger){
+		List<ThreeRecordsIssueStep> list = threeRecordsIssueProcessDao.getIssueLastStepByLedgerIdAndType(oldLedger.getId(), oldLedger.getLedgerType());
+		if (!list.isEmpty()) {
+			ThreeRecordsIssueStep step = list.get(0);
+			ThreeRecordsYearTurn turn = new ThreeRecordsYearTurn();
+			turn.setCreateOrg(oldLedger.getOrganization());
+			turn.setYear(Calendar.getInstance().get(Calendar.YEAR));
+			turn.setNewLedgerId(newLedger.getId());
+			turn.setOldLedgerId(oldLedger.getId());
+			turn.setTurnOrg(step.getTarget());
+			if (oldLedger.getLedgerType() == LedgerConstants.POORPEOPLE) {//按困难类型填充ledgerType
+				String[] poors = ((LedgerPoorPeople)oldLedger).getPoorType().split(",");
+				for(String poor : poors){
+					turn.setLedgerType(Integer.parseInt(poor));
+					addThreeRecordsYearTurn(turn);
+				}
+			} else if (oldLedger.getLedgerType() == LedgerConstants.STEADYWORK) {//按稳定类型填充ledgerType
+				turn.setLedgerType(Integer.parseInt(((LedgerSteadyWork)oldLedger).getSteadyWorkType().getId() + ""));
+				addThreeRecordsYearTurn(turn);
+			} else {
+				turn.setLedgerType(oldLedger.getLedgerType());
+				addThreeRecordsYearTurn(turn);
+			}
+		}
+	}
+	
+	private void turn(BaseWorking oldLedger, BaseWorking newLedger){
+		dealTurnLedger(oldLedger, newLedger);//保存接转记录,主要用于报表统计
+		
+		turnRecordsFiles(oldLedger, newLedger);//台账本身的附件转接(不包含具体流程中上传的附件，流程中的附件在后面转接)
+		
+		Map<ThreeRecordsIssueLogNew, ThreeRecordsIssueLogNew> logMap = new HashMap<ThreeRecordsIssueLogNew, ThreeRecordsIssueLogNew>();//保存日志转节前和转接后的对应关系
+		Map<ThreeRecordsIssueStep, ThreeRecordsIssueStep> stepMap = new HashMap<ThreeRecordsIssueStep, ThreeRecordsIssueStep>();//新来步骤对应关系
+		
+		List<ThreeRecordsIssueStep> oldSteps =  threeRecordsIssueProcessDao.getIssueStepByLedgerIdAndType(oldLedger.getId(), oldLedger.getLedgerType());
+		for(ThreeRecordsIssueStep oldStep : oldSteps){
+			ThreeRecordsIssueStep newStep = threeRecordsIssueProcessDao.addLedgerStep(cloneStep(oldStep, newLedger));//此处groupI未更新，在后面group转接后再更新
+			stepMap.put(oldStep, newStep);
+			List<ThreeRecordsIssueLogNew> oldLogs = threeRecordsIssueLogDao.getIssueLogsByStepId(oldStep.getId());//根据步骤得到相关log
+			for(ThreeRecordsIssueLogNew oldLog : oldLogs){
+				ThreeRecordsIssueLogNew newLog = threeRecordsIssueLogDao.addLog(cloneThreeRecordsIssueLogNew(oldLog, newLedger, newStep));//转接log
+				logMap.put(oldLog, newLog);
+				turnLogFiles(oldLog, newLog, newLedger);//接转台账处理log中上传的附件信息
+			}
+			
+			turnReportForm(oldStep, newStep, newLedger);//呈报单接转
+			turnAcceptForm(oldStep, newStep, newLedger);//受理单接转
+			turnTurnForm(oldStep, newStep, newLedger);//转办单接转
+			turnDeclareForm(oldStep, newStep, newLedger);//申报单接转
+			turnAssignForm(oldStep, newStep, newLedger);//交办单接转
+		}
+		
+		List<ThreeRecordsIssueStepGroup> oldGroups = threeRecordsIssueProcessDao.getIssueStepGroupByIssueId(oldLedger.getId(), oldLedger.getLedgerType());
+		for(ThreeRecordsIssueStep oldStep : oldSteps){//接转group
+			if(oldStep.getGroupId() != null){
+				for(ThreeRecordsIssueStepGroup oldGroup : oldGroups){
+					if(oldGroup.getKeyStep().getId().longValue() == oldStep.getId().longValue()){
+						ThreeRecordsIssueStepGroup newGroup = new ThreeRecordsIssueStepGroup();
+						newGroup.setKeyStep(stepMap.get(oldStep));
+						newGroup.setEntyLog(getNewLogByOldLogId(oldGroup.getEntyLog().getId(), logMap));
+						if(oldGroup.getOutLog() != null){
+							newGroup.setOutLog(getNewLogByOldLogId(oldGroup.getOutLog().getId(), logMap));
+						}
+						newGroup.setLedgerId(newLedger.getId());
+						newGroup.setLedgerType(oldGroup.getLedgerType());
+						ThreeRecordsIssueStepGroup group = threeRecordsIssueProcessDao.addIssueStepGroup(newGroup);
+						stepMap.get(oldStep).setGroupId(group.getId());//更新步骤中的groupId
+					}
+				}
+			}
+		}
+		
+		Map<ThreeRecordsIssueStep, ThreeRecordsIssueStep> copyStepMap =  stepMap;
+		for(Map.Entry<ThreeRecordsIssueStep, ThreeRecordsIssueStep> entry : stepMap.entrySet()){
+			ThreeRecordsIssueStep newStep = entry.getValue();
+			threeRecordsIssueProcessDao.updateGroupId(newStep);//更新完group后，更新步骤中的groupId
+			if(newStep.getBackTo() != null){
+				newStep.setBackTo(getNewStepByOldStepId(newStep.getBackTo().getId(), copyStepMap));
+				threeRecordsIssueProcessDao.updateBackTo(newStep);//更新完step后，更新BackTo
+			}
+		}
+	}
+	
+	private void turnReportForm(ThreeRecordsIssueStep oldStep, ThreeRecordsIssueStep newStep, BaseWorking newLedger){
+		ReportForm oldReportForm = reportFormService.getSimpleReportFormByStepId(oldStep.getId());
+		if(oldReportForm != null){
+			ReportForm newReportForm = new ReportForm();
+			newReportForm.setCreateDate(oldReportForm.getCreateDate());
+			newReportForm.setCreateUser(oldReportForm.getCreateUser());
+			newReportForm.setDataFrom(oldReportForm.getDataFrom());
+			newReportForm.setHandleContent(oldReportForm.getHandleContent());
+			newReportForm.setLedgerId(newLedger.getId());
+			newReportForm.setLedgerSerialNumber(newLedger.getSerialNumber());
+			newReportForm.setLedgerType((long)newLedger.getLedgerType());
+			newReportForm.setMobile(oldReportForm.getMobile());
+			newReportForm.setName(oldReportForm.getName());
+			newReportForm.setOrder(oldReportForm.getOrder());
+			newReportForm.setReason(oldReportForm.getReason());
+			newReportForm.setReportDate(oldReportForm.getReportDate());
+			newReportForm.setSerialNumber(oldReportForm.getSerialNumber());
+			newReportForm.setSortField(oldReportForm.getSortField());
+			newReportForm.setSourceOrg(oldReportForm.getSourceOrg());
+			newReportForm.setStepId(newStep.getId());
+			newReportForm.setTargetOrg(oldReportForm.getTargetOrg());
+			newReportForm.setUpdateDate(CalendarUtil.now());
+			newReportForm.setUpdateUser(oldReportForm.getUpdateUser());
+			reportFormService.addReportForm(newReportForm);
+		}
+	}
+	
+	private void turnAcceptForm(ThreeRecordsIssueStep oldStep, ThreeRecordsIssueStep newStep, BaseWorking newLedger){
+		AcceptForm oldAcceptForm = acceptFormService.getSimpleAcceptFormByStepId(oldStep.getId());
+		if(oldAcceptForm != null){
+			AcceptForm newAcceptForm = new AcceptForm();
+			newAcceptForm.setAcceptOrg(oldAcceptForm.getAcceptOrg());
+			newAcceptForm.setCreateDate(oldAcceptForm.getCreateDate());
+			newAcceptForm.setCreateUser(oldAcceptForm.getCreateUser());
+			newAcceptForm.setCurrentOrgOpinion(oldAcceptForm.getCurrentOrgOpinion());
+			newAcceptForm.setDataFrom(oldAcceptForm.getDataFrom());
+			newAcceptForm.setDealUserName(oldAcceptForm.getDealUserName());
+			newAcceptForm.setFormAcceptDate(oldAcceptForm.getFormAcceptDate());
+			newAcceptForm.setFormComeDate(oldAcceptForm.getFormComeDate());
+			newAcceptForm.setFormType(oldAcceptForm.getFormType());
+			newAcceptForm.setHandleResult(oldAcceptForm.getHandleResult());
+			newAcceptForm.setInChargeOfLeaderOpinion(oldAcceptForm.getInChargeOfLeaderOpinion());
+			newAcceptForm.setLedgerId(newLedger.getId());
+			newAcceptForm.setLedgerType((long)newLedger.getLedgerType());
+			newAcceptForm.setMajorLeaderOpinion(oldAcceptForm.getMajorLeaderOpinion());
+			newAcceptForm.setOrder(oldAcceptForm.getOrder());
+			newAcceptForm.setSerialNumber(oldAcceptForm.getSerialNumber());
+			newAcceptForm.setSortField(oldAcceptForm.getSortField());
+			newAcceptForm.setStepId(newStep.getId());
+			newAcceptForm.setUpdateDate(CalendarUtil.now());
+			newAcceptForm.setUpdateUser(oldAcceptForm.getUpdateUser());
+			acceptFormService.addAcceptForm(newAcceptForm);
+		}
+	}
+	
+	private void turnTurnForm(ThreeRecordsIssueStep oldStep, ThreeRecordsIssueStep newStep, BaseWorking newLedger){
+		TurnForm oldTurnForm = turnFormService.getSimpleTurnFormByStepId(oldStep.getId());
+		if(oldTurnForm != null){
+			TurnForm newTurnForm = new TurnForm();
+			newTurnForm.setCreateDate(oldTurnForm.getCreateDate());
+			newTurnForm.setCreateUser(oldTurnForm.getCreateUser());
+			newTurnForm.setDataFrom(oldTurnForm.getDataFrom());
+			newTurnForm.setHandleEndDate(oldTurnForm.getHandleEndDate());
+			newTurnForm.setHandleResult(oldTurnForm.getHandleResult());
+			newTurnForm.setHandleStartDate(oldTurnForm.getHandleStartDate());
+			newTurnForm.setLedgerId(newLedger.getId());
+			newTurnForm.setLedgerSerialNumber(newLedger.getSerialNumber());
+			newTurnForm.setLedgerType((long)newLedger.getLedgerType());
+			newTurnForm.setManager(oldTurnForm.getManager());
+			newTurnForm.setMobile(oldTurnForm.getMobile());
+			newTurnForm.setName(oldTurnForm.getName());
+			newTurnForm.setOpinion(oldTurnForm.getOpinion());
+			newTurnForm.setOrder(oldTurnForm.getOrder());
+			newTurnForm.setReason(oldTurnForm.getReason());
+			newTurnForm.setReceiveDate(oldTurnForm.getReceiveDate());
+			newTurnForm.setSerialNumber(oldTurnForm.getSerialNumber());
+			newTurnForm.setSortField(oldTurnForm.getSortField());
+			newTurnForm.setStepId(newStep.getId());
+			newTurnForm.setSubOpinion(oldTurnForm.getSubOpinion());
+			newTurnForm.setTargetOrg(oldTurnForm.getTargetOrg());
+			newTurnForm.setTurnDate(oldTurnForm.getTurnDate());
+			newTurnForm.setUpdateDate(CalendarUtil.now());
+			newTurnForm.setUpdateUser(oldTurnForm.getUpdateUser());
+			turnFormService.addTurnForm(newTurnForm);
+		}
+	}
+	
+	private void turnDeclareForm(ThreeRecordsIssueStep oldStep, ThreeRecordsIssueStep newStep, BaseWorking newLedger){
+		DeclareForm oldDeclareForm = declareFormService.getSimpleDeclareFormByStepId(oldStep.getId());
+		if(oldDeclareForm != null){
+			DeclareForm newDeclareForm = new DeclareForm();
+			newDeclareForm.setCreateDate(oldDeclareForm.getCreateDate());
+			newDeclareForm.setCreateUser(oldDeclareForm.getCreateUser());
+			newDeclareForm.setDataFrom(oldDeclareForm.getDataFrom());
+			newDeclareForm.setDeclareDate(oldDeclareForm.getDeclareDate());
+			newDeclareForm.setHandleContent(oldDeclareForm.getHandleContent());
+			newDeclareForm.setJointContent(oldDeclareForm.getJointContent());
+			newDeclareForm.setLedgerHandleContent(oldDeclareForm.getLedgerHandleContent());
+			newDeclareForm.setLedgerId(newLedger.getId());
+			newDeclareForm.setLedgerSerialNumber(newLedger.getSerialNumber());
+			newDeclareForm.setLedgerType((long)newLedger.getLedgerType());
+			newDeclareForm.setMobile(oldDeclareForm.getMobile());
+			newDeclareForm.setName(oldDeclareForm.getName());
+			newDeclareForm.setOrder(oldDeclareForm.getOrder());
+			newDeclareForm.setReason(oldDeclareForm.getReason());
+			newDeclareForm.setSerialNumber(oldDeclareForm.getSerialNumber());
+			newDeclareForm.setSortField(oldDeclareForm.getSortField());
+			newDeclareForm.setSourceOrg(oldDeclareForm.getSourceOrg());
+			newDeclareForm.setStepId(newStep.getId());
+			newDeclareForm.setTargetOrg(oldDeclareForm.getTargetOrg());
+			newDeclareForm.setUpdateDate(CalendarUtil.now());
+			newDeclareForm.setUpdateUser(oldDeclareForm.getUpdateUser());
+			declareFormService.addDeclareForm(newDeclareForm);
+		}
+	}
+	
+	private void turnAssignForm(ThreeRecordsIssueStep oldStep, ThreeRecordsIssueStep newStep, BaseWorking newLedger){
+		AssignForm oldAssignForm = assignFormService.getSimpleAssignFormByStepId(oldStep.getId());
+		if(oldAssignForm != null){
+			AssignForm newAssignForm = new AssignForm();
+			newAssignForm.setAssignType(oldAssignForm.getAssignType());
+			newAssignForm.setCreateDate(oldAssignForm.getCreateDate());
+			newAssignForm.setCreateUser(oldAssignForm.getCreateUser());
+			newAssignForm.setDataFrom(oldAssignForm.getDataFrom());
+			newAssignForm.setHandleContent(oldAssignForm.getHandleContent());
+			newAssignForm.setHandleEndDate(oldAssignForm.getHandleEndDate());
+			newAssignForm.setHandleStartDate(oldAssignForm.getHandleStartDate());
+			newAssignForm.setLedgerId(newLedger.getId());
+			newAssignForm.setLedgerSerialNumber(newLedger.getSerialNumber());
+			newAssignForm.setLedgerType((long)newLedger.getLedgerType());
+			newAssignForm.setOrder(oldAssignForm.getOrder());
+			newAssignForm.setPeriods(oldAssignForm.getPeriods());
+			newAssignForm.setReason(oldAssignForm.getReason());
+			newAssignForm.setReceivers(oldAssignForm.getReceivers());
+			newAssignForm.setSerialNumber(oldAssignForm.getSerialNumber());
+			newAssignForm.setSortField(oldAssignForm.getSortField());
+			newAssignForm.setSourceOrg(oldAssignForm.getSourceOrg());
+			newAssignForm.setStepId(newStep.getId());
+			newAssignForm.setType(oldAssignForm.getType());
+			newAssignForm.setUpdateDate(CalendarUtil.now());
+			newAssignForm.setUpdateUser(oldAssignForm.getUpdateUser());
+			assignFormService.addAssignForm(newAssignForm);
+		}
+	}
+	
+	private ThreeRecordsIssueStep getNewStepByOldStepId(Long oldStepId, Map<ThreeRecordsIssueStep, ThreeRecordsIssueStep> copyStepMap){
+		for(Map.Entry<ThreeRecordsIssueStep, ThreeRecordsIssueStep> entry : copyStepMap.entrySet()){
+			ThreeRecordsIssueStep step = entry.getKey();
+			if(step.getBackTo() != null){
+				if(step.getBackTo().getId().longValue() == oldStepId.longValue()){
+					return entry.getValue();
+				}
+			}
+		}
+		return null;
+	}
+	
+	private ThreeRecordsIssueLogNew getNewLogByOldLogId(Long oldLogId, Map<ThreeRecordsIssueLogNew, ThreeRecordsIssueLogNew> logMap){
+		for(Map.Entry<ThreeRecordsIssueLogNew, ThreeRecordsIssueLogNew> entry : logMap.entrySet()){
+			if(entry.getKey().getId().longValue() == oldLogId.longValue()){
+				return entry.getValue();
+			}
+		}
+		return null;
+	}
+	
+	
+	private ThreeRecordsIssueStep cloneStep(ThreeRecordsIssueStep oldStep, BaseWorking newLedger){
+		ThreeRecordsIssueStep newStep = new ThreeRecordsIssueStep();//backTo需要处理
+		newStep.setAssign(oldStep.getAssign());
+		newStep.setBackTo(oldStep.getBackTo());
+		newStep.setCreateDate(oldStep.getCreateDate());
+		newStep.setCreateUser(oldStep.getCreateUser());
+		newStep.setDataFrom(oldStep.getDataFrom());
+		newStep.setDealType(oldStep.getDealType());
+		newStep.setDelayState(oldStep.getDelayState());
+		newStep.setDelayWorkday(oldStep.getDelayWorkday());
+		newStep.setEmergencyLevel(oldStep.getEmergencyLevel());
+		newStep.setEndDate(oldStep.getEndDate());
+		newStep.setEntryDate(oldStep.getEntryDate());
+		newStep.setGroupId(oldStep.getGroupId());
+		newStep.setIsExtended(oldStep.getIsExtended());
+		newStep.setIsFeedBack(oldStep.getIsFeedBack());
+		newStep.setIsSupported(oldStep.getIsSupported());
+		newStep.setItemTypeId(oldStep.getItemTypeId());
+		newStep.setLastDealDate(oldStep.getLastDealDate());
+		newStep.setLedgerId(newLedger.getId());
+		newStep.setLedgerType(newLedger.getLedgerType());
+		newStep.setMultipartEntityData(oldStep.getMultipartEntityData());
+		newStep.setOrder(oldStep.getOrder());
+		newStep.setSortField(oldStep.getSortField());
+		newStep.setSource(oldStep.getSource());
+		newStep.setState(oldStep.getState());
+		newStep.setStateCode(oldStep.getStateCode());
+		newStep.setSubmit(oldStep.getSubmit());
+		newStep.setSuperviseLevel(oldStep.getSuperviseLevel());
+		newStep.setTarget(oldStep.getTarget());
+		newStep.setUpdateDate(CalendarUtil.now());
+		newStep.setUpdateUser(oldStep.getUpdateUser());
+		return newStep;
+	}
+	
+	private ThreeRecordsIssueLogNew cloneThreeRecordsIssueLogNew(ThreeRecordsIssueLogNew oldLog, BaseWorking newLedger, ThreeRecordsIssueStep newStep){
+		ThreeRecordsIssueLogNew newLog = new ThreeRecordsIssueLogNew();
+		oldLog.getDealOrg().setId(oldLog.getDealOrgId());
+		newLog.setAddress(oldLog.getAddress());
+		newLog.setApplyDate(oldLog.getApplyDate());
+		newLog.setCompleteDate(oldLog.getCompleteDate());
+		newLog.setCompleteType(oldLog.getCompleteType());
+		newLog.setContent(oldLog.getContent());
+		newLog.setCreateDate(oldLog.getCreateDate());
+		newLog.setCreateUser(oldLog.getCreateUser());
+		newLog.setDataFrom(oldLog.getDataFrom());
+		newLog.setDealDeadline(oldLog.getDealDeadline());
+		newLog.setDealDescription(oldLog.getDealDescription());
+		newLog.setDealOrg(oldLog.getDealOrg());
+		newLog.setDealOrgId(oldLog.getDealOrgId());
+		newLog.setDealTime(oldLog.getDealTime());
+		newLog.setDealType(oldLog.getDealType());
+		newLog.setDealUserName(oldLog.getDealUserName());
+		newLog.setExchangeDate(oldLog.getExchangeDate());
+		newLog.setIssueStep(newStep);
+		newLog.setJoinMen(oldLog.getJoinMen());
+		newLog.setLedgerId(newLedger.getId());
+		newLog.setLedgerType(newLedger.getLedgerType());
+		newLog.setMobile(oldLog.getMobile());
+		newLog.setOperateTime(oldLog.getOperateTime());
+		newLog.setOpinion(oldLog.getOpinion());
+		newLog.setOrder(oldLog.getOrder());
+		newLog.setSortField(oldLog.getSortField());
+		newLog.setSubmitToCommittee(oldLog.isSubmitToCommittee());
+		newLog.setTargeOrg(oldLog.getTargeOrg());
+		newLog.setUpdateDate(CalendarUtil.now());
+		newLog.setUpdateUser(oldLog.getUpdateUser());
+		return newLog;
+	}
+	
+	private void turnLogFiles(ThreeRecordsIssueLogNew oldLog, ThreeRecordsIssueLogNew newLog, BaseWorking newLedger){
+		List<ThreeRecordsIssueAttachFile> oldAttachFilesAboutLedgers = threeRecordsIssueDao.getAccounthasattachfilesByLogId(oldLog.getId());
+		for(ThreeRecordsIssueAttachFile oldFile : oldAttachFilesAboutLedgers){
+			ThreeRecordsIssueAttachFile newFile = new ThreeRecordsIssueAttachFile();
+			newFile.setIssueLog(newLog);
+			newFile.setFileType(oldFile.getFileType());
+			newFile.setLedgerType(newLedger.getLedgerType());
+			newFile.setLedgerId(newLedger.getId());
+			newFile.setReplyForm(oldFile.getReplyForm());
+			Long newFileId = threeRecordsIssueDao.addIssueAttachFile(newFile);//插入新附件信息
+			List<LedgerAttachFile> oldLedgerFiles = threeRecordsIssueDao.getLedgerattachfilesByModuleObjectId(String.valueOf(oldFile.getId()));
+			for(LedgerAttachFile oldLedgerFile : oldLedgerFiles){
+				threeRecordsIssueDao.addAttachFile(cloneLedgerAttachFile(oldLedgerFile, String.valueOf(newFileId)));//插入新的附加关联信息
+			}
+		}
+	}
+	
+	
+	private void turnRecordsFiles(BaseWorking oldLedger, BaseWorking newLedger){
+		List<ThreeRecordsIssueAttachFile> oldAttachFilesAboutLedgers = threeRecordsIssueDao.getAccounthasattachfilesByLedgerIdAndLedgerType(oldLedger.getLedgerType(), oldLedger.getId());
+		for(ThreeRecordsIssueAttachFile oldFile : oldAttachFilesAboutLedgers){
+			Long newFileId = threeRecordsIssueDao.addIssueAttachFile(cloneThreeRecordsIssueAttachFile(oldFile, newLedger));//插入新附件信息
+			List<LedgerAttachFile> oldLedgerFiles = threeRecordsIssueDao.getLedgerattachfilesByModuleObjectId(String.valueOf(oldFile.getId()));
+			for(LedgerAttachFile oldLedgerFile : oldLedgerFiles){
+				threeRecordsIssueDao.addAttachFile(cloneLedgerAttachFile(oldLedgerFile, String.valueOf(newFileId)));//插入新的附加关联信息
+			}
+		}
+	}
+	
+	private LedgerAttachFile cloneLedgerAttachFile(LedgerAttachFile oldFile, String objectId){
+		LedgerAttachFile newFile = new LedgerAttachFile();
+		newFile.setName(oldFile.getName());
+		newFile.setPhysicsFullFileName(oldFile.getPhysicsFullFileName());
+		newFile.setModuleKey(oldFile.getModuleKey());
+		newFile.setModuleObjectId(objectId);
+		return newFile;
+	}
+	
+	private ThreeRecordsIssueAttachFile cloneThreeRecordsIssueAttachFile(ThreeRecordsIssueAttachFile oldFile, BaseWorking newLedger){
+		ThreeRecordsIssueAttachFile newFile = new ThreeRecordsIssueAttachFile();
+		newFile.setIssueLog(oldFile.getIssueLog());
+		newFile.setFileType(oldFile.getFileType());
+		newFile.setLedgerType(newLedger.getLedgerType());
+		newFile.setLedgerId(newLedger.getId());
+		newFile.setReplyForm(oldFile.getReplyForm());
+		return newFile;
+	}
+	
+	private LedgerSteadyWork cloneLedgerSteadyWork(LedgerSteadyWork oldSteadyWork, PropertyDict turnDict){
+		LedgerSteadyWork newSteadyWork = new LedgerSteadyWork();
+		String serialNumber = threeRecordsKeyGeneratorService.getNextKey(LedgerConstants.PRE_KEY_STEADY_WORK, oldSteadyWork.getOrganization().getId());	
+		newSteadyWork.setAnonymity(oldSteadyWork.isAnonymity());
+		newSteadyWork.setAspirationType(oldSteadyWork.getAspirationType());
+		newSteadyWork.setAttentionLevel(oldSteadyWork.getAttentionLevel());
+		newSteadyWork.setBirthDay(oldSteadyWork.getBirthDay());
+		newSteadyWork.setBookingUnit(oldSteadyWork.getBookingUnit());
+		newSteadyWork.setConvertId(oldSteadyWork.getConvertId());
+		newSteadyWork.setCreateDate(CalendarUtil.now());
+		newSteadyWork.setCreateOrg(oldSteadyWork.getCreateOrg());
+		newSteadyWork.setCreateTableType(turnDict);
+		newSteadyWork.setCreateUser(oldSteadyWork.getCreateUser());
+		newSteadyWork.setCurrentOrg(oldSteadyWork.getCurrentOrg());
+		newSteadyWork.setCurrentStep(oldSteadyWork.getCurrentStep());
+		newSteadyWork.setDataFrom(oldSteadyWork.getDataFrom());
+		newSteadyWork.setDisplayLevel(oldSteadyWork.getDisplayLevel());
+		newSteadyWork.setEaringWarn(oldSteadyWork.getEaringWarn());
+		newSteadyWork.setGender(oldSteadyWork.getGender());
+		newSteadyWork.setGridNo(oldSteadyWork.getGridNo());
+		newSteadyWork.setHasAccountLog(oldSteadyWork.getHasAccountLog());
+		newSteadyWork.setHistoryId(oldSteadyWork.getSerialNumber());
+		newSteadyWork.setHours(oldSteadyWork.getHours());
+		newSteadyWork.setIdCardNo(oldSteadyWork.getIdCardNo());
+		newSteadyWork.setInvolvingSteadyInfo(oldSteadyWork.getInvolvingSteadyInfo());
+		newSteadyWork.setInvolvingSteadyNum(oldSteadyWork.getInvolvingSteadyNum());
+		newSteadyWork.setInvolvingSteadyType(oldSteadyWork.getInvolvingSteadyType());
+		newSteadyWork.setIsCanFeedBack(oldSteadyWork.getIsCanFeedBack());
+		newSteadyWork.setIsPartyMember(oldSteadyWork.getIsPartyMember());
+		newSteadyWork.setLedgerId(oldSteadyWork.getLedgerId());
+		newSteadyWork.setLedgerSteadyWorkPeopleInfos(oldSteadyWork.getLedgerSteadyWorkPeopleInfos());//此处需要单独转接
+		newSteadyWork.setLedgerType(oldSteadyWork.getLedgerType());
+		newSteadyWork.setMinute(oldSteadyWork.getMinute());
+		newSteadyWork.setMobileNumber(oldSteadyWork.getMobileNumber());
+		newSteadyWork.setName(oldSteadyWork.getName());
+		newSteadyWork.setOccurDate(oldSteadyWork.getOccurDate());
+		newSteadyWork.setOccurOrg(oldSteadyWork.getOccurOrg());
+		newSteadyWork.setOccurOrgInternalCode(oldSteadyWork.getOccurOrgInternalCode());
+		newSteadyWork.setOldHistoryId(oldSteadyWork.getSerialNumber());
+		newSteadyWork.setOldIssueId(oldSteadyWork.getOldIssueId());
+		newSteadyWork.setOldLedgerId(oldSteadyWork.getId());
+		newSteadyWork.setOldLedgerType(oldSteadyWork.getLedgerType());
+		newSteadyWork.setOrder(oldSteadyWork.getOrder());
+		newSteadyWork.setOrganization(oldSteadyWork.getOrganization());
+		newSteadyWork.setOrgInternalCode(oldSteadyWork.getOrgInternalCode());
+		newSteadyWork.setOtherRemark(oldSteadyWork.getOtherRemark());
+		newSteadyWork.setPermanentAddress(oldSteadyWork.getPermanentAddress());
+		newSteadyWork.setPosition(oldSteadyWork.getPosition());
+		newSteadyWork.setRegistrant(oldSteadyWork.getRegistrant());
+		newSteadyWork.setRegistrationTime(oldSteadyWork.getRegistrationTime());
+		newSteadyWork.setResolveUnit(oldSteadyWork.getResolveUnit());
+		newSteadyWork.setResolveUser(oldSteadyWork.getResolveUser());
+		newSteadyWork.setSerialNumber(serialNumber);
+		newSteadyWork.setServerContractor(oldSteadyWork.getServerContractor());
+		newSteadyWork.setServerJob(oldSteadyWork.getServerJob());
+		newSteadyWork.setServerTelephone(oldSteadyWork.getServerTelephone());
+		newSteadyWork.setServerUnit(oldSteadyWork.getServerUnit());
+		newSteadyWork.setSortField(oldSteadyWork.getSortField());
+		newSteadyWork.setSourceKind(oldSteadyWork.getSourceKind());
+		newSteadyWork.setStatus(oldSteadyWork.getStatus());
+		newSteadyWork.setSteadyInfo(oldSteadyWork.getSteadyInfo());
+		newSteadyWork.setSteadyUnit(oldSteadyWork.getSteadyUnit());
+		newSteadyWork.setSteadyUser(oldSteadyWork.getSteadyUser());
+		newSteadyWork.setSteadyWorkProblemType(oldSteadyWork.getSteadyWorkProblemType());
+		newSteadyWork.setSteadyWorkType(oldSteadyWork.getSteadyWorkType());
+		newSteadyWork.setSteadyWorkWarnLevel(oldSteadyWork.getSteadyWorkWarnLevel());
+		newSteadyWork.setSteadyWorkWarnLevelDate(oldSteadyWork.getSteadyWorkWarnLevelDate());
+		newSteadyWork.setSubject(oldSteadyWork.getSubject());
+		newSteadyWork.setUpdateDate(CalendarUtil.now());
+		newSteadyWork.setUpdateUser(oldSteadyWork.getUpdateUser());
+		return newSteadyWork;
+	}
+	
+	private LedgerPoorPeople cloneLedgerPoorPeople(LedgerPoorPeople oldPoor, PropertyDict turnDict){
+		LedgerPoorPeople newPoor = new LedgerPoorPeople();
+		String serialNumber = threeRecordsKeyGeneratorService.getNextKey(LedgerConstants.PRE_KEY_POOR_PEOPLE, oldPoor.getOrganization().getId());	
+		newPoor.setAccountNo(oldPoor.getAccountNo());
+		newPoor.setAnnualPerCapitaIncome(oldPoor.getAnnualPerCapitaIncome());
+		newPoor.setAttentionDegree(oldPoor.getAttentionDegree());
+		newPoor.setBirthDay(oldPoor.getBirthDay());
+		newPoor.setBookingUnit(oldPoor.getBookingUnit());
+		newPoor.setBuildHouseDate(oldPoor.getBuildHouseDate());
+		newPoor.setCensusRegisterAddress(oldPoor.getCensusRegisterAddress());
+		newPoor.setCensusRegisterNature(oldPoor.getCensusRegisterNature());
+		newPoor.setConvertId(oldPoor.getConvertId());
+		newPoor.setCreateDate(CalendarUtil.now());
+		newPoor.setCreateOrg(oldPoor.getCreateOrg());
+		newPoor.setCreateTableType(turnDict);
+		newPoor.setCreateUser(oldPoor.getCreateUser());
+		newPoor.setCurrentOrg(oldPoor.getCurrentOrg());
+		newPoor.setCurrentStep(oldPoor.getCurrentStep());
+		newPoor.setDataFrom(oldPoor.getDataFrom());
+		newPoor.setDifficultyDegree(oldPoor.getDifficultyDegree());
+		newPoor.setDisplayLevel(oldPoor.getDisplayLevel());
+		newPoor.setEaringWarn(oldPoor.getEaringWarn());
+		newPoor.setFullPinyin(oldPoor.getFullPinyin());
+		newPoor.setGender(oldPoor.getGender());
+		newPoor.setGoOutReason(oldPoor.getGoOutReason());
+		newPoor.setGridNo(oldPoor.getGridNo());
+		newPoor.setHasAccountLog(oldPoor.getHasAccountLog());
+		newPoor.setHealthCondition(oldPoor.getHealthCondition());
+		newPoor.setHistoryId(oldPoor.getSerialNumber());
+		newPoor.setHours(oldPoor.getHours());
+		newPoor.setHousing(oldPoor.getHousing());
+		newPoor.setHousingArea(oldPoor.getHousingArea());
+		newPoor.setHousingStructure(oldPoor.getHousingStructure());
+		newPoor.setIdCardNo(oldPoor.getIdCardNo());
+		newPoor.setIsCanFeedBack(oldPoor.getIsCanFeedBack());
+		newPoor.setIsPartyMember(oldPoor.getIsPartyMember());
+		newPoor.setLedgerId(oldPoor.getLedgerId());
+		newPoor.setLedgerPoorPeopleMembers(oldPoor.getLedgerPoorPeopleMembers());//此处需要单独转接
+		newPoor.setLedgerType(oldPoor.getLedgerType());
+		newPoor.setLevelEducation(oldPoor.getLevelEducation());
+		newPoor.setLonelinessOld(oldPoor.getLonelinessOld());
+		newPoor.setLowHousehold(oldPoor.getLowHousehold());
+		newPoor.setMaritalStatus(oldPoor.getMaritalStatus());
+		newPoor.setMemberNo(oldPoor.getMemberNo());
+		newPoor.setMinute(oldPoor.getMinute());
+		newPoor.setMobileNumber(oldPoor.getMobileNumber());
+		newPoor.setName(oldPoor.getName());
+		newPoor.setNational(oldPoor.getNational());
+		newPoor.setOccurDate(oldPoor.getOccurDate());
+		newPoor.setOccurOrg(oldPoor.getOccurOrg());
+		newPoor.setOccurOrgInternalCode(oldPoor.getOccurOrgInternalCode());
+		newPoor.setOldHistoryId(oldPoor.getSerialNumber());
+		newPoor.setOldIssueId(oldPoor.getOldIssueId());
+		newPoor.setOldLedgerId(oldPoor.getId());
+		newPoor.setOldLedgerType(oldPoor.getLedgerType());
+		newPoor.setOrder(oldPoor.getOrder());
+		newPoor.setOrganization(oldPoor.getOrganization());
+		newPoor.setOrgInternalCode(oldPoor.getOrgInternalCode());
+		newPoor.setOrphan(oldPoor.getOrphan());
+		newPoor.setOtherInfo(oldPoor.getOtherInfo());
+		newPoor.setOwner(oldPoor.getOwner());
+		newPoor.setPermanentAddress(oldPoor.getPermanentAddress());
+		newPoor.setPoorSource(oldPoor.getPoorSource());
+		newPoor.setPoorSourceName(oldPoor.getPoorSourceName());
+		newPoor.setPoorType(oldPoor.getPoorType());
+		newPoor.setPoorTypeName(oldPoor.getPoorTypeName());
+		newPoor.setPosition(oldPoor.getPosition());
+		newPoor.setRegistrant(oldPoor.getRegistrant());
+		newPoor.setRegistrationCardNumber(oldPoor.getRegistrationCardNumber());
+		newPoor.setRegistrationTime(oldPoor.getRegistrationTime());
+		newPoor.setRemark(oldPoor.getRemark());
+		newPoor.setRequiredType(oldPoor.getRequiredType());
+		newPoor.setRequiredTypeName(oldPoor.getRequiredType());
+		newPoor.setSecurityType(oldPoor.getSecurityType());
+		newPoor.setSerialNumber(serialNumber);
+		newPoor.setServerContractor(oldPoor.getServerContractor());
+		newPoor.setServerJob(oldPoor.getServerJob());
+		newPoor.setServerTelephone(oldPoor.getServerTelephone());
+		newPoor.setServerUnit(oldPoor.getServerUnit());
+		newPoor.setSimplePinyin(oldPoor.getSimplePinyin());
+		newPoor.setSkillsSpeciality(oldPoor.getSkillsSpeciality());
+		newPoor.setSortField(oldPoor.getSortField());
+		newPoor.setSourceKind(oldPoor.getSourceKind());
+		newPoor.setStatus(oldPoor.getStatus());
+		newPoor.setSubject(oldPoor.getSubject());
+		newPoor.setUnemploymentDate(oldPoor.getUnemploymentDate());
+		newPoor.setUnemploymentReason(oldPoor.getUnemploymentReason());
+		newPoor.setUpdateDate(CalendarUtil.now());
+		newPoor.setUpdateUser(oldPoor.getUpdateUser());
+		return newPoor;
+	}
+	
+	private LedgerPeopleAspirations cloneLedgerPeopleAspirations(LedgerPeopleAspirations oldPeopleAspirations, PropertyDict turnDict){
+		LedgerPeopleAspirations newAspirations = new LedgerPeopleAspirations();
+		String serialNumber = threeRecordsKeyGeneratorService.getNextKey(
+				LedgerConstants.peopleAsparitionPreKeyMap.get(oldPeopleAspirations.getLedgerType()), oldPeopleAspirations.getOrganization().getId());	
+		newAspirations.setAnonymity(oldPeopleAspirations.isAnonymity());
+		newAspirations.setAppealContent(oldPeopleAspirations.getAppealContent());
+		newAspirations.setAppealHumanType(oldPeopleAspirations.getAppealHumanType());
+		newAspirations.setBirthDay(oldPeopleAspirations.getBirthDay());
+		newAspirations.setBookingUnit(oldPeopleAspirations.getBookingUnit());
+		newAspirations.setCategory(oldPeopleAspirations.getCategory());
+		newAspirations.setConvertId(oldPeopleAspirations.getConvertId());
+		newAspirations.setCreateDate(CalendarUtil.now());
+		newAspirations.setCreateOrg(oldPeopleAspirations.getCreateOrg());
+		newAspirations.setCreateTableType(turnDict);
+		newAspirations.setCreateUser(oldPeopleAspirations.getCreateUser());
+		newAspirations.setCurrentOrg(oldPeopleAspirations.getCurrentOrg());
+//		newAspirations.setCurrentStep(oldPeopleAspirations.getCurrentStep());
+		newAspirations.setDataFrom(oldPeopleAspirations.getDataFrom());
+		newAspirations.setDisplayLevel(oldPeopleAspirations.getDisplayLevel());
+		newAspirations.setEaringWarn(oldPeopleAspirations.getEaringWarn());
+		newAspirations.setFeedbacks(oldPeopleAspirations.getFeedbacks());
+		newAspirations.setGender(oldPeopleAspirations.getGender());
+		newAspirations.setGridNo(oldPeopleAspirations.getGridNo());
+		newAspirations.setHasAccountLog(oldPeopleAspirations.getHasAccountLog());
+		newAspirations.setHistoryId(oldPeopleAspirations.getSerialNumber());
+		newAspirations.setHours(oldPeopleAspirations.getHours());
+		newAspirations.setIdCardNo(oldPeopleAspirations.getIdCardNo());
+		newAspirations.setIsCanFeedBack(oldPeopleAspirations.getIsCanFeedBack());
+		newAspirations.setIsPartyMember(oldPeopleAspirations.getIsPartyMember());
+//		newAspirations.setIssueAttachFiles(oldPeopleAspirations.getIssueAttachFiles());
+//		newAspirations.setIssueDealLogs(oldPeopleAspirations.getIssueDealLogs());
+//		newAspirations.setIssueLogAttachFiles(oldPeopleAspirations.getIssueLogAttachFiles());
+//		newAspirations.setLedgerAttachFileReturnUtil(oldPeopleAspirations.getLedgerAttachFileReturnUtil());
+		newAspirations.setLedgerId(oldPeopleAspirations.getLedgerId());
+		newAspirations.setLedgerType(oldPeopleAspirations.getLedgerType());
+		newAspirations.setMinute(oldPeopleAspirations.getMinute());
+		newAspirations.setMobileNumber(oldPeopleAspirations.getMobileNumber());
+		newAspirations.setName(oldPeopleAspirations.getName());
+		newAspirations.setOccurDate(oldPeopleAspirations.getOccurDate());
+		newAspirations.setOccurOrg(oldPeopleAspirations.getOccurOrg());
+		newAspirations.setOccurOrgInternalCode(oldPeopleAspirations.getOccurOrgInternalCode());
+		newAspirations.setOldHistoryId(oldPeopleAspirations.getSerialNumber());
+		newAspirations.setOldIssueId(oldPeopleAspirations.getOldIssueId());
+		newAspirations.setOldLedgerId(oldPeopleAspirations.getLedgerId());
+		newAspirations.setOldLedgerType(oldPeopleAspirations.getLedgerType());
+		newAspirations.setOrder(oldPeopleAspirations.getOrder());
+		newAspirations.setOrganization(oldPeopleAspirations.getOrganization());
+		newAspirations.setOrgInternalCode(oldPeopleAspirations.getOrgInternalCode());
+		newAspirations.setPermanentAddress(oldPeopleAspirations.getPermanentAddress());
+		newAspirations.setPosition(oldPeopleAspirations.getPosition());
+		newAspirations.setRegistrant(oldPeopleAspirations.getRegistrant());
+		newAspirations.setRegistrationTime(oldPeopleAspirations.getRegistrationTime());
+//		newAspirations.setReplys(oldPeopleAspirations.getReplys());
+		newAspirations.setResponseGroupNo(oldPeopleAspirations.getResponseGroupNo());
+		newAspirations.setSerialNumber(serialNumber);
+		newAspirations.setServerContractor(oldPeopleAspirations.getServerContractor());
+		newAspirations.setServerJob(oldPeopleAspirations.getServerJob());
+		newAspirations.setServerTelephone(oldPeopleAspirations.getServerTelephone());
+		newAspirations.setServerUnit(oldPeopleAspirations.getServerUnit());
+		newAspirations.setSortField(oldPeopleAspirations.getSortField());
+		newAspirations.setSourceKind(oldPeopleAspirations.getSourceKind());
+		newAspirations.setStatus(oldPeopleAspirations.getStatus());
+		newAspirations.setSubject(oldPeopleAspirations.getSubject());
+		newAspirations.setUpdateDate(CalendarUtil.now());
+		newAspirations.setUpdateUser(oldPeopleAspirations.getUpdateUser());
+		return newAspirations;
+	}
+	
+	private void turnResearch(Long oldLedgerId, LedgerPeopleAspirations people){
+		if(people.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_WATER){
+			WaterResources water = peopleAspirationDao.getWaterResourcesByAspirationId(oldLedgerId);
+			peopleAspirationDao.addWaterResources(cloneWater(water, people));
+		}else if(people.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_AGRICULTURE){
+			Agriculture agriculture = peopleAspirationDao.getAgricultureByAspirationId(oldLedgerId);
+			peopleAspirationDao.addAgriculture(cloneAgriculture(agriculture, people));
+		}else if(people.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_EDUCATION){
+			Education education = peopleAspirationDao.getEducationByAspirationId(oldLedgerId);
+			peopleAspirationDao.addEducation(cloneEducation(education, people));
+		}else if(people.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_ENERGY){
+			Energy energy = peopleAspirationDao.getEnergyByAspirationId(oldLedgerId);
+			peopleAspirationDao.addEnergy(cloneEnergy(energy, people));
+		}else if(people.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_ENVIRONMENT){
+			Environment environment = peopleAspirationDao.getEnvironmentByAspirationId(oldLedgerId);
+			peopleAspirationDao.addEnvironment(cloneEnvironment(environment, people));
+		}else if(people.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_LABOR){
+			Labor labor = peopleAspirationDao.getLaborByAspirationId(oldLedgerId);
+			peopleAspirationDao.addLabor(cloneLabor(labor, people));
+		}else if(people.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_MEDICAL){
+			Medical medical = peopleAspirationDao.getMedicalByAspirationId(oldLedgerId);
+			peopleAspirationDao.addMedical(cloneMedical(medical, people));
+		}else if(people.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_OTHER){
+			Other other = peopleAspirationDao.getOtherByAspirationId(oldLedgerId);
+			peopleAspirationDao.addOther(cloneOther(other, people));
+		}else if(people.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_SCIENCE){
+			Science science = peopleAspirationDao.getScienceByAspirationId(oldLedgerId);
+			peopleAspirationDao.addScience(cloneScience(science, people));
+		}else if(people.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_TOWN){
+			Town town = peopleAspirationDao.getTownByAspirationId(oldLedgerId);
+			peopleAspirationDao.addTown(cloneTown(town, people));
+		}else if(people.getLedgerType() == LedgerConstants.PEOPLEASPIRATION_TRAFFIC){
+			Traffic traffic = peopleAspirationDao.getTrafficByAspirationId(oldLedgerId);
+			peopleAspirationDao.addTraffic(cloneTraffic(traffic, people));
+		}
+	}
+	
+	private WaterResources cloneWater(WaterResources oldWater, LedgerPeopleAspirations people){
+		WaterResources newWater = new WaterResources();
+		newWater.setBeneficiaryNumber(oldWater.getBeneficiaryNumber());
+		newWater.setBuildType(oldWater.getBuildType());
+		newWater.setCentralized(oldWater.getCentralized());
+		newWater.setCreateDate(CalendarUtil.now());
+		newWater.setCreateUser(oldWater.getCreateUser());
+		newWater.setDataFrom(oldWater.getDataFrom());
+		newWater.setFromAddress(oldWater.getFromAddress());
+		newWater.setGapFund(oldWater.getGapFund());
+		newWater.setImpoundage(oldWater.getImpoundage());
+		newWater.setMileage(oldWater.getMileage());
+		newWater.setNum(oldWater.getNum());
+		newWater.setOrder(oldWater.getOrder());
+		newWater.setOtherContent(oldWater.getOtherContent());
+		newWater.setPeopleAspiration(people);
+		newWater.setPlannedInvestment(oldWater.getPlannedInvestment());
+		newWater.setProjectCategory(oldWater.getProjectCategory());
+		newWater.setProjectName(oldWater.getProjectName());
+		newWater.setProjectSubCategory(oldWater.getProjectSubCategory());
+		newWater.setScatter(oldWater.getScatter());
+		newWater.setSelfFund(oldWater.getSelfFund());
+		newWater.setSortField(oldWater.getSortField());
+		newWater.setToAddress(oldWater.getToAddress());
+		newWater.setUpdateDate(CalendarUtil.now());
+		newWater.setUpdateUser(oldWater.getUpdateUser());
+		return newWater;
+	}
+	
+	private Agriculture cloneAgriculture(Agriculture oldA, LedgerPeopleAspirations people){
+		Agriculture newA = new Agriculture();
+		newA.setBeneficiaryNumber(oldA.getBeneficiaryNumber());
+		newA.setBuildType(oldA.getBuildType());
+		newA.setCapacity(oldA.getCapacity());
+		newA.setCreateDate(CalendarUtil.now());
+		newA.setCreateUser(oldA.getCreateUser());
+		newA.setDataFrom(oldA.getDataFrom());
+		newA.setFarmCategory(oldA.getFarmCategory());
+		newA.setFromAddress(oldA.getFromAddress());
+		newA.setGapFund(oldA.getGapFund());
+		newA.setMachineCategory(oldA.getMachineCategory());
+		newA.setNum(oldA.getNum());
+		newA.setOrder(oldA.getOrder());
+		newA.setOtherContent(oldA.getOtherContent());
+		newA.setPeopleAspiration(people);
+		newA.setPlannedInvestment(oldA.getPlannedInvestment());
+		newA.setProjectCategory(oldA.getProjectCategory());
+		newA.setProjectName(oldA.getProjectName());
+		newA.setProjectSubCategory(oldA.getProjectSubCategory());
+		newA.setQuantities(oldA.getQuantities());
+		newA.setScopeNumber(oldA.getScopeNumber());
+		newA.setSelfFund(oldA.getSelfFund());
+		newA.setSortField(oldA.getSortField());
+		newA.setToAddress(oldA.getToAddress());
+		newA.setTrainNumber(oldA.getTrainNumber());
+		newA.setTrainPeopleNumber(oldA.getTrainPeopleNumber());
+		newA.setUpdateDate(CalendarUtil.now());
+		newA.setUpdateUser(oldA.getUpdateUser());
+		newA.setWaterYield(oldA.getWaterYield());
+		return newA;
+	}
+	
+	private Education cloneEducation(Education oldE, LedgerPeopleAspirations people){
+		Education newE = new Education();
+		newE.setAddressCategory(oldE.getAddressCategory());
+		newE.setBeneficiaryNumber(oldE.getBeneficiaryNumber());
+		newE.setBuildArea(oldE.getBuildArea());
+		newE.setBuildCompanyName(oldE.getBuildCompanyName());
+		newE.setBuildType(oldE.getBuildType());
+		newE.setCreateDate(CalendarUtil.now());
+		newE.setCreateUser(oldE.getCreateUser());
+		newE.setDataFrom(oldE.getDataFrom());
+		newE.setDegreeCategory(oldE.getDegreeCategory());
+		newE.setDistanceCategory(oldE.getDistanceCategory());
+		newE.setFromAddress(oldE.getFromAddress());
+		newE.setGapFund(oldE.getGapFund());
+		newE.setItemCategory(oldE.getItemCategory());
+		newE.setModeCategory(oldE.getModeCategory());
+		newE.setOrder(oldE.getOrder());
+		newE.setOtherContent(oldE.getOtherContent());
+		newE.setPeopleAspiration(people);
+		newE.setPlannedInvestment(oldE.getPlannedInvestment());
+		newE.setProjectCategory(oldE.getProjectCategory());
+		newE.setProjectName(oldE.getProjectName());
+		newE.setProjectSubCategory(oldE.getProjectSubCategory());
+		newE.setRoadCategory(oldE.getRoadCategory());
+		newE.setRoadConditionCategory(oldE.getRoadConditionCategory());
+		newE.setSchoolName(oldE.getSchoolName());
+		newE.setScopeCategory(oldE.getScopeCategory());
+		newE.setSelfFund(oldE.getSelfFund());
+		newE.setSortField(oldE.getSortField());
+		newE.setStudentName(oldE.getStudentName());
+		newE.setStudyDate(oldE.getStudyDate());
+		newE.setToAddress(oldE.getToAddress());
+		newE.setUpdateDate(CalendarUtil.now());
+		newE.setUpdateUser(oldE.getUpdateUser());
+		return newE;
+	}
+	
+	private Energy cloneEnergy(Energy oldE, LedgerPeopleAspirations people){
+		Energy newE = new Energy();
+		newE.setBeneficiaryNumber(oldE.getBeneficiaryNumber());
+		newE.setBuildType(oldE.getBuildType());
+		newE.setCapacity(oldE.getCapacity());
+		newE.setCreateDate(CalendarUtil.now());
+		newE.setCreateUser(oldE.getCreateUser());
+		newE.setDataFrom(oldE.getDataFrom());
+		newE.setDepth(oldE.getDepth());
+		newE.setEnergyNumber(oldE.getEnergyNumber());
+		newE.setFromAddress(oldE.getFromAddress());
+		newE.setGapFund(oldE.getGapFund());
+		newE.setLineCategory(oldE.getLineCategory());
+		newE.setMileage(oldE.getMileage());
+		newE.setOrder(oldE.getOrder());
+		newE.setOtherContent(oldE.getOtherContent());
+		newE.setPeopleAspiration(people);
+		newE.setPipeLineCategory(oldE.getPipeLineCategory());
+		newE.setPipeMaterialCategory(oldE.getPipeMaterialCategory());
+		newE.setPlannedInvestment(oldE.getPlannedInvestment());
+		newE.setProjectCategory(oldE.getProjectCategory());
+		newE.setProjectName(oldE.getProjectName());
+		newE.setProjectSubCategory(oldE.getProjectSubCategory());
+		newE.setSecurityCategory(oldE.getSecurityCategory());
+		newE.setSecurityNum(oldE.getSecurityNum());
+		newE.setSelfFund(oldE.getSelfFund());
+		newE.setSortField(oldE.getSortField());
+		newE.setToAddress(oldE.getToAddress());
+		newE.setUnitCategory(oldE.getUnitCategory());
+		newE.setUpdateDate(CalendarUtil.now());
+		newE.setUpdateUser(oldE.getUpdateUser());
+		return newE;
+	}
+	
+	private Environment cloneEnvironment(Environment oldE, LedgerPeopleAspirations people){
+		Environment newE = new Environment();
+		newE.setBeneficiaryNumber(oldE.getBeneficiaryNumber());
+		newE.setBuildType(oldE.getBuildType());
+		newE.setContent(oldE.getContent());
+		newE.setCreateDate(CalendarUtil.now());
+		newE.setCreateUser(oldE.getCreateUser());
+		newE.setDataFrom(oldE.getDataFrom());
+		newE.setFromAddress(oldE.getFromAddress());
+		newE.setGapFund(oldE.getGapFund());
+		newE.setGovernNumber(oldE.getGovernNumber());
+		newE.setOrder(oldE.getOrder());
+		newE.setOtherContent(oldE.getOtherContent());
+		newE.setPeopleAspiration(people);
+		newE.setPlannedInvestment(oldE.getPlannedInvestment());
+		newE.setProjectCategory(oldE.getProjectCategory());
+		newE.setProjectName(oldE.getProjectName());
+		newE.setProjectSubCategory(oldE.getProjectSubCategory());
+		newE.setSelfFund(oldE.getSelfFund());
+		newE.setSortField(oldE.getSortField());
+		newE.setToAddress(oldE.getToAddress());
+		newE.setUnitCategory(oldE.getUnitCategory());
+		newE.setUpdateDate(CalendarUtil.now());
+		newE.setUpdateUser(oldE.getUpdateUser());
+		return newE;
+	}
+	
+	private Labor cloneLabor(Labor oldL, LedgerPeopleAspirations people){
+		Labor newL = new Labor();
+		newL.setAgeLevel(oldL.getAgeLevel());
+		newL.setCompany(oldL.getCompany());
+		newL.setCreateDate(CalendarUtil.now());
+		newL.setCreateUser(oldL.getCreateUser());
+		newL.setCrippleLevel(oldL.getCrippleLevel());
+		newL.setDataFrom(oldL.getDataFrom());
+		newL.setDegree(oldL.getDegree());
+		newL.setDignity(oldL.getDignity());
+		newL.setFromAddress(oldL.getFromAddress());
+		newL.setMoney(oldL.getMoney());
+		newL.setOrder(oldL.getOrder());
+		newL.setOtherContent(oldL.getOtherContent());
+		newL.setPeopleAspiration(people);
+		newL.setProjectCategory(oldL.getProjectCategory());
+		newL.setProjectName(oldL.getProjectName());
+		newL.setProjectSubCategory(oldL.getProjectSubContentCategory());
+		newL.setRelationNumber(oldL.getRelationNumber());
+		newL.setSkill(oldL.getSkill());
+		newL.setSortField(oldL.getSortField());
+		newL.setToAddress(oldL.getToAddress());
+		newL.setUpdateDate(CalendarUtil.now());
+		newL.setUpdateUser(oldL.getUpdateUser());
+		newL.setYawnAddr(oldL.getYawnAddr());
+		newL.setYawnContactor(oldL.getYawnContactor());
+		newL.setYawnMobile(oldL.getYawnMobile());
+		return newL;
+	}
+	
+	private Medical cloneMedical(Medical oldM, LedgerPeopleAspirations people){
+		Medical newM = new Medical();
+		newM.setBeneficiaryNumber(oldM.getBeneficiaryNumber());
+		newM.setBuildArea(oldM.getBuildArea());
+		newM.setBuildCompanyName(oldM.getBuildCompanyName());
+		newM.setBuildType(oldM.getBuildType());
+		newM.setCreateDate(CalendarUtil.now());
+		newM.setCreateUser(oldM.getCreateUser());
+		newM.setDataFrom(oldM.getDataFrom());
+		newM.setEquipment(oldM.getEquipment());
+		newM.setFromAddress(oldM.getFromAddress());
+		newM.setGapFund(oldM.getGapFund());
+		newM.setOrder(oldM.getOrder());
+		newM.setOtherContent(oldM.getOtherContent());
+		newM.setPeopleAspiration(people);
+		newM.setPlannedInvestment(oldM.getPlannedInvestment());
+		newM.setProjectCategory(oldM.getProjectCategory());
+		newM.setProjectName(oldM.getProjectName());
+		newM.setProjectSubCategory(oldM.getProjectSubCategory());
+		newM.setSelfFund(oldM.getSelfFund());
+		newM.setSortField(oldM.getSortField());
+		newM.setToAddress(oldM.getToAddress());
+		newM.setUpdateDate(CalendarUtil.now());
+		newM.setUpdateUser(oldM.getUpdateUser());
+		return newM;
+	}
+	
+	private Other cloneOther(Other oldO, LedgerPeopleAspirations people){
+		Other newO = new Other();
+		newO.setBeneficiaryNumber(oldO.getBeneficiaryNumber());
+		newO.setBuildType(oldO.getBuildType());
+		newO.setCreateDate(CalendarUtil.now());
+		newO.setCreateUser(oldO.getCreateUser());
+		newO.setDataFrom(oldO.getDataFrom());
+		newO.setFromAddress(oldO.getFromAddress());
+		newO.setGapFund(oldO.getGapFund());
+		newO.setOrder(oldO.getOrder());
+		newO.setOtherBuildTypeContent(oldO.getOtherBuildTypeContent());
+		newO.setOtherContent(oldO.getOtherContent());
+		newO.setPeopleAspiration(people);
+		newO.setPlannedInvestment(oldO.getPlannedInvestment());
+		newO.setProjectCategory(oldO.getProjectCategory());
+		newO.setProjectName(oldO.getProjectName());
+		newO.setProjectSubCategory(oldO.getProjectSubCategory());
+		newO.setScopeContent(oldO.getScopeContent());
+		newO.setSelfFund(oldO.getSelfFund());
+		newO.setSortField(oldO.getSortField());
+		newO.setToAddress(oldO.getToAddress());
+		newO.setUpdateDate(CalendarUtil.now());
+		newO.setUpdateUser(oldO.getUpdateUser());
+		return newO;
+	}
+
+	private Science cloneScience(Science oldS, LedgerPeopleAspirations people){
+		Science newS = new Science();
+		newS.setBeneficiaryNumber(oldS.getBeneficiaryNumber());
+		newS.setBuildCompanyName(oldS.getBuildCompanyName());
+		newS.setBuildType(oldS.getBuildType());
+		newS.setContent(oldS.getContent());
+		newS.setContentCategory(oldS.getContentCategory());
+		newS.setCreateDate(CalendarUtil.now());
+		newS.setCreateUser(oldS.getCreateUser());
+		newS.setDataFrom(oldS.getDataFrom());
+		newS.setFromAddress(oldS.getFromAddress());
+		newS.setGapFund(oldS.getGapFund());
+		newS.setItemName(oldS.getItemName());
+		newS.setOrder(oldS.getOrder());
+		newS.setOtherContent(oldS.getOtherContent());
+		newS.setPeopleAspiration(people);
+		newS.setPlannedInvestment(oldS.getPlannedInvestment());
+		newS.setProjectCategory(oldS.getProjectCategory());
+		newS.setProjectLevelCategory(oldS.getProjectLevelCategory());
+		newS.setProjectName(oldS.getProjectName());
+		newS.setProjectSubCategory(oldS.getProjectSubCategory());
+		newS.setPublicizeNum(oldS.getPublicizeNum());
+		newS.setScienceScope(oldS.getScienceScope());
+		newS.setSelfFund(oldS.getSelfFund());
+		newS.setSortField(oldS.getSortField());
+		newS.setToAddress(oldS.getToAddress());
+		newS.setUpdateDate(CalendarUtil.now());
+		newS.setUpdateUser(oldS.getUpdateUser());
+		return newS;
+	}
+	
+	private Town cloneTown(Town oldT, LedgerPeopleAspirations people){
+		Town newT = new Town();
+		newT.setArea(oldT.getArea());
+		newT.setBeneficiaryNumber(oldT.getBeneficiaryNumber());
+		newT.setBuildType(oldT.getBuildType());
+		newT.setCreateDate(CalendarUtil.now());
+		newT.setDataFrom(oldT.getDataFrom());
+		newT.setFromAddress(oldT.getFromAddress());
+		newT.setGapFund(oldT.getGapFund());
+		newT.setMileage(oldT.getMileage());
+		newT.setOrder(oldT.getOrder());
+		newT.setOtherContent(oldT.getOtherContent());
+		newT.setPeopleAspiration(people);
+		newT.setPlannedInvestment(oldT.getPlannedInvestment());
+		newT.setProjectCategory(oldT.getProjectCategory());
+		newT.setProjectName(oldT.getProjectName());
+		newT.setProjectNumber(oldT.getProjectNumber());
+		newT.setProjectSubCategory(oldT.getProjectSubCategory());
+		newT.setScopeNumber(oldT.getScopeNumber());
+		newT.setSecurityType(oldT.getSecurityType());
+		newT.setSelfFund(oldT.getSelfFund());
+		newT.setSortField(oldT.getSortField());
+		newT.setToAddress(oldT.getToAddress());
+		newT.setUpdateDate(CalendarUtil.now());
+		newT.setUpdateUser(oldT.getUpdateUser());
+		return newT;
+	}
+	
+	private Traffic cloneTraffic(Traffic oldT, LedgerPeopleAspirations people){
+		Traffic newT = new Traffic();
+		newT.setBeneficiaryNumber(oldT.getBeneficiaryNumber());
+		newT.setBuildType(oldT.getBuildType());
+		newT.setContentCategory(oldT.getContentCategory());
+		newT.setCreateDate(CalendarUtil.now());
+		newT.setCreateUser(oldT.getCreateUser());
+		newT.setDataFrom(oldT.getDataFrom());
+		newT.setFromAddress(oldT.getFromAddress());
+		newT.setGapFund(oldT.getGapFund());
+		newT.setImpoundage(oldT.getImpoundage());
+		newT.setMileage(oldT.getMileage());
+		newT.setOrder(oldT.getOrder());
+		newT.setOtherContent(oldT.getOtherContent());
+		newT.setPassengerBuildCategory(oldT.getPassengerBuildCategory());
+		newT.setPassengerCategory(oldT.getPassengerCategory());
+		newT.setPassengerLevelCategory(oldT.getPassengerLevelCategory());
+		newT.setPassengerManageCategory(oldT.getPassengerManageCategory());
+		newT.setPeopleAspiration(people);
+		newT.setPlannedInvestment(oldT.getPlannedInvestment());
+		newT.setProjectCategory(oldT.getProjectCategory());
+		newT.setProjectName(oldT.getProjectName());
+		newT.setProjectSubCategory(oldT.getProjectSubCategory());
+		newT.setPublicTransportCategory(oldT.getPublicTransportCategory());
+		newT.setRemark(oldT.getRemark());
+		newT.setRoadCategory(oldT.getRoadCategory());
+		newT.setRoadSurfaceCategory(oldT.getRoadSurfaceCategory());
+		newT.setRodeLength(oldT.getRodeLength());
+		newT.setRodeWide(oldT.getRodeWide());
+		newT.setSecurityCategory(oldT.getSecurityCategory());
+		newT.setSelfFund(oldT.getSelfFund());
+		newT.setSortField(oldT.getSortField());
+		newT.setToAddress(oldT.getToAddress());
+		newT.setUpdateDate(CalendarUtil.now());
+		newT.setUpdateUser(oldT.getUpdateUser());
+		newT.setWide(oldT.getWide());
+		return newT;
+	}
+}

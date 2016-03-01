@@ -1,0 +1,30 @@
+
+#jSIPContainer {position:absolute;font: 12px Tahoma;border:1px solid #5D99CD;border-top:0;background:#FFF;}
+.jSIPLoading,.jSIPMessage {font-style:italic;padding: 10px;} 
+#jSIPContainer ul{overflow-y:auto}
+#jSIPContainer ul, #jSIPContainer ul li{margin: 0;padding:0;list-style:none;}
+#jSIPContainer ul li{padding: 2px 4px;border-bottom: 1px dotted #5D99CD;color:#333;background:#E8F2FC;cursor:pointer}
+#jSIPContainer ul li.last{border-bottom: 0;}
+#jSIPContainer ul li.jSIPHover{background:#5D99CD;color:#fff;}
+#jSIPContainer ul li img{float:left;width:35px;}
+#jSIPContainer ul li div{margin:2px;padding:0 0 0 40px;}
+
+
+/* TextboxList sample CSS */
+ul.holder { margin: 0; border: 1px solid #7F9DB9; overflow: auto;padding:2px 0 2px 2px;}
+*:first-child+html ul.holder { padding-bottom: 2px; } 
+* html ul.holder {} /* ie7 and below */
+ul.holder li { float: left; list-style-type: none;}
+ul.holder li.bit-box, ul.holder li.bit-input input { font-size: 12px; }
+ul.holder li.bit-box {color:#333;height:20px;line-height:18px;overflow:hidden;border: 1px solid #5D99CD; background: #E8F2FC; padding:0px;padding-left:3px;margin-top:2px;white-space:nowrap;}
+ul.holder li.bit-box-focus { border-color: #5D99CD; background: #5D99CD; color: #fff; }
+ul.holder li.bit-input textarea {margin: 0;border:0;outline: 0;height:12px;overflow:hidden;resize:none;width:80px;} 	
+
+ul.holder li.bit-box{ padding-right: 15px; position: relative;margin-right:3px; }
+ul.holder li.bit-hover { background: #BBCEF1; border: 1px solid #6D95E0; }
+ul.holder li.bit-box a.closebutton { position: absolute; right: 4px; top: 5px; display: block; width: 7px; height: 7px; font-size: 1px; background: url('close.gif'); }
+ul.holder li.bit-box a.closebutton:hover { background-position: 7px; }
+ul.holder li.bit-box-focus a.closebutton, ul.holder li.bit-box-focus a.closebutton:hover { background-position: bottom; }
+
+
+

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig
+PUBLIC "-//iBATIS.apache.org//DTD SQL Map Config 2.0/" "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+<sqlMapConfig>
+	<!-- 在这里将项目（工程）的所有资源文件包含进来，将相对与src路径的资源文件的路径以及文件名包含进来-->
+	<!--
+	<properties resource=""/>
+	 -->
+
+	<!-- 这个节点是设置工程的总体性能，根据名称来设置
+	cacheModelsEnabled全局控制sqlMapClient的缓存
+    enhancementEnabled全局控制运行时字节码增强，优化javabean的属性性能
+    lazyLoadingEnabled延迟加载
+    maxRequests同时执行sql语句的最大线程数，通常大小是maxTransactions的10倍，并且总是大于maxTransactions和maxSessions的总和。减小这个值能够提高性能。
+    useStatementNamespaces是否启动全局的sqlmap名字空间。如果启动则应用时，必须加上名字空间：queryForObject(sqlMap的名字空间.statementName)-->
+	<settings  cacheModelsEnabled="true"
+              enhancementEnabled="true"
+              lazyLoadingEnabled="true"
+              errorTracingEnabled="true"
+              maxRequests="32"
+              maxSessions="10"
+              maxTransactions="5"
+              useStatementNamespaces="true"  />
+
+  	<!-- 这个节点是将长的路径名等用短的进行替代，也就是用上面的person来代表右边的person类
+	<typeAlias alias="person" type="com.Jdnis.ibatis.model.Person" />
+  	-->
+
+  	<!--
+	  	type指定事务管理器：JDBC,JTA,EXTERNAL,三者的区别后面再讲到
+        type值由：SIMPLE,DBCP,JNDI三者的使用后面再讲
+
+  	<transactionManager type="JDBC">
+        <dataSource type="SIMPLE">
+            <property name="JDBC.Driver" value="com.mysql.jdbc.Driver" />
+            <property name="JDBC.ConnectionURL" value="jdbc:mysql://localhost/person" />
+            <property name="JDBC.Username" value="root" />
+            <property name="JDBC.Password" value="root" />
+            <property name="Pool.MaximumActiveConnections" value="10" />
+            <property name="Pool.MaximumIdleConnections" value="5" />
+            <property name="Pool.MaximumCheckoutTime" value="120000" />
+            <property name="Pool.TimeToWait" value="500" />
+            <property name="Pool.PingQuery" value="select 1 from sample" />
+            <property name="Pool.PingEnabled" value="false" />
+            <property name="Pool.PingConnectionsOlderThan" value="1" />
+            <property name="Pool.PingConnectionsNotUsedFor" value="1" />
+        </dataSource>
+    </transactionManager>
+    -->
+    
+    <sqlMap resource="sqlmaps/common/common.xml" />
+    
+</sqlMapConfig>

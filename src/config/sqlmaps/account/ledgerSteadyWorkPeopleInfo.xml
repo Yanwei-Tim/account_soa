@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+	
+<sqlMap namespace="ledgerSteadyWorkPeopleInfo">	
+	
+	<typeAlias alias="ledgerSteadyWorkPeopleInfo" type="com.tianque.plugin.account.domain.LedgerSteadyWorkPeopleInfo"/>
+	
+	<resultMap id="ledgerSteadyWorkPeopleInfoResult" class="ledgerSteadyWorkPeopleInfo">
+		<result property="id" column="ID"/>
+		<result property="ledgerSteadyWork.id" column="steadyworkid"/>
+		<result property="name" column="NAME"/>
+		<result property="idCardNo" column="IDCARDNO"/>
+		<result property="mobileNumber" column="MOBILENUMBER"/>
+		<result property="gender.id" column="GENDER"/>
+        <result property="birthDay" column="BIRTHDAY"/>
+        <result property="permanentAddress" column="PERMANENTADDRESS"/>
+        <result property="partyMember" column="ISPARTYMEMBER"/>
+        <result property="position.id" column="POSITION"/>
+	</resultMap>
+
+
+	<select id="getLedgerSteadyWorkPeopleInfoById" parameterClass="java.lang.Long" resultMap="ledgerSteadyWorkPeopleInfoResult">
+		select * from ledgerSteadyWorkPeopleInfo where id=#value#
+	</select>
+
+	<insert id="addLedgerSteadyWorkPeopleInfo" parameterClass="ledgerSteadyWorkPeopleInfo">	
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_ledgerSteadyWorkPeopleInfo.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerSteadyWorkPeopleInfo (ID, steadyworkId, NAME, IDCARDNO, MOBILENUMBER, GENDER, BIRTHDAY, PERMANENTADDRESS, ISPARTYMEMBER,
+		 POSITION, CREATEUSER, UPDATEUSER, CREATEDATE, UPDATEDATE) 
+		values(#id#, #ledgerSteadyWork.id#, #name#, #idCardNo#, #mobileNumber#, #gender.id#, #birthDay#, #permanentAddress#, #partyMember#, #position.id#, #createUser#,
+		  #updateUser#, #createDate#, #updateDate#)	
+	</insert>
+	
+	
+	<update id="updateLedgerSteadyWorkPeopleInfo" parameterClass="ledgerSteadyWorkPeopleInfo">
+		update ledgerSteadyWorkPeopleInfo set 
+		<dynamic>
+		    id = #id# 
+				<isNotNull prepend="," property="ledgerSteadyWork.id">
+					steadyworkId = #ledgerSteadyWork.id#
+				</isNotNull>
+				<isNotNull prepend="," property="name">
+					NAME = #name#
+				</isNotNull>
+				<isNotNull prepend="," property="idCardNo">
+					IDCARDNO = #idCardNo#
+				</isNotNull>
+				<isNotNull prepend="," property="mobileNumber">
+					MOBILENUMBER = #mobileNumber#
+				</isNotNull>
+				<isNotNull prepend="," property="gender.id">
+					GENDER = #gender.id#
+				</isNotNull>
+				<isNotNull prepend="," property="birthDay">
+					BIRTHDAY = #birthDay#
+				</isNotNull>
+				<isNotNull prepend="," property="permanentAddress">
+					PERMANENTADDRESS = #permanentAddress#
+				</isNotNull>
+				<isNotNull prepend="," property="partyMember">
+					ISPARTYMEMBER = #partyMember#
+				</isNotNull>
+				<isNotNull prepend="," property="position.id">
+					POSITION = #position.id#
+				</isNotNull>
+				<isNotNull prepend="," property="createUser">
+					CREATEUSER = #createUser#
+				</isNotNull>
+				<isNotNull prepend="," property="updateUser">
+					UPDATEUSER = #updateUser#
+				</isNotNull>
+				<isNotNull prepend="," property="createDate">
+					CREATEDATE = #createDate#
+				</isNotNull>
+				<isNotNull prepend="," property="updateDate">
+					UPDATEDATE = #updateDate#
+				</isNotNull>
+		  where id = #id#
+		</dynamic>
+	</update>
+				
+	<delete id="deleteLedgerSteadyWorkPeopleInfoById" parameterClass="java.lang.Long">	
+		delete  from ledgerSteadyWorkPeopleInfo where id = #value#	
+	</delete>
+
+	<select id="getFullById" parameterClass="long" resultMap="ledgerSteadyWorkPeopleInfoResult">
+		select * from ledgerSteadyWorkPeopleInfo where id=#value#
+	</select>
+	
+	<select id="findByLedgerSteadyWork" parameterClass="map" resultMap="ledgerSteadyWorkPeopleInfoResult">
+		select * from ledgerSteadyWorkPeopleInfo where steadyworkId=#ledgerSteadyWorkId#
+	</select>
+				
+	<delete id="deleteLedgerSteadyWorkPeopleInfoByLedgerSteadyWorkId" parameterClass="java.lang.Long">	
+		delete  from ledgerSteadyWorkPeopleInfo where steadyworkId = #value#	
+	</delete>
+	
+</sqlMap>

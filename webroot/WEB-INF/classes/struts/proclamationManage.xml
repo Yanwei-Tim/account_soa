@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="proclamationManage" extends="default" namespace="/sysadmin/proclamationManage">
+		<default-class-ref class="proclamationController"></default-class-ref>
+		<action name="findProclamations"	method="findProclamations">
+			<result name="success" type="json">
+			    <param name="root">gridPage</param>
+			    <param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+			    <param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="proclamationsList" method="proclamationsList">
+		    <result name="success">
+		        /sysadmin/proclamationManage/proclamationList.jsp
+		    </result>
+		</action>
+		<action name="dispatch" method="dispatch">
+		    <result name="success">
+		        /sysadmin/proclamationManage/maintainProclamationDlg.jsp
+		    </result>
+		</action>
+		<action name="addProclamation" method="addProclamation">
+		    <result name="success" type="json">
+		        <param name="root">proclamation</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="updateProclamation" method="updateProclamation">
+		    <result name="success" type="json">
+		        <param name="root">proclamation</param>
+                <param name="ignoreHierarchy">false</param>		        
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="validateHasDisplay" method="validateHasDisplay">
+		    <result name="success" type="json">
+		        <param name="root">false</param>
+                <param name="ignoreHierarchy">false</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">true</param>
+		    </result>
+		</action>
+		<action name="getDisplayProclamation" method="getDisplayProclamation">
+		    <result name="success" type="json">
+		        <param name="root">proclamation</param>
+                <param name="ignoreHierarchy">false</param> 
+		    </result>
+		</action>
+	</package>
+	<package name="hotModuelProclamationManage" extends="proclamationManage" namespace="/hotModuel/sysadmin/proclamationManage"></package>
+</struts>

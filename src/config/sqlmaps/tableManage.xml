@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="tableManage">
+	<statement id="createTable" parameterClass="java.lang.String">  
+		$createTableSql$
+	</statement>
+	<statement id="createIndex" parameterClass="java.lang.String">  
+		$indexSql$
+	</statement>
+	
+	<update id="dropTable" parameterClass="java.lang.String">  
+		 drop table $tableName$
+	</update>
+	
+	<select id="IsCreateTable" parameterClass="java.lang.String" resultClass="int">  
+		 select count(0) from user_tables where table_name=#tableName#
+	</select>
+	
+	<select id="isCreateIndex" parameterClass="java.lang.String" resultClass="int">  
+		 select count(0) from user_indexes where index_name='IDX_'||#tableName#
+	</select>
+	<select id="isCreateIndexByIndexName" parameterClass="java.lang.String" resultClass="int">  
+		 select count(0) from user_indexes where index_name=#indexName#
+	</select>
+	<select id="isCreateIndexArr" parameterClass="java.util.Map" resultClass="int">  
+		 select count(0) from user_indexes where index_name in
+		 <iterate open="(" close=")" conjunction="," property="tableIndex">
+		    #tableIndex[]#
+		 </iterate>
+	</select>
+	<insert id="createIndexArr" parameterClass="java.util.Map">
+	  begin
+	     EXECUTE IMMEDIATE '$createIndexString$';
+	  end;
+	</insert>
+	
+	<update id="dropIndex" parameterClass="java.lang.String">  
+		 drop index IDX_$tableName$
+	</update>
+	<select id="isTableExists" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	   select count(1) from user_tables where table_name in
+	     <iterate open="(" close=")" property="tableNames" conjunction=",">
+	       #tableNames[]#
+	     </iterate>  
+	</select>
+	
+	<select id="tableColumnIsCreate" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1) from all_tab_columns  where table_name=#tableName# and column_name=#columnName# and owner=#owner#
+	</select>
+</sqlMap>

@@ -1,0 +1,33 @@
+package com.tianque.plugin.account.constants;
+
+
+import javolution.util.FastMap;
+
+import java.util.Map;
+
+/**
+ * Created by daniel on 2015/10/26.
+ */
+public class LedgerMonthReportCountType {
+
+    public static final Map<Integer, String> REPORT_COUNT_TYPE = FastMap.newInstance();
+
+    static {
+        REPORT_COUNT_TYPE.put(1, "totalCreatedAccounts");/*累计建账数*/
+        REPORT_COUNT_TYPE.put(2, "carriedAccounts");/*其中上年结转数*/
+        REPORT_COUNT_TYPE.put(3, "totalHandledAccounts");/*累计办结数*/
+        REPORT_COUNT_TYPE.put(4, "completedAccounts");/*实质性办结数*/
+        REPORT_COUNT_TYPE.put(5, "periodAccounts");/*阶段性办结数*/
+        REPORT_COUNT_TYPE.put(6, "programAccounts");/*程序性办结数*/
+        REPORT_COUNT_TYPE.put(7, "submitAccounts");/*呈报上级数*/
+        REPORT_COUNT_TYPE.put(8, "lastMonthDoneAccounts");/*上月办理中*/
+        REPORT_COUNT_TYPE.put(9, "monthCreatedAccounts");/*本月建账数*/
+        REPORT_COUNT_TYPE.put(10, "monthHandledAccounts");/*本月办结数*/
+        REPORT_COUNT_TYPE.put(11, "monthCompletedAccounts");/*实质性办结数*/
+        REPORT_COUNT_TYPE.put(12, "monthPeriodAccounts");/*阶段性办结数*/
+        REPORT_COUNT_TYPE.put(13, "monthProgramAccounts");/*程序性办结数*/
+        REPORT_COUNT_TYPE.put(14, "monthSubmitAccounts");/*呈报数*/
+        REPORT_COUNT_TYPE.put(15, "monthProcessAccounts");/*本月办理中*/
+    }
+
+}

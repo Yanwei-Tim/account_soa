@@ -1,0 +1,162 @@
+package com.tianque.plugin.account.dao.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.plugin.account.dao.ThreeRecordsIssueProcessDao;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueMap;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStep;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStepGroup;
+import com.tianque.plugin.account.domain.ThreeRecordsYearTurn;
+@SuppressWarnings("unchecked")
+@Repository("threeRecordsIssueProcessDao")
+public class ThreeRecordsIssueProcessDaoImpl extends AbstractBaseDao implements
+		ThreeRecordsIssueProcessDao {
+
+	@Override
+	public ThreeRecordsIssueStep addLedgerStep(ThreeRecordsIssueStep step) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"threeRecordsStep.addIssueStep", step);
+		return getSimpleIssueStepById(id);
+	}
+	
+	@Override
+	public void addThreeRecordsYearTurn(ThreeRecordsYearTurn yearTurn){
+		getSqlMapClientTemplate().insert(
+				"threeRecordsYearTurn.addThreeRecordsYearTurn", yearTurn);
+	}
+
+	@Override
+	public void deleteLedgerStepsByIdAndType(Map map) {
+		getSqlMapClientTemplate().delete(
+				"threeRecordsStep.deleteLedgerStepsByIdAndType", map);
+	}
+
+	@Override
+	public void deleteLedgerStepGroupsByIdAndType(Map map) {
+		getSqlMapClientTemplate().delete(
+				"threeRecordsStep.deleteLedgerStepGroupsByIdAndType", map);
+	}
+
+	@Override
+	public ThreeRecordsIssueStep getSimpleIssueStepById(Long id) {
+		return (ThreeRecordsIssueStep) getSqlMapClientTemplate()
+				.queryForObject("threeRecordsStep.loadSimpleStep", id);
+	}
+
+	@Override
+	public ThreeRecordsIssueStep updateIssueStepExceptOrg(
+			ThreeRecordsIssueStep step) {
+		getSqlMapClientTemplate().update(
+				"threeRecordsStep.updateIssueStepExceptOrg", step);
+		return getSimpleIssueStepById(step.getId());
+	}
+
+	@Override
+	public boolean updateGroupId(ThreeRecordsIssueStep step) {
+		getSqlMapClientTemplate().update(
+				"threeRecordsStep.updateGroupIdAndKeyStep", step);
+		return true;
+	}
+	@Override
+	public boolean updateBackTo(ThreeRecordsIssueStep step) {
+		getSqlMapClientTemplate().update(
+				"threeRecordsStep.updateBackTo", step);
+		return true;
+	}
+
+	@Override
+	public ThreeRecordsIssueStepGroup addIssueStepGroup(
+			ThreeRecordsIssueStepGroup issueStepGroup) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"threeRecordsStep.addIssueStepGroup", issueStepGroup);
+		return getSimpleIssueStepGroupById(id);
+	}
+
+	@Override
+	public ThreeRecordsIssueStepGroup getSimpleIssueStepGroupById(Long id) {
+		return (ThreeRecordsIssueStepGroup) getSqlMapClientTemplate()
+				.queryForObject("threeRecordsStep.loadSimpleStepGroup", id);
+	}
+
+	@Override
+	public List<ThreeRecordsIssueStepGroup> getIssueStepGroupByIssueId(Long id,
+			int ledgerType) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("ledgerId", id);
+		map.put("ledgerType", ledgerType);
+		return getSqlMapClientTemplate().queryForList(
+				"threeRecordsStep.getIssueStepGroupByIssueId", map);
+	}
+
+	@Override
+	public boolean updateOutLog(ThreeRecordsIssueStepGroup issueStepGroup) {
+		getSqlMapClientTemplate().update("threeRecordsStep.updateOutLog",
+				issueStepGroup);
+		return true;
+	}
+
+	@Override
+	public ThreeRecordsIssueMap getIssueMapByStepGroup(
+			ThreeRecordsIssueStepGroup issueStepGroup) {
+		return (ThreeRecordsIssueMap) getSqlMapClientTemplate().queryForObject(
+				"threeRecordsStep.getIssueMapByStepGroup", issueStepGroup);
+	}
+
+	
+	@Override
+	public List<ThreeRecordsIssueStep> getIssueStepByLedgerIdAndType(
+			Long ledgerId, int ledgerType) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("ledgerId", ledgerId);
+		map.put("ledgerType", ledgerType);
+		return getSqlMapClientTemplate().queryForList(
+				"threeRecordsStep.getIssueStepByLedgerIdAndType", map);
+	}
+	
+	@Override
+	public List<ThreeRecordsIssueStep> getIssueLastStepByLedgerIdAndType(
+			Long ledgerId, int ledgerType) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("ledgerId", ledgerId);
+		map.put("ledgerType", ledgerType);
+		return getSqlMapClientTemplate().queryForList(
+				"threeRecordsStep.getIssueLastStepByLedgerIdAndType", map);
+	}
+
+	@Override
+	public void updateIssueStepForImport(ThreeRecordsIssueStep step) {
+		getSqlMapClientTemplate().update(
+				"threeRecordsStep.updateIssueStepForImport", step);
+	}
+
+	@Override
+	public List<ThreeRecordsIssueStep> getIssueStepByGroupId(Long groupId) {
+		return getSqlMapClientTemplate().queryForList(
+				"threeRecordsStep.getIssueStepByGroupId", groupId);
+	}
+
+	@Override
+	public List<ThreeRecordsIssueStep> getStepSupportByLedgerIdAndType(
+			Long ledgerId, int ledgerType) {
+
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("ledgerId", ledgerId);
+		map.put("ledgerType", ledgerType);
+
+		return getSqlMapClientTemplate().queryForList(
+				"threeRecordsStep.getStepSupportByLedgerIdAndType", map);
+	}
+
+	@Override
+	public void updateStepStateCodeBySupportOrNotice(List<Long> stepIds) {
+		getSqlMapClientTemplate().update(
+				"threeRecordsStep.updateStepStateCodeBySupportOrNotice",
+				stepIds);
+	}
+
+}

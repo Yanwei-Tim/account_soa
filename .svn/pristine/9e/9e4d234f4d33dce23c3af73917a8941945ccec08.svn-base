@@ -1,0 +1,38 @@
+<!DOCTYPE databases PUBLIC
+"-//EXOLAB/Castor Mapping DTD Version 1.0//EN"
+"http://castor.exolab.org/mapping.dtd">
+<mapping>
+	
+	<class name="com.tianque.init.vo.PermissionConfig">
+		<field name="permission" collection="arraylist" type="com.tianque.init.vo.PermissionObject">
+			<bind-xml name="permission" node="element" />
+		</field>
+	</class>
+	<class name="com.tianque.init.vo.PermissionObject">
+		<field name="cname" type="java.lang.String">
+			<bind-xml name="cname" node="attribute"/>
+		</field>
+		<field name="ename" type="java.lang.String">
+			<bind-xml name="ename" node="attribute"/>
+		</field>
+		<field name="permissionType" type="java.lang.Integer">
+			<bind-xml name="permissionType" node="attribute"/>
+		</field>
+		<field name="moduleName" type="java.lang.String">
+			<bind-xml name="moduleName" node="attribute"/>
+		</field>
+		<field name="description" type="java.lang.String">
+			<bind-xml name="description" node="attribute"/>
+		</field>
+		<field name="normalUrl" type="java.lang.String">
+			<bind-xml name="normalUrl" node="attribute"/>
+		</field>
+		<field name="leaderUrl" type="java.lang.String">
+			<bind-xml name="leaderUrl" node="attribute"/>
+		</field>
+		<field name="permissionObject" collection="arraylist" type="com.tianque.init.vo.PermissionObject">
+			<bind-xml name="permission" node="element" />
+		</field>
+	</class>
+	
+</mapping>

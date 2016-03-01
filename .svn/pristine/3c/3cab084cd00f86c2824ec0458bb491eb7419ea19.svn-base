@@ -1,0 +1,2479 @@
+package com.tianque.plugin.account.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.PropertyDomain;
+import com.tianque.domain.property.OrganizationLevel;
+import com.tianque.domain.property.OrganizationType;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.constants.LedgerReportFunctionalDepartments;
+import com.tianque.plugin.account.constants.LedgerReportRow;
+import com.tianque.plugin.account.constants.LedgerReportType;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueConstants;
+import com.tianque.plugin.account.dao.LedgerReportDao;
+import com.tianque.plugin.account.domain.AccountReport;
+import com.tianque.plugin.account.domain.LedgerReportGroupCount;
+import com.tianque.plugin.account.service.LedgerAccountReportService;
+import com.tianque.plugin.account.state.ThreeRecordsIssueSourceState;
+import com.tianque.plugin.account.state.ThreeRecordsIssueState;
+import com.tianque.plugin.account.util.ComparisonAttribute;
+import com.tianque.plugin.account.vo.ThreeRecordsReportStatisticalVo;
+import com.tianque.userAuth.api.OrganizationDubboRemoteService;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+import com.tianque.userAuth.api.PropertyDomainDubboService;
+
+@Service("ledgerAccountReportService")
+public class LedgerAccountReportServiceImpl implements
+		LedgerAccountReportService {
+
+	@Autowired
+	private LedgerReportDao ledgerReportDao;
+	@Autowired
+	private OrganizationDubboRemoteService organizationDubboService;
+	@Autowired
+	private PropertyDictDubboService propertyDictDubboService;
+	@Autowired
+	private PropertyDomainDubboService propertyDomainDubboService;
+
+	@Override
+	public List<ThreeRecordsReportStatisticalVo> findAccountReportBySearchVo(
+			AccountReport accountReport) {
+		if (accountReport == null || accountReport.getOrganization() == null
+				|| accountReport.getOrganization().getId() == null) {
+			throw new BusinessValidationException("参数错误");
+		}
+		try {
+			return dispatchByLedgerConstantsAndReportType(accountReport);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类AccountReportService的addAccountReport方法出现异常，原因：",
+					"获取三本台账报表信息失败", e);
+		}
+	}
+
+	/**
+	 * 如果类型为空或为0，则表示查询台账所有类型的报表
+	 * 
+	 * @param accountType
+	 * @return
+	 */
+	private Boolean isAllReportType(Integer accountType) {
+		return accountType == null || accountType == 0;
+	}
+
+	/**
+	 * 报表适配器方法：根据参数获取相应Service和对应的列字典项，分发请求
+	 * 
+	 * @param accountReport
+	 *            报表参数
+	 */
+	private List<ThreeRecordsReportStatisticalVo> dispatchByLedgerConstantsAndReportType(
+			AccountReport accountReport) {
+		List<ThreeRecordsReportStatisticalVo> vos = null;
+		int reportType = accountReport.getReportType().intValue();
+		switch (reportType) {
+		case LedgerReportType.MONTH_REPORT:
+			vos = constructMonthMouldContent(accountReport);
+			break;
+		case LedgerReportType.HOME_PAGE_REPORT:
+			vos = getAccountTheHomePageInfo(accountReport);
+			break;
+		default:
+			throw new BusinessValidationException("无法定位报表类型");
+		}
+		return vos;
+	}
+	
+	/***
+	 * 首页报表查询
+	 */
+	private List<ThreeRecordsReportStatisticalVo> getAccountTheHomePageInfo(AccountReport accountReport){
+		if(accountReport.getOrganization().getId()==null){
+			throw new BusinessValidationException("查询出错，未获得组织机构参数");
+		}
+		final Long orgType = propertyDictDubboService
+		.findPropertyDictByDomainNameAndDictDisplayName(
+				OrganizationType.ORG_TYPE_KEY,
+				OrganizationType.ADMINISTRATIVE_KEY).getId();//获得行政部门字典ID
+		Organization organization = organizationDubboService.getSimpleOrgById(accountReport.getOrganization().getId());
+		if(organization==null){
+			throw new BusinessValidationException("查询出错，组织机构数据不正确");
+		}
+		PropertyDict orgLevelDict = propertyDictDubboService.getPropertyDictById(organization.getOrgLevel().getId());
+		List<ThreeRecordsReportStatisticalVo> list = new ArrayList<ThreeRecordsReportStatisticalVo>();
+		Integer orgLevel = orgLevelDict.getInternalId();
+		Date endDate = CalendarUtil.now();
+		Map<String,Object> map =new HashMap<String,Object>();
+		//获得民生建表类型大类Id
+	    PropertyDomain domain = propertyDomainDubboService.getPropertyDomainByDomainName(PropertyTypes.LEDGER_PEOPLEASPIRATION_CREATE_TABLE_TYPE);
+	    if(domain==null){
+	    	throw new BusinessValidationException("上年转接数查询出错");
+	    }
+	    map.put("historyType", domain.getId());
+		map.put("endDate", endDate);
+		map.put("water", LedgerConstants.PEOPLEASPIRATION_WATER);//水利
+		map.put("traffic", LedgerConstants.PEOPLEASPIRATION_TRAFFIC);//交通
+		map.put("energy", LedgerConstants.PEOPLEASPIRATION_ENERGY);//能源
+		map.put("education", LedgerConstants.PEOPLEASPIRATION_EDUCATION);//教育
+		map.put("science", LedgerConstants.PEOPLEASPIRATION_SCIENCE);//科技文体
+		map.put("medical", LedgerConstants.PEOPLEASPIRATION_MEDICAL);//医疗卫生
+		map.put("labor", LedgerConstants.PEOPLEASPIRATION_LABOR);//劳动与社会保障
+		map.put("environment", LedgerConstants.PEOPLEASPIRATION_ENVIRONMENT);//环境保护
+		map.put("town", LedgerConstants.PEOPLEASPIRATION_TOWN);//城乡规划建设与管理
+		map.put("agriculture", LedgerConstants.PEOPLEASPIRATION_AGRICULTURE);//农业
+		map.put("other", LedgerConstants.PEOPLEASPIRATION_OTHER);//其他
+		map.put("orgId", organization.getId());
+		Organization userOrg = organizationDubboService.getSimpleOrgById(ThreadVariable.getUser().getOrganization().getId());
+		if (orgType.equals(userOrg.getOrgType().getId())) {//行政部门
+			//判断组织机构层级
+			if(ComparisonAttribute.isVillageOrganization(orgLevel)){//村社区层级
+				map.put("isCurrent", "yes");
+				map.put("isSearchCurrent", "yes");
+				ThreeRecordsReportStatisticalVo currentVo = new ThreeRecordsReportStatisticalVo();
+				currentVo=ledgerReportDao.getThreeAccountReportForVillage(map);
+				currentVo.setColumnName("村(社区)");
+				list.add(currentVo);
+			}else if(ComparisonAttribute.isTownOrganization(orgLevel)){//乡镇
+				map.put("orgCode", organization.getOrgInternalCode());
+				map.put("isCurrent", "yes");
+				map.put("isSearchCurrent", "yes");
+				ThreeRecordsReportStatisticalVo currentVo = new ThreeRecordsReportStatisticalVo();
+				currentVo=ledgerReportDao.getThreeAccountReportForVillage(map);
+				currentVo.setColumnName("乡镇");
+				list.add(currentVo);
+				map.put("isCurrent", "no");
+				ThreeRecordsReportStatisticalVo villageVo = new ThreeRecordsReportStatisticalVo();
+				villageVo=ledgerReportDao.getThreeAccountReportForVillage(map);
+				villageVo.setColumnName("村(社区)");
+				list.add(villageVo);
+				
+			}else if(ComparisonAttribute.isDistrictOrganization(orgLevel)){
+				map.put("isCurrent", "yes");
+				map.put("orgId", userOrg.getId());
+				ThreeRecordsReportStatisticalVo currentVo = new ThreeRecordsReportStatisticalVo();
+				currentVo = ledgerReportDao.getThreeAccountReportForVillage(map);
+				currentVo.setColumnName(userOrg.getOrgName());
+				list.add(currentVo);
+			}else{
+				throw new BusinessValidationException("报表定位类型失败，请使用市级以下账号登录");
+			}
+		}else{//职能部门
+			String departmentNo = userOrg.getDepartmentNo();
+			if(departmentNo.endsWith("1jg") || departmentNo.endsWith("1lx") || departmentNo.endsWith("1xw")){//判断职能部门的编号是否以 1jg 1lx 1xw
+				//查询县级职能部门汇总、乡镇汇总、村社区汇总
+				//查询获得县职能部门数据
+				map.put("currentUserOrgId", null);
+				list  = findAccountVoForDistrict(list, organization, map);
+			}else{
+				//表明是职能部门，并且不属于三大部门
+				//查询县职能部门本层级数据
+				map.put("isCurrent", "yes");
+				map.put("orgId", userOrg.getId());
+				ThreeRecordsReportStatisticalVo currentVo = new ThreeRecordsReportStatisticalVo();
+				currentVo = ledgerReportDao.getThreeAccountReportForVillage(map);
+				currentVo.setColumnName(userOrg.getOrgName());
+				list.add(currentVo);
+			}
+			
+		}
+		//计算小计和合计
+		return dealTotal(list);
+	}
+	
+	private  List<ThreeRecordsReportStatisticalVo> findAccountVoForDistrict(List<ThreeRecordsReportStatisticalVo> list,Organization organization,Map<String,Object> map){
+		//		Long parentOrgId = organization.getParentOrg().getId();
+		//		Organization parentOrg = organizationDubboService.getSimpleOrgById(parentOrgId);
+		map.put("orgCode", organization.getOrgInternalCode());
+		Long districtLevel =  getGridLevel(propertyDictDubboService
+				.findPropertyDictByDomainName(PropertyTypes.ORGANIZATION_LEVEL),OrganizationLevel.DISTRICT);//获取乡镇level
+		map.put("orgLevel", districtLevel);
+		//		map.put("orgType", propertyDictDubboService
+		//				.findPropertyDictByDomainNameAndDictDisplayName(
+		//						OrganizationType.ORG_TYPE_KEY,
+		//						OrganizationType.FUNCTIONAL_ORG_KEY).getId());//职能部门type
+		ThreeRecordsReportStatisticalVo depVo = dealThreeRecordsReportStatisticalVo(ledgerReportDao.getJurisdictionAccout(map));
+		depVo.setColumnName("县");
+		list.add(depVo);
+		
+		map.put("currentUserOrgId", null);//下辖查询所有
+		Long townLevel =  getGridLevel(propertyDictDubboService
+				.findPropertyDictByDomainName(PropertyTypes.ORGANIZATION_LEVEL),OrganizationLevel.TOWN);//获取乡镇level
+		map.put("orgLevel", townLevel);
+		ThreeRecordsReportStatisticalVo townVo = dealThreeRecordsReportStatisticalVo(ledgerReportDao.getJurisdictionAccout(map));
+		townVo.setColumnName("乡镇");
+		list.add(townVo);
+		
+		Long villageLevel = getGridLevel(propertyDictDubboService
+				.findPropertyDictByDomainName(PropertyTypes.ORGANIZATION_LEVEL),OrganizationLevel.VILLAGE);//获取村社区level
+		map.put("orgLevel", villageLevel);
+		//		map.put("orgType", propertyDictDubboService
+		//				.findPropertyDictByDomainNameAndDictDisplayName(
+		//						OrganizationType.ORG_TYPE_KEY,
+		//						OrganizationType.ADMINISTRATIVE_KEY).getId());
+		ThreeRecordsReportStatisticalVo villageVo = dealThreeRecordsReportStatisticalVo(ledgerReportDao.getJurisdictionAccout(map));
+		villageVo.setColumnName("村(社区)");
+		list.add(villageVo);
+		return list;
+	}
+	
+	/***
+	 * 计算小计和合计
+	 */
+	private List<ThreeRecordsReportStatisticalVo> dealTotal(List<ThreeRecordsReportStatisticalVo> list){
+		if(list!=null && list.size()!=0){
+			for(ThreeRecordsReportStatisticalVo vo:list){
+				int peopleAsWorkTotal= 0;//小计
+				peopleAsWorkTotal = vo.getWaterResourceCount()+vo.getTrafficCount()+vo.getEducationCount()+vo.getHealthMedicalCount()+vo.getMedicalCount()+vo.getResourcesAgriculturalCount()+vo.getEnergyCount()
+				+vo.getSocialLaborCount()+vo.getEnvironmentalProtectionCount()+vo.getPlanningAdviceManagementCount()+vo.getScienceTechnologyCount()+vo.getOtherResourcesCount();
+				vo.setPeopleAsWorkTotal(peopleAsWorkTotal);
+				vo.setTotal(peopleAsWorkTotal+vo.getLedgerPoorPeopleTotal()+vo.getSteadyRecordWorkTotal());
+			}
+		}
+		return list;
+	}
+	
+	/***
+	 * 数据累计
+	 */
+	private ThreeRecordsReportStatisticalVo dealThreeRecordsReportStatisticalVo(List<ThreeRecordsReportStatisticalVo> voList){
+		ThreeRecordsReportStatisticalVo countVo = new ThreeRecordsReportStatisticalVo();
+		if(voList==null || voList.size()==0){
+			return countVo;
+		}
+		/**合计*/
+//		int peopleAsWorkTotal= 0;
+		/*** 水利 */
+		int waterResourceCount = 0;
+		/*** 交通 */
+		int trafficCount= 0;
+		/*** 教育 */
+		int educationCount= 0;
+		/*** 医疗卫生 */
+		int healthMedicalCount= 0;
+		/*** 农业资源 */
+		int resourcesAgriculturalCount= 0;
+		/*** 能源 */
+		int energyCount= 0;
+		/*** 劳动和社会保障 */
+		int socialLaborCount= 0;
+		/*** 环境保护 */
+		int environmentalProtectionCount= 0;
+		/*** 城乡规划建议管理 */
+		int planningAdviceManagementCount= 0;
+		/*** 科技文体 */
+		int scienceTechnologyCount= 0;
+		/*** 其他资源 */
+		int otherResourcesCount= 0;
+		/*** 小计 困难*/
+		int ledgerPoorPeopleTotal= 0;
+		/*** 小计 稳定*/
+		int steadyRecordWorkTotal= 0;
+		for(ThreeRecordsReportStatisticalVo vo:voList){
+			waterResourceCount+=vo.getWaterResourceCount()==null?0:vo.getWaterResourceCount();
+			trafficCount += vo.getTrafficCount() == null ? 0 : vo.getTrafficCount();
+			educationCount += vo.getEducationCount() == null ? 0 : vo.getEducationCount();
+			healthMedicalCount += vo.getHealthMedicalCount() == null ? 0 : vo
+					.getHealthMedicalCount();
+			resourcesAgriculturalCount += vo.getResourcesAgriculturalCount() == null ? 0 : vo
+					.getResourcesAgriculturalCount();
+			energyCount += vo.getEnergyCount() == null ? 0 : vo.getEnergyCount();
+			socialLaborCount += vo.getSocialLaborCount() == null ? 0 : vo.getSocialLaborCount();
+			environmentalProtectionCount += vo.getEnvironmentalProtectionCount() == null ? 0 : vo
+					.getEnvironmentalProtectionCount();
+			planningAdviceManagementCount += vo.getPlanningAdviceManagementCount() == null ? 0 : vo
+					.getPlanningAdviceManagementCount();
+			scienceTechnologyCount += vo.getScienceTechnologyCount() == null ? 0 : vo
+					.getScienceTechnologyCount();
+			otherResourcesCount += vo.getOtherResourcesCount() == null ? 0 : vo
+					.getOtherResourcesCount();
+			ledgerPoorPeopleTotal += vo.getLedgerPoorPeopleTotal() == null ? 0 : vo
+					.getLedgerPoorPeopleTotal();
+			steadyRecordWorkTotal += vo.getSteadyRecordWorkTotal() == null ? 0 : vo
+					.getSteadyRecordWorkTotal();
+		}
+//		peopleAsWorkTotal = waterResourceCount+trafficCount+educationCount+healthMedicalCount+resourcesAgriculturalCount+energyCount
+//		+socialLaborCount+environmentalProtectionCount+planningAdviceManagementCount+scienceTechnologyCount+otherResourcesCount;
+//		countVo.setPeopleAsWorkTotal(peopleAsWorkTotal);
+		countVo.setWaterResourceCount(waterResourceCount);
+		countVo.setTrafficCount(trafficCount);
+		countVo.setEducationCount(educationCount);
+		countVo.setHealthMedicalCount(healthMedicalCount);
+		countVo.setResourcesAgriculturalCount(resourcesAgriculturalCount);
+		countVo.setEnergyCount(energyCount);
+		countVo.setSocialLaborCount(socialLaborCount);
+		countVo.setEnvironmentalProtectionCount(environmentalProtectionCount);
+		countVo.setPlanningAdviceManagementCount(planningAdviceManagementCount);
+		countVo.setScienceTechnologyCount(scienceTechnologyCount);
+		countVo.setOtherResourcesCount(otherResourcesCount);
+		countVo.setLedgerPoorPeopleTotal(ledgerPoorPeopleTotal);
+		countVo.setSteadyRecordWorkTotal(steadyRecordWorkTotal);
+		return countVo;
+	}
+	
+	/** 获取社区层级的orgLevel */
+	private Long getGridLevel(List<PropertyDict> list,int level) {
+		if (list != null && list.size() != 0) {
+			for (PropertyDict dict : list) {
+				if (dict.getInternalId() == level) {
+					return dict.getId();
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 台账类型判断
+	 * 
+	 * @param accountReport
+	 * @return
+	 */
+	private List<ThreeRecordsReportStatisticalVo> constructMonthMouldContent(
+			AccountReport accountReport) {
+		if (accountReport == null || accountReport.getOrganization() == null) {
+			throw new BusinessValidationException("参数错误！");
+		}
+		accountReport.setOrganization(organizationDubboService
+				.getSimpleOrgById(accountReport.getOrganization().getId()));
+		Integer organizationLevel = accountReport.getOrgLevelInternalId();
+		if (ComparisonAttribute.isVillageOrganization(organizationLevel)
+				|| ComparisonAttribute.isGridOrganization(organizationLevel)) {
+			return constructVillageMouldContent(accountReport);
+		} 
+		if (ComparisonAttribute.isTownOrganization(organizationLevel)) {
+			return constructTownMouldContent(accountReport);
+		} 
+		if (ComparisonAttribute
+				.isDistrictOrganization(organizationLevel)) {
+			if (ComparisonAttribute.isRecordHandleAffairs(accountReport
+					.getOrganization())) {
+				return constructCountyDepartmentContent(accountReport);
+			}
+			return constructCountyMouldContent(accountReport);
+		}
+		return null;
+	}
+
+	/**
+	 * 县台账办月报表
+	 * 
+	 * @param accountReport
+	 * @return
+	 */
+	public List<ThreeRecordsReportStatisticalVo> constructCountyDepartmentContent(
+			AccountReport accountReport) {
+		List<ThreeRecordsReportStatisticalVo> vos = new ArrayList<ThreeRecordsReportStatisticalVo>();
+		Long orgId = accountReport.getOrganization().getId();
+		Integer accountType = accountReport.getAccountType();
+		String targetInternalCode = null;
+		Long orgParentId = null;
+		Organization targetOrg = null;
+		/*** 县委县政府 */
+		Organization countyPartyCommitteeGovernment = getDepartmentOrganization(
+				ThreeRecordsIssueConstants.COUNTY_COMMITTEE, accountReport
+						.getOrganization().getParentOrg().getId());
+		if (null == countyPartyCommitteeGovernment) {
+			countyPartyCommitteeGovernment = new Organization();
+		}
+		/*** 县联席会议 */
+		Organization jointMeeting = getDepartmentOrganization(
+				ThreeRecordsIssueConstants.COUNTY_JOINT, accountReport
+						.getOrganization().getParentOrg().getId());
+		if (null == jointMeeting) {
+			jointMeeting = new Organization();
+		}
+		// 乡镇呈报数
+		vos.add(cumulativeStateCodeCount(assemblyMap(null, null, null,
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgId, ThreeRecordsIssueSourceState.submit,
+				null, orgId, null), LedgerReportRow.CUMULATIVE
+				+ LedgerReportRow.TOWN + LedgerReportRow.LEVEL_REPORTED
+				+ LedgerReportRow.COUNT));
+
+		// 申报县联席会议数
+		targetOrg = jointMeeting;
+		vos.add(cumulativeStateCodeCount(assemblyMap(null, null, null,
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgId, ThreeRecordsIssueSourceState.submit,
+				orgId, targetOrg.getId(), null), LedgerReportRow.CUMULATIVE
+				+ LedgerReportRow.DECLARE
+				+ LedgerReportRow.COUNTY_JOINT_CHIEFS_OF_STAFF_MEETING
+				+ LedgerReportRow.COUNT));
+
+		// 申报县委县政府数
+		targetOrg = countyPartyCommitteeGovernment;
+		vos.add(cumulativeStateCodeCount(assemblyMap(null, null, null,
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgId, ThreeRecordsIssueSourceState.submit,
+				orgId, targetOrg.getId(), null), LedgerReportRow.CUMULATIVE
+				+ LedgerReportRow.DECLARE + LedgerReportRow.COUNTY_GOVERNMENT
+				+ LedgerReportRow.COUNT));
+		// 转办县级部门数
+
+		// 县联席会议交办数
+		vos.add(cumulativeOtherStateCodeCount(assemblyMap(assemblyMap(null,
+				null, null, null, accountType, targetInternalCode, orgId,
+				ThreeRecordsIssueSourceState.submit, null, null,
+				ThreeRecordsIssueSourceState.assign), jointMeeting.getId(),
+				orgId, LedgerReportRow.ACCEPTANCE, null, null,
+				LedgerReportRow.ASSIGNED, null, null, null),
+				LedgerReportRow.CUMULATIVE
+						+ LedgerReportRow.COUNTY_JOINT_CHIEFS_OF_STAFF_MEETING
+						+ LedgerReportRow.ASSIGNED + LedgerReportRow.COUNT));
+		// 县委县政府交办数
+		vos.add(cumulativeOtherStateCodeCount(assemblyMap(assemblyMap(null,
+				null, null, null, accountType, targetInternalCode, orgId,
+				ThreeRecordsIssueSourceState.submit, null, null,
+				ThreeRecordsIssueSourceState.assign),
+				countyPartyCommitteeGovernment.getId(), orgId,
+				LedgerReportRow.ACCEPTANCE, null, null,
+				LedgerReportRow.ASSIGNED, null, null, null),
+				LedgerReportRow.CUMULATIVE + LedgerReportRow.COUNTY_GOVERNMENT
+						+ LedgerReportRow.ASSIGNED + LedgerReportRow.COUNT));
+		// 上月县联席会议办理中数
+		vos
+				.add(cumulativeStateCodeCount(
+						assemblyMap(jointMeeting.getId(), getFirstDayDate(0, 2, 0, accountReport),
+								getLastDayDate(0, 2, 0,
+										accountReport),
+								ThreeRecordsIssueState.DEALING_CODE,
+								accountType, targetInternalCode, orgParentId,
+								null, null, null, null),
+						LedgerReportRow.LAST_MONTH
+								+ LedgerReportRow.COUNTY_JOINT_CHIEFS_OF_STAFF_MEETING_TRANSACTION
+								+ LedgerReportRow.COUNT));
+		// 上月县委县政府办理中数
+		vos.add(cumulativeStateCodeCount(assemblyMap(
+				countyPartyCommitteeGovernment.getId(), getFirstDayDate(0, 2, 0, accountReport),
+				getLastDayDate(0, 2, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgParentId, null, null, null, null),
+				LedgerReportRow.LAST_MONTH
+						+ LedgerReportRow.COUNTY_GOVERNMENT_TRANSACTION
+						+ LedgerReportRow.COUNT));
+		// 上月转办件办理中
+
+		// 乡镇呈报数
+		vos.add(cumulativeStateCodeCount(assemblyMap(null, getFirstDayDate(0, 1, 0, accountReport), 
+				getLastDayDate(0, 1, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgId, ThreeRecordsIssueSourceState.submit,
+				null, orgId, null), LedgerReportRow.THIS_MONTH
+				+ LedgerReportRow.TOWN + LedgerReportRow.LEVEL_REPORTED
+				+ LedgerReportRow.COUNT));
+
+		// 申报县联席会议数
+		targetOrg = jointMeeting;
+		vos.add(cumulativeStateCodeCount(assemblyMap(null, getFirstDayDate(0, 1, 0, accountReport), 
+				getLastDayDate(0, 1, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgId, ThreeRecordsIssueSourceState.submit,
+				orgId, targetOrg.getId(), null), LedgerReportRow.THIS_MONTH
+				+ LedgerReportRow.DECLARE
+				+ LedgerReportRow.COUNTY_JOINT_CHIEFS_OF_STAFF_MEETING
+				+ LedgerReportRow.COUNT));
+		// 申报县委县政府数
+		targetOrg = countyPartyCommitteeGovernment;
+		vos.add(cumulativeStateCodeCount(assemblyMap(null, getFirstDayDate(0, 1, 0, accountReport), 
+				getLastDayDate(0, 1, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgId, ThreeRecordsIssueSourceState.submit,
+				orgId, targetOrg.getId(), null), LedgerReportRow.THIS_MONTH
+				+ LedgerReportRow.DECLARE + LedgerReportRow.COUNTY_GOVERNMENT
+				+ LedgerReportRow.COUNT));
+		// 转办县级部门数
+
+		// 县联席会议交办数
+		vos.add(cumulativeOtherStateCodeCount(assemblyMap(assemblyMap(null,
+				getFirstDayDate(0, 1, 0, accountReport),
+				getLastDayDate(0, 1, 0, accountReport), null,
+				accountType, targetInternalCode, orgId,
+				ThreeRecordsIssueSourceState.submit, null, null, null),
+				jointMeeting.getId(), orgId, LedgerReportRow.ACCEPTANCE, null,
+				null, LedgerReportRow.ASSIGNED, null, null, null),
+				LedgerReportRow.THIS_MONTH
+						+ LedgerReportRow.COUNTY_JOINT_CHIEFS_OF_STAFF_MEETING
+						+ LedgerReportRow.ASSIGNED + LedgerReportRow.COUNT));
+		// 县委县政府交办数
+		vos.add(cumulativeOtherStateCodeCount(assemblyMap(assemblyMap(null,
+				getFirstDayDate(0, 1, 0, accountReport),
+				getLastDayDate(0, 1, 0, accountReport), null,
+				accountType, targetInternalCode, orgId,
+				ThreeRecordsIssueSourceState.submit, null, null, null),
+				countyPartyCommitteeGovernment.getId(), orgId,
+				LedgerReportRow.ACCEPTANCE, null, null,
+				LedgerReportRow.ASSIGNED, null, null, null),
+				LedgerReportRow.THIS_MONTH + LedgerReportRow.COUNTY_GOVERNMENT
+						+ LedgerReportRow.ASSIGNED + LedgerReportRow.COUNT));
+		// 本月县联席会议办理中数
+		vos
+				.add(cumulativeStateCodeCount(
+						assemblyMap(jointMeeting.getId(), getFirstDayDate(0, 1, 0, accountReport),
+								getLastDayDate(0, 1, 0,
+										accountReport),
+								ThreeRecordsIssueState.DEALING_CODE,
+								accountType, targetInternalCode, orgParentId,
+								null, null, null, null),
+						LedgerReportRow.THIS_MONTH
+								+ LedgerReportRow.COUNTY_JOINT_CHIEFS_OF_STAFF_MEETING_TRANSACTION
+								+ LedgerReportRow.COUNT));
+		// 本月县委县政府办理中数
+		vos.add(cumulativeStateCodeCount(assemblyMap(
+				countyPartyCommitteeGovernment.getId(), getFirstDayDate(0, 1, 0, accountReport),
+				getLastDayDate(0, 1, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgParentId, null, null, null, null),
+				LedgerReportRow.THIS_MONTH
+						+ LedgerReportRow.COUNTY_GOVERNMENT_TRANSACTION
+						+ LedgerReportRow.COUNT));
+		// 本月转办件办理中
+
+		return vos;
+	}
+
+	/**
+	 * 县级月报表
+	 * 
+	 * @param accountReport
+	 *            报表参数
+	 * @param reportCountService
+	 *            具体Service实现
+	 * @param itemDicts
+	 *            生成报表列的字典项
+	 */
+	public List<ThreeRecordsReportStatisticalVo> constructCountyMouldContent(
+			AccountReport accountReport) {
+		List<ThreeRecordsReportStatisticalVo> vos = new ArrayList<ThreeRecordsReportStatisticalVo>();
+		if (accountReport == null || accountReport.getOrganization() == null || accountReport.getOrganization().getParentOrg() == null) {
+			return vos;
+		}
+		Long orgId = accountReport.getOrganization().getId();
+		Integer accountType = accountReport.getAccountType();
+		String nextLayer = null;// 本级
+		String targetInternalCode = null;
+		Long orgParentId = null;
+		Long sourceOrgId = null;
+		Long targetOrgId = null;
+
+		/*** 县台账办 */
+		Organization countyRecordHandleAffairs = getDepartmentOrganization(
+				ThreeRecordsIssueConstants.COUNTY_LEDGER, accountReport
+						.getOrganization().getParentOrg().getId());
+		if (null == countyRecordHandleAffairs) {
+			countyRecordHandleAffairs = new Organization();
+		}
+
+		/*** 县委县政府 */
+		Organization countyPartyCommitteeGovernment = getDepartmentOrganization(
+				ThreeRecordsIssueConstants.COUNTY_COMMITTEE, accountReport
+						.getOrganization().getParentOrg().getId());
+		if (null == countyPartyCommitteeGovernment) {
+			countyPartyCommitteeGovernment = new Organization();
+		}
+
+		/*** 县联席会议 */
+		Organization jointMeeting = getDepartmentOrganization(
+				ThreeRecordsIssueConstants.COUNTY_JOINT, accountReport
+						.getOrganization().getParentOrg().getId());
+		if (null == jointMeeting) {
+			jointMeeting = new Organization();
+		}
+
+		// 县级部门累计 收集 合计
+		nextLayer = LedgerReportRow.COUNTY + LedgerReportRow.DEPARTMENT
+				+ LedgerReportRow.CUMULATIVE + LedgerReportRow.GATHER;
+
+		ThreeRecordsReportStatisticalVo countyCumulativeTotalVo = new ThreeRecordsReportStatisticalVo(
+				nextLayer + LedgerReportRow.COMBINED);
+		// 县级部门累计 累计收集 县台账办转办数 小计
+		ThreeRecordsReportStatisticalVo villageLevelReported = cumulativeOtherStateCodeCount(
+				assemblyMap(assemblyMap(null, null, null,
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgParentId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						countyRecordHandleAffairs.getId(), orgId,
+						LedgerReportRow.ACCEPTANCE, null, null,
+						LedgerReportRow.TRANSFER, null, null, null),
+				nextLayer
+						+ LedgerReportFunctionalDepartments.RECORD_HANDLE_AFFAIRS
+						+ LedgerReportRow.TRANSFER + LedgerReportRow.COUNT);
+		// 县级部门累计 累计收集 县台账办转办数 其中上年接转数
+		List<String> statisticsRows = new ArrayList<String>();
+		statisticsRows.add(LedgerReportRow.LAST_YEAR_PICK_UP_TURN);
+		ThreeRecordsReportStatisticalVo villageLevelReportedPickUpTurn = cumulativeCreateTableTypeCount(
+				assemblyMap(assemblyMap(null, null, null, null, accountType,
+						targetInternalCode, orgParentId, null,
+						countyRecordHandleAffairs.getId(), null, null), orgId,
+						null, LedgerReportRow.ACCEPTANCE, null, null,
+						LedgerReportRow.TRANSFER, null, null, null),
+				nextLayer
+						+ LedgerReportFunctionalDepartments.RECORD_HANDLE_AFFAIRS
+						+ LedgerReportRow.TRANSFER, statisticsRows).get(0);
+
+		// 县级部门累计 累计收集 本部门建账数 小计
+		ThreeRecordsReportStatisticalVo countyCreateTotal = new ThreeRecordsReportStatisticalVo(
+				nextLayer + LedgerReportRow.COUNTY + LedgerReportRow.DEPARTMENT
+						+ LedgerReportRow.CUMULATIVE + LedgerReportRow.CREATE
+						+ LedgerReportRow.COUNT);
+		// 县级部门累计 累计收集 本部门建账数 其中上年接转数
+		ThreeRecordsReportStatisticalVo countyLevelReportedPickUpTurn = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, null, null, null),
+				nextLayer, statisticsRows).get(0);
+		// 县级部门累计 累计收集 其中 本部门直接收集数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.DIRECT + LedgerReportRow.GATHER);
+		ThreeRecordsReportStatisticalVo countyCreate = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM + LedgerReportRow.COUNTY,
+				statisticsRows).get(0);
+		// 县级部门累计 累计收集 其中 上级主管部门和县级领导班子有关领导交办数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.COUNTY_GOVERNMENT_LEADERSHIP
+				+ LedgerReportRow.ASSIGNED);
+		ThreeRecordsReportStatisticalVo countyGovernmentLeadershipCreate = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM, statisticsRows).get(0);
+
+		// 县级部门累计 累计收集 其中 县人大议案建议意见交办数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.COUNTY_NPC_LEGISLATION_SUGGESTIONS
+				+ LedgerReportRow.ASSIGNED);
+		ThreeRecordsReportStatisticalVo countyNPCLegislationSuggestionsCreate = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM, statisticsRows).get(0);
+
+		// 县级部门累计 累计收集 其中 县政协提案建议意见交办数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.COUNTY_CPPCC_PROPOSAL_ADVICE_OPINION
+				+ LedgerReportRow.ASSIGNED);
+		ThreeRecordsReportStatisticalVo countyCPPCCProposalAdviceOpinionCreate = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM, statisticsRows).get(0);
+
+		List<ThreeRecordsReportStatisticalVo> villageTotalVos = new ArrayList<ThreeRecordsReportStatisticalVo>();
+		villageTotalVos.add(countyLevelReportedPickUpTurn);
+		villageTotalVos.add(countyCreate);
+		villageTotalVos.add(countyGovernmentLeadershipCreate);
+		villageTotalVos.add(countyNPCLegislationSuggestionsCreate);
+		villageTotalVos.add(countyCPPCCProposalAdviceOpinionCreate);
+
+		ComparisonAttribute.statisticsTotal(countyCreateTotal, villageTotalVos);
+		ComparisonAttribute.statisticsTotal(countyCumulativeTotalVo,
+				villageLevelReported);
+		ComparisonAttribute.statisticsTotal(countyCumulativeTotalVo,
+				countyCreateTotal);
+
+		vos.add(countyCumulativeTotalVo);
+		vos.add(villageLevelReported);
+		vos.add(villageLevelReportedPickUpTurn);
+		vos.add(countyCreateTotal);
+		vos.addAll(villageTotalVos);
+
+		// 县级部门累计办结 合计
+		nextLayer = LedgerReportRow.COUNTY + LedgerReportRow.DEPARTMENT
+				+ LedgerReportRow.CUMULATIVE + LedgerReportRow.END;
+
+		ThreeRecordsReportStatisticalVo countyCumulativeEndTotalVo = new ThreeRecordsReportStatisticalVo(
+				nextLayer + LedgerReportRow.COMBINED);
+		// 县级部门累计办结 本部门建账办结数
+		ThreeRecordsReportStatisticalVo countyCreateEndVo = cumulativeEndCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.COUNTY + LedgerReportRow.CREATE,
+				false, true).get(0);
+		// 县级部门累计办结 县台账办转办件办结数
+		ThreeRecordsReportStatisticalVo countyLevelReportedEnd = new ThreeRecordsReportStatisticalVo(
+				nextLayer
+						+ LedgerReportFunctionalDepartments.RECORD_HANDLE_AFFAIRS
+						+ LedgerReportRow.TRANSFER + LedgerReportRow.END
+						+ LedgerReportRow.COUNT);
+		// 县级部门累计办结 其中 实质性办结数
+		ThreeRecordsReportStatisticalVo countyLevelReportedEssenceEnd = cumulativeOtherStateCodeCount(
+				assemblyMap(assemblyMap(null, null, null,
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgParentId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						null, null, null, countyRecordHandleAffairs.getId(),
+						null, LedgerReportRow.TRANSFER, null, null,
+						LedgerReportRow.ESSENCE_SERCH + LedgerReportRow.END),
+				nextLayer + LedgerReportRow.AMONG_THEM
+						+ LedgerReportRow.TRANSFER + LedgerReportRow.ESSENCE
+						+ LedgerReportRow.END + LedgerReportRow.COUNT);
+		// 县级部门累计办结 其中 阶段性办结数
+		ThreeRecordsReportStatisticalVo villageLevelReportedPhaseEnd = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(null, null, null,
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, null,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						null, null, null, countyRecordHandleAffairs.getId(),
+						null, LedgerReportRow.TRANSFER, null, null,
+						LedgerReportRow.PHASE_SERCH + LedgerReportRow.END),
+				nextLayer + LedgerReportRow.AMONG_THEM
+						+ LedgerReportRow.TRANSFER + LedgerReportRow.PHASE
+						+ LedgerReportRow.END + LedgerReportRow.COUNT);
+		// 县级部门累计办结 其中 程序性办结数
+		ThreeRecordsReportStatisticalVo villageLevelReportedProcedureEnd = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(orgParentId, null, null,
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						null, null, null, countyRecordHandleAffairs.getId(),
+						null, LedgerReportRow.TRANSFER, null, null,
+						LedgerReportRow.PROCEDURE_SERCH + LedgerReportRow.END),
+				nextLayer + LedgerReportRow.AMONG_THEM
+						+ LedgerReportRow.TRANSFER + LedgerReportRow.PROCEDURE
+						+ LedgerReportRow.END + LedgerReportRow.COUNT);
+		// 县级部门累计办结 其中 申报县联席会议数
+		ThreeRecordsReportStatisticalVo jointMeetingDeclareProcedureEnd = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(orgParentId, null, null,
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						jointMeeting.getId(), null, LedgerReportRow.ACCEPTANCE,
+						orgId, jointMeeting.getId(), LedgerReportRow.DECLARE,
+						null, null, null), nextLayer
+						+ LedgerReportRow.AMONG_THEM + LedgerReportRow.DECLARE
+						+ LedgerReportRow.COUNTY_JOINT_CHIEFS_OF_STAFF_MEETING
+						+ LedgerReportRow.COUNT);
+		// 县级部门累计办结 其中 申报县委县政府数
+		ThreeRecordsReportStatisticalVo countyGovernmentDeclareProcedureEnd = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(orgParentId, null, null,
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						countyPartyCommitteeGovernment.getId(), null,
+						LedgerReportRow.ACCEPTANCE, orgId,
+						countyPartyCommitteeGovernment.getId(),
+						LedgerReportRow.DECLARE, null, null, null), nextLayer
+						+ LedgerReportRow.AMONG_THEM + LedgerReportRow.DECLARE
+						+ LedgerReportRow.COUNTY_GOVERNMENT
+						+ LedgerReportRow.COUNT);
+		villageTotalVos.clear();
+		villageTotalVos.add(countyLevelReportedEssenceEnd);
+		villageTotalVos.add(villageLevelReportedPhaseEnd);
+		villageTotalVos.add(villageLevelReportedProcedureEnd);
+		villageTotalVos.add(jointMeetingDeclareProcedureEnd);
+		villageTotalVos.add(countyGovernmentDeclareProcedureEnd);
+		ComparisonAttribute.statisticsTotal(countyLevelReportedEnd,
+				villageTotalVos);
+		ComparisonAttribute.statisticsTotal(countyCumulativeEndTotalVo,
+				countyCreateEndVo);
+		ComparisonAttribute.statisticsTotal(countyCumulativeEndTotalVo,
+				countyLevelReportedEnd);
+		vos.add(countyCumulativeEndTotalVo);
+		vos.add(countyCreateEndVo);
+		vos.add(countyLevelReportedEnd);
+		vos.addAll(villageTotalVos);
+		// 县级部门 上月办理中
+		nextLayer = LedgerReportRow.COUNTY + LedgerReportRow.DEPARTMENT;
+		vos.add(cumulativeStateCodeCount(assemblyMap(orgId, getFirstDayDate(0, 2, 0, accountReport), 
+				getLastDayDate(0, 2, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgParentId, null, sourceOrgId,
+				targetOrgId, null), nextLayer + LedgerReportRow.LAST_MONTH
+				+ LedgerReportRow.TRANSACTION + LedgerReportRow.COUNT));
+		// 县级部门本月收集 合计
+		nextLayer += LedgerReportRow.THIS_MONTH + LedgerReportRow.GATHER;
+		ThreeRecordsReportStatisticalVo countyGatherThisMonthTotalVo = new ThreeRecordsReportStatisticalVo(
+				nextLayer + LedgerReportRow.COMBINED);
+		// 县级部门本月收集 县台账办转办数
+		ThreeRecordsReportStatisticalVo countyLevelReportedThisMonthEnd = cumulativeStateCodeCount(
+				assemblyMap(
+						assemblyMap(orgParentId, getFirstDayDate(0, 1, 0, accountReport),
+								getLastDayDate(0, 1, 0,accountReport),
+								ThreeRecordsIssueState.DEALING_CODE,
+								accountType, targetInternalCode, orgId,
+								ThreeRecordsIssueSourceState.submit, null,
+								null, null), null, null,
+						LedgerReportRow.ACCEPTANCE, countyRecordHandleAffairs
+								.getId(), null, LedgerReportRow.TRANSFER, null,
+						null, null),
+				nextLayer
+						+ LedgerReportFunctionalDepartments.RECORD_HANDLE_AFFAIRS
+						+ LedgerReportRow.TRANSFER + LedgerReportRow.COUNT);
+		// 县级部门本月收集 本部门建账数
+		ThreeRecordsReportStatisticalVo countyCreateThisMonthCount = new ThreeRecordsReportStatisticalVo(
+				nextLayer + LedgerReportRow.COUNTY + LedgerReportRow.DEPARTMENT
+						+ LedgerReportRow.CREATE + LedgerReportRow.COUNT);
+		// 县级部门本月收集 本部门直接收集数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.DIRECT + LedgerReportRow.GATHER);
+		ThreeRecordsReportStatisticalVo countyDirectGatherThisMonth = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, getFirstDayDate(0, 1, 0,
+						accountReport), getLastDayDate(0, 1,
+						0, accountReport), null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.COUNTY + LedgerReportRow.DEPARTMENT,
+				statisticsRows).get(0);
+		// 县级部门本月收集 上级主管部门和县级领导班子有关领导交办数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.COUNTY_GOVERNMENT_LEADERSHIP
+				+ LedgerReportRow.ASSIGNED);
+		ThreeRecordsReportStatisticalVo countyCountyGovernmentLeadershipAssignedThisMonth = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, getFirstDayDate(0, 1, 0,
+						accountReport), getLastDayDate(0, 1,
+						0, accountReport), null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null), nextLayer, statisticsRows).get(0);
+		// 县级部门本月收集 县人大议案建议意见交办数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.COUNTY_NPC_LEGISLATION_SUGGESTIONS
+				+ LedgerReportRow.ASSIGNED);
+		ThreeRecordsReportStatisticalVo countyCountyNPCLegislationSuggestionsAssigned = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, getFirstDayDate(0, 1, 0,
+						accountReport),getLastDayDate(0, 1,
+						0, accountReport), null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null), nextLayer, statisticsRows).get(0);
+		// 县级部门本月收集 县政协提案建议意见交办数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.COUNTY_CPPCC_PROPOSAL_ADVICE_OPINION
+				+ LedgerReportRow.ASSIGNED);
+		ThreeRecordsReportStatisticalVo countyCountyCPPCCProposalAdviceOpinionAssigned = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, getFirstDayDate(0, 1, 0,
+						accountReport), getLastDayDate(0, 1,
+						0, accountReport), null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null), nextLayer, statisticsRows).get(0);
+		villageTotalVos.clear();
+		villageTotalVos.add(countyDirectGatherThisMonth);
+		villageTotalVos.add(countyCountyGovernmentLeadershipAssignedThisMonth);
+		villageTotalVos.add(countyCountyNPCLegislationSuggestionsAssigned);
+		villageTotalVos.add(countyCountyCPPCCProposalAdviceOpinionAssigned);
+		ComparisonAttribute.statisticsTotal(countyCreateThisMonthCount,
+				villageTotalVos);
+		ComparisonAttribute.statisticsTotal(countyGatherThisMonthTotalVo,
+				countyLevelReportedThisMonthEnd);
+		ComparisonAttribute.statisticsTotal(countyGatherThisMonthTotalVo,
+				countyCreateThisMonthCount);
+		vos.add(countyGatherThisMonthTotalVo);
+		vos.add(countyLevelReportedThisMonthEnd);
+		vos.add(countyCreateThisMonthCount);
+		vos.addAll(villageTotalVos);
+
+		// 县级部门本月办结 合计
+		nextLayer = LedgerReportRow.COUNTY + LedgerReportRow.DEPARTMENT
+				+ LedgerReportRow.THIS_MONTH + LedgerReportRow.END;
+		ThreeRecordsReportStatisticalVo countyEndThisMonthTotalVo = new ThreeRecordsReportStatisticalVo(
+				nextLayer + LedgerReportRow.COMBINED);
+		// 县级部门本月办结 本部门建账办结数
+		ThreeRecordsReportStatisticalVo countyCreateEndThisMonthVo = cumulativeEndCount(
+				assemblyMap(orgId, getFirstDayDate(0, 1, 0,
+						accountReport), getLastDayDate(0, 1,
+						0, accountReport), null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.COUNTY + LedgerReportRow.DEPARTMENT
+						+ LedgerReportRow.CREATE, false, true).get(0);
+
+		// 县级部门本月办结 县台账办转办件办结数
+		ThreeRecordsReportStatisticalVo countyLevelReportedEndThisMonth = new ThreeRecordsReportStatisticalVo(
+				nextLayer
+						+ LedgerReportFunctionalDepartments.RECORD_HANDLE_AFFAIRS
+						+ LedgerReportRow.TRANSFER + LedgerReportRow.END
+						+ LedgerReportRow.COUNT);
+		// 县级部门本月办结 其中 实质性办结数
+		ThreeRecordsReportStatisticalVo countyLevelReportedEssenceEndThisMonth = cumulativeOtherStateCodeCount(
+				assemblyMap(assemblyMap(null, getFirstDayDate(
+						0, 1, 0, accountReport), getLastDayDate(0, 1, 0, accountReport),
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgParentId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						null, null, null, countyRecordHandleAffairs.getId(),
+						null, LedgerReportRow.TRANSFER, null, null,
+						LedgerReportRow.ESSENCE_SERCH + LedgerReportRow.END),
+				nextLayer + LedgerReportRow.AMONG_THEM
+						+ LedgerReportRow.TRANSFER + LedgerReportRow.ESSENCE
+						+ LedgerReportRow.END + LedgerReportRow.COUNT);
+		// 县级部门本月办结 其中 阶段性办结数
+		ThreeRecordsReportStatisticalVo villageLevelReportedPhaseEndThisMonth = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(null, getFirstDayDate(
+						0, 1, 0, accountReport), getLastDayDate(0, 1, 0, accountReport),
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, null,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						null, null, null, countyRecordHandleAffairs.getId(),
+						null, LedgerReportRow.TRANSFER, null, null,
+						LedgerReportRow.PHASE_SERCH + LedgerReportRow.END),
+				nextLayer + LedgerReportRow.AMONG_THEM
+						+ LedgerReportRow.TRANSFER + LedgerReportRow.PHASE
+						+ LedgerReportRow.END + LedgerReportRow.COUNT);
+		// 县级部门本月办结 其中 程序性办结数
+		ThreeRecordsReportStatisticalVo villageLevelReportedProcedureEndThisMonth = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(null, getFirstDayDate(
+						0, 1, 0, accountReport), getLastDayDate(0, 1, 0, accountReport),
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						null, null, null, countyRecordHandleAffairs.getId(),
+						null, LedgerReportRow.TRANSFER, null, null,
+						LedgerReportRow.PROCEDURE_SERCH + LedgerReportRow.END),
+				nextLayer + LedgerReportRow.AMONG_THEM
+						+ LedgerReportRow.TRANSFER + LedgerReportRow.PROCEDURE
+						+ LedgerReportRow.END + LedgerReportRow.COUNT);
+		// 县级部门本月办结 其中 申报县联席会议数
+		ThreeRecordsReportStatisticalVo jointMeetingDeclareProcedureEndThisMonth = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(null, getFirstDayDate(
+						0, 1, 0, accountReport), getLastDayDate(0, 1, 0, accountReport),
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						jointMeeting.getId(), null, LedgerReportRow.ACCEPTANCE,
+						orgId, jointMeeting.getId(), LedgerReportRow.DECLARE,
+						null, null, null), nextLayer
+						+ LedgerReportRow.AMONG_THEM + LedgerReportRow.DECLARE
+						+ LedgerReportRow.COUNTY_JOINT_CHIEFS_OF_STAFF_MEETING
+						+ LedgerReportRow.COUNT);
+		// 县级部门本月办结 其中 申报县委县政府数
+		ThreeRecordsReportStatisticalVo countyGovernmentDeclareProcedureEndThisMonth = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(null, getFirstDayDate(
+						0, 1, 0, accountReport), getLastDayDate(0, 1, 0, accountReport),
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						countyPartyCommitteeGovernment.getId(), null,
+						LedgerReportRow.ACCEPTANCE, orgId,
+						countyPartyCommitteeGovernment.getId(),
+						LedgerReportRow.DECLARE, null, null, null), nextLayer
+						+ LedgerReportRow.AMONG_THEM + LedgerReportRow.DECLARE
+						+ LedgerReportRow.COUNTY_GOVERNMENT
+						+ LedgerReportRow.COUNT);
+
+		villageTotalVos.clear();
+		villageTotalVos.add(countyLevelReportedEssenceEndThisMonth);
+		villageTotalVos.add(villageLevelReportedPhaseEndThisMonth);
+		villageTotalVos.add(villageLevelReportedProcedureEndThisMonth);
+		villageTotalVos.add(jointMeetingDeclareProcedureEndThisMonth);
+		villageTotalVos.add(countyGovernmentDeclareProcedureEndThisMonth);
+		ComparisonAttribute.statisticsTotal(countyLevelReportedEndThisMonth,
+				villageTotalVos);
+		ComparisonAttribute.statisticsTotal(countyEndThisMonthTotalVo,
+				countyCreateEndThisMonthVo);
+		ComparisonAttribute.statisticsTotal(countyEndThisMonthTotalVo,
+				countyLevelReportedEndThisMonth);
+		vos.add(countyEndThisMonthTotalVo);
+		vos.add(countyCreateEndThisMonthVo);
+		vos.add(countyLevelReportedEndThisMonth);
+		vos.addAll(villageTotalVos);
+
+		// 县级部门本月办理中
+		vos.add(cumulativeStateCodeCount(assemblyMap(orgId, getFirstDayDate(0, 1, 0, accountReport), 
+				getLastDayDate(0, 1, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgParentId, null, sourceOrgId,
+				targetOrgId, null), LedgerReportRow.COUNTY
+				+ LedgerReportRow.DEPARTMENT + LedgerReportRow.THIS_MONTH
+				+ LedgerReportRow.TRANSACTION + LedgerReportRow.COUNT));
+
+		return vos;
+	}
+
+	/**
+	 * 镇级月报表
+	 * 
+	 * @param accountReport
+	 *            报表参数
+	 * @param reportCountService
+	 *            具体Service实现
+	 * @param itemDicts
+	 *            生成报表列的字典项
+	 */
+	public List<ThreeRecordsReportStatisticalVo> constructTownMouldContent(
+			AccountReport accountReport) {
+		List<ThreeRecordsReportStatisticalVo> vos = new ArrayList<ThreeRecordsReportStatisticalVo>();
+		Long orgId = null;
+		Integer accountType = accountReport.getAccountType();
+		String nextLayer = ComparisonAttribute.getNextLayer(accountReport
+				.getOrgLevelInternalId());// 下级
+		String targetInternalCode = null;
+		Long orgParentId = accountReport.getOrganization().getId();
+		Long sourceOrgId = null;
+		Long targetOrgId = null;
+
+		/*** 县台账办 */
+		Organization countyRecordHandleAffairs = getDepartmentOrganization(
+				ThreeRecordsIssueConstants.COUNTY_LEDGER, accountReport
+						.getOrganization().getParentOrg().getId());
+		if (null == countyRecordHandleAffairs) {
+			countyRecordHandleAffairs = new Organization();
+		}
+
+		// 村级累计建账
+		vos.add(cumulativeCreateCount(assemblyMap(orgId, null, null, null,
+				accountType, targetInternalCode, orgParentId, null,
+				sourceOrgId, targetOrgId, null), nextLayer
+				+ LedgerReportRow.CUMULATIVE + LedgerReportRow.CREATE
+				+ LedgerReportRow.COUNT));
+		// 村级累计其中上年接转数
+		List<String> statisticsRows = new ArrayList<String>();
+		statisticsRows.add(LedgerReportRow.LAST_YEAR_PICK_UP_TURN);
+		vos.add(cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null), nextLayer, statisticsRows).get(0));
+		// 村级累计累计办结数、实质性、阶段性、程序性办、其中呈报乡镇数结数
+		vos.addAll(cumulativeEndCount(assemblyMap(orgId, null, null, null,
+				accountType, targetInternalCode, orgParentId, null,
+				sourceOrgId, targetOrgId, null), nextLayer, false, true));
+		// 村级累计上月办理
+		vos.add(cumulativeStateCodeCount(assemblyMap(orgId, getFirstDayDate(0, 2, 0, accountReport), 
+				getLastDayDate(0, 2, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgParentId, null, sourceOrgId,
+				targetOrgId, null), nextLayer + LedgerReportRow.LAST_MONTH
+				+ LedgerReportRow.TRANSACTION + LedgerReportRow.COUNT));
+		// 村级累计本月建账
+		vos.add(cumulativeCreateCount(assemblyMap(orgId, getFirstDayDate(0, 1, 0, accountReport), 
+				getLastDayDate(0, 1, 0, accountReport), null, accountType,
+				targetInternalCode, orgParentId, null, sourceOrgId,
+				targetOrgId, null), nextLayer + LedgerReportRow.THIS_MONTH
+				+ LedgerReportRow.CREATE + LedgerReportRow.COUNT));
+
+		// 村级累计本月累计办结数
+		vos.addAll(cumulativeEndCount(assemblyMap(orgId, getFirstDayDate(0, 1, 0, accountReport),
+				getLastDayDate(0, 1, 0, accountReport), null, accountType,
+				targetInternalCode, orgParentId, null, sourceOrgId,
+				targetOrgId, null), nextLayer, false, true));
+
+		// 村级累计本月办理
+		vos.add(cumulativeStateCodeCount(assemblyMap(orgId, getFirstDayDate(0, 1, 0, accountReport), 
+				getLastDayDate(0, 1, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgParentId, null, sourceOrgId,
+				targetOrgId, null), nextLayer + LedgerReportRow.THIS_MONTH
+				+ LedgerReportRow.TRANSACTION + LedgerReportRow.COUNT));
+
+		// 乡镇累计收集 合计
+		nextLayer = LedgerReportRow.TOWN + LedgerReportRow.CUMULATIVE
+				+ LedgerReportRow.GATHER;
+		ThreeRecordsReportStatisticalVo villageTotalVo = new ThreeRecordsReportStatisticalVo(
+				nextLayer + LedgerReportRow.COMBINED);
+
+		// 乡镇累计收集 村级呈报数小计
+		ThreeRecordsReportStatisticalVo villageLevelReported = cumulativeOtherStateCodeCount(
+				assemblyMap(assemblyMap(orgId, getFirstDayDate(
+						0, 1, 0, accountReport), getLastDayDate(0, 1, 0, accountReport),
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgParentId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						orgParentId, null, LedgerReportRow.ACCEPTANCE, null,
+						null, LedgerReportRow.LEVEL_REPORTED, null, null, null),
+				nextLayer + LedgerReportRow.VILLAGE
+						+ LedgerReportRow.LEVEL_REPORTED
+						+ LedgerReportRow.COUNT);
+		// 乡镇累计收集 村级呈报其中上年接转数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.LAST_YEAR_PICK_UP_TURN);
+		ThreeRecordsReportStatisticalVo villageLevelPickUpTurn = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM
+						+ LedgerReportRow.VILLAGE, statisticsRows).get(0);
+
+		// 乡镇累计收集 乡镇建账数小计
+		orgId = orgParentId;
+		orgParentId = null;
+		ThreeRecordsReportStatisticalVo townCreateCount = cumulativeCreateCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null), nextLayer + LedgerReportRow.TOWN
+						+ LedgerReportRow.CUMULATIVE + LedgerReportRow.CREATE
+						+ LedgerReportRow.COUNT);
+
+		// 乡镇累计收集 乡镇建账其中上年接转数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.LAST_YEAR_PICK_UP_TURN);
+		ThreeRecordsReportStatisticalVo townLevelPickUpTurn = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM + LedgerReportRow.TOWN,
+				statisticsRows).get(0);
+		// 乡镇累计收集 乡镇本级直接收集数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.DIRECT + LedgerReportRow.GATHER);
+		ThreeRecordsReportStatisticalVo townDirectGather = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM + LedgerReportRow.TOWN,
+				statisticsRows).get(0);
+
+		// 乡镇累计收集 县委县政府及县级领导班子有关领导交办数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.COUNTY_GOVERNMENT_LEADERSHIP
+				+ LedgerReportRow.ASSIGNED);
+		ThreeRecordsReportStatisticalVo townCountyGovernmentLeadershipAssigned = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM + LedgerReportRow.TOWN,
+				statisticsRows).get(0);
+		// 乡镇累计收集 县人大议案建议意见交办数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.COUNTY_NPC_LEGISLATION_SUGGESTIONS
+				+ LedgerReportRow.ASSIGNED);
+		ThreeRecordsReportStatisticalVo townCountyNPCLegislationSuggestionsAssigned = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM + LedgerReportRow.TOWN,
+				statisticsRows).get(0);
+		// 乡镇累计收集 县政协提案建议意见交办数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.COUNTY_CPPCC_PROPOSAL_ADVICE_OPINION
+				+ LedgerReportRow.ASSIGNED);
+		ThreeRecordsReportStatisticalVo townCountyCPPCCProposalAdviceOpinionAssigned = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM + LedgerReportRow.TOWN,
+				statisticsRows).get(0);
+
+		List<ThreeRecordsReportStatisticalVo> villageTotalVos = new ArrayList<ThreeRecordsReportStatisticalVo>();
+		villageTotalVos.add(villageLevelReported);
+		villageTotalVos.add(townCreateCount);
+		villageTotalVos.add(townDirectGather);
+		villageTotalVos.add(townCountyGovernmentLeadershipAssigned);
+		villageTotalVos.add(townCountyNPCLegislationSuggestionsAssigned);
+		villageTotalVos.add(townCountyCPPCCProposalAdviceOpinionAssigned);
+		ComparisonAttribute.statisticsTotal(villageTotalVo, villageTotalVos);
+		vos.add(villageTotalVo);
+		vos.add(villageLevelReported);
+		vos.add(villageLevelPickUpTurn);
+		vos.add(townCreateCount);
+		vos.add(townLevelPickUpTurn);
+		vos.add(townDirectGather);
+		vos.add(townCountyGovernmentLeadershipAssigned);
+		vos.add(townCountyNPCLegislationSuggestionsAssigned);
+		vos.add(townCountyCPPCCProposalAdviceOpinionAssigned);
+
+		// 乡镇累计办结 合计
+		nextLayer = LedgerReportRow.TOWN + LedgerReportRow.CUMULATIVE
+				+ LedgerReportRow.END;
+		ThreeRecordsReportStatisticalVo villageTotalEndVo = new ThreeRecordsReportStatisticalVo(
+				nextLayer + LedgerReportRow.COMBINED);
+		// 乡镇累计办结 乡镇建账办结数
+		ThreeRecordsReportStatisticalVo villageEndVo = cumulativeEndCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.TOWN + LedgerReportRow.CREATE,
+				false, true).get(0);
+
+		// 乡镇累计办结 村级呈报件办结数
+		ThreeRecordsReportStatisticalVo villageLevelReportedEnd = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(orgParentId, null, null,
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						null, null, null, null, orgId,
+						LedgerReportRow.LEVEL_REPORTED, null, null,
+						LedgerReportRow.END), nextLayer
+						+ LedgerReportRow.VILLAGE
+						+ LedgerReportRow.LEVEL_REPORTED + LedgerReportRow.END
+						+ LedgerReportRow.COUNT);
+
+		// 乡镇累计办结 其中 实质性办结
+		ThreeRecordsReportStatisticalVo villageLevelReportedEssenceEnd = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(orgParentId, null, null,
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						null, null, null, null, orgId,
+						LedgerReportRow.LEVEL_REPORTED, null, null,
+						LedgerReportRow.ESSENCE_SERCH + LedgerReportRow.END),
+				nextLayer + LedgerReportRow.VILLAGE
+						+ LedgerReportRow.LEVEL_REPORTED
+						+ LedgerReportRow.ESSENCE + LedgerReportRow.END
+						+ LedgerReportRow.COUNT);
+		// 乡镇累计办结 其中 阶段性办结
+		ThreeRecordsReportStatisticalVo villageLevelReportedPhaseEnd = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(orgParentId, null, null,
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						null, null, null, null, orgId,
+						LedgerReportRow.LEVEL_REPORTED, null, null,
+						LedgerReportRow.PHASE_SERCH + LedgerReportRow.END),
+				nextLayer + LedgerReportRow.VILLAGE
+						+ LedgerReportRow.LEVEL_REPORTED
+						+ LedgerReportRow.PHASE + LedgerReportRow.END
+						+ LedgerReportRow.COUNT);
+		// 乡镇累计办结 其中 程序性办结
+		ThreeRecordsReportStatisticalVo villageLevelReportedProcedureEnd = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(orgParentId, null, null,
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						null, null, null, null, orgId,
+						LedgerReportRow.LEVEL_REPORTED, null, null,
+						LedgerReportRow.PROCEDURE_SERCH + LedgerReportRow.END),
+				nextLayer + LedgerReportRow.VILLAGE
+						+ LedgerReportRow.LEVEL_REPORTED
+						+ LedgerReportRow.PROCEDURE + LedgerReportRow.END
+						+ LedgerReportRow.COUNT);
+		// 乡镇累计办结 其中乡镇建账呈报县台账办数
+		ThreeRecordsReportStatisticalVo townLevelReportedRecordHandleAffairs = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(orgId, null, null,
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgParentId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						countyRecordHandleAffairs.getId(), null,
+						LedgerReportRow.ACCEPTANCE, null, null,
+						LedgerReportRow.LEVEL_REPORTED, null, null, null),
+				nextLayer
+						+ LedgerReportRow.AMONG_THEM
+						+ LedgerReportRow.TOWN
+						+ LedgerReportRow.CREATE
+						+ LedgerReportRow.LEVEL_REPORTED
+						+ LedgerReportFunctionalDepartments.RECORD_HANDLE_AFFAIRS
+						+ LedgerReportRow.COUNT);
+
+		// 乡镇累计办结 其中村级呈报件呈报县台账办数
+		ThreeRecordsReportStatisticalVo villageLevelReportedRecordHandleAffairs = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(orgParentId, null, null,
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgId,
+						ThreeRecordsIssueSourceState.submit, null, null, null),
+						countyRecordHandleAffairs.getId(), null,
+						LedgerReportRow.ACCEPTANCE, null, null,
+						LedgerReportRow.LEVEL_REPORTED, null, null, null),
+				nextLayer
+						+ LedgerReportRow.AMONG_THEM
+						+ LedgerReportRow.VILLAGE
+						+ LedgerReportRow.CREATE
+						+ LedgerReportRow.LEVEL_REPORTED
+						+ LedgerReportFunctionalDepartments.RECORD_HANDLE_AFFAIRS
+						+ LedgerReportRow.COUNT);
+
+		ComparisonAttribute.statisticsTotal(villageLevelReportedEnd,
+				townLevelReportedRecordHandleAffairs);
+		ComparisonAttribute.statisticsTotal(villageLevelReportedEnd,
+				villageLevelReportedRecordHandleAffairs);
+
+		ComparisonAttribute.statisticsTotal(villageTotalEndVo, villageEndVo);
+		ComparisonAttribute.statisticsTotal(villageTotalEndVo,
+				villageLevelReportedEnd);
+
+		vos.add(villageTotalEndVo);
+		vos.add(villageEndVo);
+		vos.add(villageLevelReportedEnd);
+		vos.add(villageLevelReportedEssenceEnd);
+		vos.add(villageLevelReportedPhaseEnd);
+		vos.add(villageLevelReportedProcedureEnd);
+		vos.add(townLevelReportedRecordHandleAffairs);
+		vos.add(villageLevelReportedRecordHandleAffairs);
+
+		// 乡镇上月办理中
+		vos.add(cumulativeStateCodeCount(assemblyMap(orgId, getFirstDayDate(0, 2, 0, accountReport), 
+				getLastDayDate(0, 2, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgParentId, null, sourceOrgId,
+				targetOrgId, null), LedgerReportRow.TOWN
+				+ LedgerReportRow.LAST_MONTH + LedgerReportRow.TRANSACTION
+				+ LedgerReportRow.COUNT));
+		// 乡镇本月收集 合计
+		nextLayer = LedgerReportRow.TOWN + LedgerReportRow.THIS_MONTH
+				+ LedgerReportRow.GATHER;
+		ThreeRecordsReportStatisticalVo villageTotalThisMonthVo = new ThreeRecordsReportStatisticalVo(
+				nextLayer + LedgerReportRow.COMBINED);
+
+		// 乡镇本月收集 村级呈报数
+		ThreeRecordsReportStatisticalVo villageLevelReportedVo = cumulativeStateCodeCount(
+				assemblyMap(
+						assemblyMap(orgParentId, getFirstDayDate(0, 1, 0, accountReport),
+								getLastDayDate(0, 1, 0,accountReport),
+								ThreeRecordsIssueState.DEALING_CODE,
+								accountType, targetInternalCode, orgId,
+								ThreeRecordsIssueSourceState.submit, null,
+								null, null), null, orgId,
+						LedgerReportRow.ACCEPTANCE, null, null,
+						LedgerReportRow.LEVEL_REPORTED, null, null, null),
+				nextLayer + LedgerReportRow.VILLAGE
+						+ LedgerReportRow.LEVEL_REPORTED
+						+ LedgerReportRow.COUNT);
+
+		// 乡镇本月收集 乡镇建账数
+		ThreeRecordsReportStatisticalVo townCreateCountThisMonth = new ThreeRecordsReportStatisticalVo(
+				nextLayer + LedgerReportRow.TOWN + LedgerReportRow.CUMULATIVE
+						+ LedgerReportRow.CREATE + LedgerReportRow.COUNT);
+
+		// 乡镇本月收集 其中 乡镇本级直接收集数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.DIRECT + LedgerReportRow.GATHER);
+		ThreeRecordsReportStatisticalVo townDirectGatherThisMonth = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, getFirstDayDate(0, 1, 0,
+						accountReport), getLastDayDate(0, 1,
+						0, accountReport), null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM + LedgerReportRow.TOWN,
+				statisticsRows).get(0);
+
+		// 乡镇本月收集 其中 县委县政府及县级领导班子有关领导交办数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.COUNTY_GOVERNMENT_LEADERSHIP
+				+ LedgerReportRow.ASSIGNED);
+		ThreeRecordsReportStatisticalVo townCountyGovernmentThisMonth = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, getFirstDayDate(0, 1, 0,
+						accountReport), getLastDayDate(0, 1,
+						0, accountReport), null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM, statisticsRows).get(0);
+		// 乡镇本月收集 其中 县人大议案建议意见交办数
+		statisticsRows.clear();
+		statisticsRows.add(LedgerReportRow.COUNTY_NPC_LEGISLATION_SUGGESTIONS
+				+ LedgerReportRow.ASSIGNED);
+		ThreeRecordsReportStatisticalVo townCountyNPCLegislationThisMonth = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, getFirstDayDate(0, 1, 0,
+						accountReport), getLastDayDate(0, 1,
+						0, accountReport), null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM, statisticsRows).get(0);
+		// 乡镇本月收集 其中 县政协提案建议意见交办数
+		statisticsRows.clear();
+		statisticsRows
+				.add(LedgerReportRow.COUNTY_CPPCC_PROPOSAL_ADVICE_OPINION);
+		ThreeRecordsReportStatisticalVo townCountyCPPCCProposalThisMonth = cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, getFirstDayDate(0, 1, 0,
+						accountReport), getLastDayDate(0, 1,
+						0, accountReport), null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.AMONG_THEM, statisticsRows).get(0);
+
+		villageTotalVos.clear();
+		villageTotalVos.add(townDirectGatherThisMonth);
+		villageTotalVos.add(townCountyGovernmentThisMonth);
+		villageTotalVos.add(townCountyNPCLegislationThisMonth);
+		villageTotalVos.add(townCountyCPPCCProposalThisMonth);
+
+		ComparisonAttribute.statisticsTotal(townCreateCountThisMonth,
+				townDirectGatherThisMonth);
+		ComparisonAttribute.statisticsTotal(villageTotalThisMonthVo,
+				villageLevelReportedVo);
+		ComparisonAttribute.statisticsTotal(villageTotalThisMonthVo,
+				townCreateCountThisMonth);
+
+		vos.add(villageTotalThisMonthVo);
+		vos.add(villageLevelReportedVo);
+		vos.add(townCreateCountThisMonth);
+		vos.addAll(villageTotalVos);
+		// 乡镇本月办结 合计
+		nextLayer = LedgerReportRow.TOWN + LedgerReportRow.THIS_MONTH
+				+ LedgerReportRow.END;
+		ThreeRecordsReportStatisticalVo villageTotalThisMonthEndVo = new ThreeRecordsReportStatisticalVo(
+				nextLayer + LedgerReportRow.COMBINED);
+		// 乡镇建账办结数
+		ThreeRecordsReportStatisticalVo villageEndThisMonthVo = cumulativeEndCount(
+				assemblyMap(orgId, getFirstDayDate(0, 1, 0,
+						accountReport), getLastDayDate(0, 1,
+						0, accountReport), null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null),
+				nextLayer + LedgerReportRow.TOWN + LedgerReportRow.CREATE,
+				false, true).get(0);
+		// 乡镇本月办结 村级呈报件办结数
+		ThreeRecordsReportStatisticalVo villageLevelReportedEndThisMonthVo = new ThreeRecordsReportStatisticalVo(
+				nextLayer + LedgerReportRow.VILLAGE
+						+ LedgerReportRow.LEVEL_REPORTED + LedgerReportRow.END
+						+ LedgerReportRow.COUNT);
+
+		// 乡镇本月办结 其中 实质性办结数
+		ThreeRecordsReportStatisticalVo villageLevelReportedEssenceEndThisMonthVo = cumulativeStateCodeCount(
+				assemblyMap(
+						assemblyMap(orgParentId, getFirstDayDate(0, 1, 0, accountReport),
+								getLastDayDate(0, 1, 0, accountReport),
+								ThreeRecordsIssueState.DEALING_CODE,
+								accountType, targetInternalCode, orgId,
+								ThreeRecordsIssueSourceState.submit, null,
+								null, null), null, null, null, null, orgId,
+						LedgerReportRow.LEVEL_REPORTED, null, null,
+						LedgerReportRow.ESSENCE_SERCH + LedgerReportRow.END),
+				nextLayer + LedgerReportRow.VILLAGE
+						+ LedgerReportRow.LEVEL_REPORTED
+						+ LedgerReportRow.ESSENCE + LedgerReportRow.END
+						+ LedgerReportRow.COUNT);
+		// 乡镇本月办结 其中 阶段性办结数
+		ThreeRecordsReportStatisticalVo villageLevelReportedPhaseEndThisMonthVo = cumulativeStateCodeCount(
+				assemblyMap(
+						assemblyMap(orgParentId, getFirstDayDate(0, 1, 0, accountReport),
+								getLastDayDate(0, 1, 0, accountReport),
+								ThreeRecordsIssueState.DEALING_CODE,
+								accountType, targetInternalCode, orgId,
+								ThreeRecordsIssueSourceState.submit, null,
+								null, null), null, null, null, null, orgId,
+						LedgerReportRow.LEVEL_REPORTED, null, null,
+						LedgerReportRow.PHASE_SERCH + LedgerReportRow.END),
+				nextLayer + LedgerReportRow.VILLAGE
+						+ LedgerReportRow.LEVEL_REPORTED
+						+ LedgerReportRow.PHASE + LedgerReportRow.END
+						+ LedgerReportRow.COUNT);
+		// 乡镇本月办结 其中 程序性办结数
+		ThreeRecordsReportStatisticalVo villageLevelReportedProcedureEndThisMonthVo = cumulativeStateCodeCount(
+				assemblyMap(
+						assemblyMap(orgParentId, getFirstDayDate(0, 1, 0, accountReport),
+								getLastDayDate(0, 1, 0,accountReport),
+								ThreeRecordsIssueState.DEALING_CODE,
+								accountType, targetInternalCode, orgId,
+								ThreeRecordsIssueSourceState.submit, null,
+								null, null), null, null, null, null, orgId,
+						LedgerReportRow.LEVEL_REPORTED, null, null,
+						LedgerReportRow.PROCEDURE_SERCH + LedgerReportRow.END),
+				nextLayer + LedgerReportRow.VILLAGE
+						+ LedgerReportRow.LEVEL_REPORTED
+						+ LedgerReportRow.PROCEDURE + LedgerReportRow.END
+						+ LedgerReportRow.COUNT);
+		// 乡镇本月办结 其中乡镇建账呈报县台账办数
+		ThreeRecordsReportStatisticalVo townLevelReportedRecordHandleAffairsThisMonth = cumulativeStateCodeCount(
+				assemblyMap(assemblyMap(orgId, getFirstDayDate(
+						0, 1, 0, accountReport),getLastDayDate(0, 1, 0, accountReport),
+						ThreeRecordsIssueState.DEALING_CODE, accountType,
+						targetInternalCode, orgParentId,
+						ThreeRecordsIssueSourceState.submit,
+						countyRecordHandleAffairs.getId(), null, null),
+						countyRecordHandleAffairs.getId(), null,
+						LedgerReportRow.ACCEPTANCE, null, null,
+						LedgerReportRow.LEVEL_REPORTED, null, null, null),
+				nextLayer
+						+ LedgerReportRow.AMONG_THEM
+						+ LedgerReportRow.TOWN
+						+ LedgerReportRow.CREATE
+						+ LedgerReportRow.LEVEL_REPORTED
+						+ LedgerReportFunctionalDepartments.RECORD_HANDLE_AFFAIRS
+						+ LedgerReportRow.COUNT);
+
+		// 乡镇本月办结 其中村级呈报件呈报县台账办数
+		ThreeRecordsReportStatisticalVo villageLevelReportedRecordHandleAffairsThisMonth = cumulativeStateCodeCount(
+				assemblyMap(
+						assemblyMap(orgParentId, getFirstDayDate(0, 1, 0, accountReport),
+								getLastDayDate(0, 1, 0,
+										accountReport),
+								ThreeRecordsIssueState.DEALING_CODE,
+								accountType, targetInternalCode, orgId,
+								ThreeRecordsIssueSourceState.submit, null,
+								null, null), countyRecordHandleAffairs.getId(),
+						null, LedgerReportRow.ACCEPTANCE, null, null,
+						LedgerReportRow.LEVEL_REPORTED, null, null, null),
+				nextLayer
+						+ LedgerReportRow.AMONG_THEM
+						+ LedgerReportRow.VILLAGE
+						+ LedgerReportRow.CREATE
+						+ LedgerReportRow.LEVEL_REPORTED
+						+ LedgerReportFunctionalDepartments.RECORD_HANDLE_AFFAIRS
+						+ LedgerReportRow.COUNT);
+		villageTotalVos.clear();
+		villageTotalVos.add(villageLevelReportedEssenceEndThisMonthVo);
+		villageTotalVos.add(villageLevelReportedPhaseEndThisMonthVo);
+		villageTotalVos.add(villageLevelReportedProcedureEndThisMonthVo);
+		villageTotalVos.add(townLevelReportedRecordHandleAffairsThisMonth);
+		villageTotalVos.add(villageLevelReportedRecordHandleAffairsThisMonth);
+
+		ComparisonAttribute.statisticsTotal(villageLevelReportedEndThisMonthVo,
+				villageTotalVos);
+		ComparisonAttribute.statisticsTotal(villageTotalThisMonthEndVo,
+				villageEndThisMonthVo);
+		ComparisonAttribute.statisticsTotal(villageTotalThisMonthEndVo,
+				villageLevelReportedEndThisMonthVo);
+		vos.add(villageTotalThisMonthEndVo);
+		vos.add(villageEndThisMonthVo);
+		vos.add(villageLevelReportedEndThisMonthVo);
+		vos.addAll(villageTotalVos);
+
+		// 乡镇本月办理中
+		vos.add(cumulativeStateCodeCount(assemblyMap(orgId, getFirstDayDate(0, 1, 0, accountReport), 
+				getLastDayDate(0, 1, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgParentId, null, sourceOrgId,
+				targetOrgId, null), LedgerReportRow.TOWN
+				+ LedgerReportRow.THIS_MONTH + LedgerReportRow.TRANSACTION
+				+ LedgerReportRow.COUNT));
+		return vos;
+	}
+
+	/**
+	 * 村、社区月报表
+	 * 
+	 * @param accountReport
+	 *            报表参数
+	 * @param reportCountService
+	 *            具体Service实现
+	 * @param itemDicts
+	 *            生成报表列的字典项
+	 */
+	public List<ThreeRecordsReportStatisticalVo> constructVillageMouldContent(
+			AccountReport accountReport) {
+		List<ThreeRecordsReportStatisticalVo> vos = new ArrayList<ThreeRecordsReportStatisticalVo>();
+		Long orgId = accountReport.getOrganization().getId();
+		Integer accountType = accountReport.getAccountType();
+		String targetInternalCode = null;
+		String nextLayer = "";
+		Long orgParentId = null;
+		boolean isOnlyAll = false;
+		boolean isStatisticalSubmits = true;
+		Long sourceOrgId = null;
+		Long targetOrgId = null;
+
+		// 累计建账
+		vos.add(cumulativeCreateCount(assemblyMap(orgId, null, null, null,
+				accountType, targetInternalCode, orgParentId, null,
+				sourceOrgId, targetOrgId, null), LedgerReportRow.CUMULATIVE
+				+ LedgerReportRow.CREATE + LedgerReportRow.COUNT));
+		// 其中上年接转数
+		List<String> statisticsRows = new ArrayList<String>();
+		statisticsRows.add(LedgerReportRow.LAST_YEAR_PICK_UP_TURN);
+		vos.add(cumulativeCreateTableTypeCount(
+				assemblyMap(orgId, null, null, null, accountType,
+						targetInternalCode, orgParentId, null, sourceOrgId,
+						targetOrgId, null), nextLayer, statisticsRows).get(0));
+
+		// 累计办结数
+		vos.addAll(cumulativeEndCount(assemblyMap(orgId, null, null, null,
+				accountType, targetInternalCode, orgParentId, null,
+				sourceOrgId, targetOrgId, null), nextLayer
+				+ LedgerReportRow.CUMULATIVE, isOnlyAll, isStatisticalSubmits));
+		// 上月办理中
+		vos.add(cumulativeStateCodeCount(assemblyMap(orgId, getFirstDayDate(0, 2, 0, accountReport), 
+				getLastDayDate(0, 2, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgParentId, null, sourceOrgId,
+				targetOrgId, null), LedgerReportRow.LAST_MONTH
+				+ LedgerReportRow.TRANSACTION + LedgerReportRow.COUNT));
+		// 本月建账
+		vos.add(cumulativeCreateCount(assemblyMap(orgId, getFirstDayDate(0, 1, 0, accountReport),
+				getLastDayDate(0, 1, 0, accountReport), null, accountType,
+				targetInternalCode, orgParentId, null, sourceOrgId,
+				targetOrgId, null), LedgerReportRow.THIS_MONTH
+				+ LedgerReportRow.CREATE + LedgerReportRow.COUNT));
+
+		// 计本月办结数
+		vos.addAll(cumulativeEndCount(assemblyMap(orgId, getFirstDayDate(0, 1, 0, accountReport), 
+				getLastDayDate(0, 1, 0, accountReport), null, accountType,
+				targetInternalCode, orgParentId, null, sourceOrgId,
+				targetOrgId, null), nextLayer + LedgerReportRow.THIS_MONTH,
+				isOnlyAll, isStatisticalSubmits));
+
+		// 计算本月办理中
+		vos.add(cumulativeStateCodeCount(assemblyMap(orgId, getFirstDayDate(0, 1, 0, accountReport),
+				getLastDayDate(0, 1, 0, accountReport),
+				ThreeRecordsIssueState.DEALING_CODE, accountType,
+				targetInternalCode, orgParentId, null, sourceOrgId,
+				targetOrgId, null), nextLayer + LedgerReportRow.THIS_MONTH
+				+ LedgerReportRow.TRANSACTION + LedgerReportRow.COUNT));
+
+		return vos;
+	}
+
+	/**
+	 * 计算建表类型数
+	 * 
+	 * @param orgId
+	 * @param orgId
+	 */
+	private List<ThreeRecordsReportStatisticalVo> cumulativeCreateTableTypeCount(
+			Map<String, Object> serchMap, String rowKey,
+			List<String> statisticsRows) {
+		return getCumulativeCreateTableTypeCounts(serchMap, rowKey,
+				statisticsRows);
+	}
+
+	/**
+	 * 计算累计建账
+	 * 
+	 * @param orgId
+	 * @param orgId
+	 */
+	private ThreeRecordsReportStatisticalVo cumulativeCreateCount(
+			Map<String, Object> serchMap, String rowKey) {
+		return getReportGroupCount(serchMap,
+				new ThreeRecordsReportStatisticalVo(rowKey));
+	}
+
+	/**
+	 * 计算累计办结数(包括其它办结)
+	 * 
+	 * @param orgId
+	 * @param orgId
+	 */
+	private List<ThreeRecordsReportStatisticalVo> cumulativeEndCount(
+			Map<String, Object> serchMap, String rowKey, boolean isOnlyAll,
+			boolean isStatisticalSubmits) {
+		return getCumulativeEndCounts(serchMap, rowKey, LedgerReportRow.END
+				+ LedgerReportRow.COUNT, isOnlyAll, isStatisticalSubmits);
+	}
+
+	/**
+	 * 计算各种状态台账数
+	 * 
+	 * @param orgId
+	 * @param orgId
+	 */
+	private ThreeRecordsReportStatisticalVo cumulativeStateCodeCount(
+			Map<String, Object> serchMap, String rowKey) {
+		return getReportAccountStepsCount(serchMap,
+				new ThreeRecordsReportStatisticalVo(rowKey));
+
+	}
+
+	/**
+	 * 计算需要受理后按状态统计
+	 * 
+	 * @param serchMap
+	 * @param rowKey
+	 * @return
+	 */
+	private ThreeRecordsReportStatisticalVo cumulativeOtherStateCodeCount(
+			Map<String, Object> serchMap, String rowKey) {
+		return getReportAccountOtherStepsCount(serchMap,
+				new ThreeRecordsReportStatisticalVo(rowKey));
+	}
+
+	/**
+	 * 计算累计办结数(包括其它办结)按建账类型
+	 * 
+	 * @param orgId
+	 * @param orgId
+	 */
+	private List<ThreeRecordsReportStatisticalVo> getCumulativeCreateTableTypeCounts(
+			Map<String, Object> searchMap, String rowKey, List<String> statisticsRows) {
+		if (null == searchMap) {
+			throw new BusinessValidationException("查询条件未获得");
+		}
+		Map<String, ThreeRecordsReportStatisticalVo> voMap = new HashMap<String, ThreeRecordsReportStatisticalVo>();
+		Map<String, List<LedgerReportGroupCount>> createTableTypeMap = new HashMap<String, List<LedgerReportGroupCount>>();
+		getCumulativeCreateTableTypeVoMap(statisticsRows, rowKey, voMap,
+				createTableTypeMap);
+		Integer accountType = Integer.valueOf(searchMap.get("ledgerType")
+				.toString());
+		if (isAllReportType(accountType)) {
+			// 民生
+			searchMap.put("ledgerType", LedgerConstants.PEOPLEASPIRATION);
+			List<LedgerReportGroupCount> peopleList = getReportStateCodeCount(searchMap);
+			getCumulativeCreateTableTypeCount(peopleList, voMap,
+					LedgerConstants.PEOPLEASPIRATION,
+					initCreateTableTypeMap(createTableTypeMap));
+			// 困难
+			searchMap.put("ledgerType", LedgerConstants.POORPEOPLE);
+			List<LedgerReportGroupCount> poorPeopleList = getReportStateCodeCount(searchMap);
+			getCumulativeCreateTableTypeCount(poorPeopleList, voMap,
+					LedgerConstants.POORPEOPLE,
+					initCreateTableTypeMap(createTableTypeMap));
+			// 稳定
+			searchMap.put("ledgerType", LedgerConstants.STEADYWORK);
+			List<LedgerReportGroupCount> steadyWorkList = getReportStateCodeCount(searchMap);
+			getCumulativeCreateTableTypeCount(steadyWorkList, voMap,
+					LedgerConstants.STEADYWORK,
+					initCreateTableTypeMap(createTableTypeMap));
+		} else {
+			List<LedgerReportGroupCount> list = getReportStateCodeCount(searchMap);
+			getCumulativeCreateTableTypeCount(list, voMap, accountType,
+					initCreateTableTypeMap(createTableTypeMap));
+		}
+		List<ThreeRecordsReportStatisticalVo> vos = new ArrayList<ThreeRecordsReportStatisticalVo>();
+		for (Map.Entry<String, ThreeRecordsReportStatisticalVo> entry : voMap
+				.entrySet()) {
+			if (!entry.getKey().equals(
+					LedgerReportRow.CUMULATIVE + LedgerReportRow.CREATE
+							+ LedgerReportRow.COUNT)) {
+				calculateTotal(entry.getValue());
+				vos.add(entry.getValue());
+			}
+		}
+		return vos;
+	}
+
+	private void getCumulativeCreateTableTypeVoMap(List<String> statisticsRows,
+			String rowKey, Map<String, ThreeRecordsReportStatisticalVo> voMap,
+			Map<String, List<LedgerReportGroupCount>> createTableTypeMap) {
+		List<PropertyDict> createTableTypeDicts = propertyDictDubboService
+				.findPropertyDictByDomainName(PropertyTypes.LEDGER_PEOPLEASPIRATION_CREATE_TABLE_TYPE);
+		boolean isAll = statisticsRows == null || statisticsRows.size() <= 0 ? true
+				: false;
+		String statisticsRow = "";
+		for (int i = 0; i < statisticsRows.size() || isAll; i++) {
+			if (!isAll) {
+				statisticsRow = statisticsRows.get(i);
+			}
+			for (PropertyDict dict : createTableTypeDicts) {
+				String disName = dict.getDisplayName();
+				if (disName.indexOf(LedgerReportRow.NEW) > -1) {
+					disName = LedgerReportRow.DIRECT + LedgerReportRow.GATHER;
+				}
+				if (isAll || disName.indexOf(statisticsRow) > -1) {
+					voMap.put(disName, new ThreeRecordsReportStatisticalVo(
+							rowKey + disName + LedgerReportRow.COUNT));
+				} else {
+					continue;
+				}
+				createTableTypeMap.put(disName,
+						new ArrayList<LedgerReportGroupCount>());
+			}
+			isAll = false;
+		}
+	}
+
+	private Map<String, List<LedgerReportGroupCount>> initCreateTableTypeMap(
+			Map<String, List<LedgerReportGroupCount>> createTableTypeMap) {
+		for (Map.Entry<String, List<LedgerReportGroupCount>> entry : createTableTypeMap
+				.entrySet()) {
+			entry.getValue().clear();
+		}
+		return createTableTypeMap;
+	}
+
+	private Map<String, ThreeRecordsReportStatisticalVo> getCumulativeCreateTableTypeCount(
+			List<LedgerReportGroupCount> list,
+			Map<String, ThreeRecordsReportStatisticalVo> map,
+			Integer ledgerType,
+			Map<String, List<LedgerReportGroupCount>> createTableTypeMap) {
+		// 建账数
+		for (LedgerReportGroupCount ledgerReportGroupCount : list) {
+			String rowTypeName = ledgerReportGroupCount.getRowType()
+					.getDisplayName();
+			if (rowTypeName.indexOf(LedgerReportRow.NEW) > -1) {
+				rowTypeName = LedgerReportRow.DIRECT + LedgerReportRow.GATHER;
+			}
+			if (null != ledgerReportGroupCount.getRowType()) {
+				List<LedgerReportGroupCount> createTableTypeList = createTableTypeMap
+						.get(rowTypeName);
+				if (null != createTableTypeList) {
+					createTableTypeList.add(ledgerReportGroupCount);
+				}
+			}
+		}
+		for (Map.Entry<String, List<LedgerReportGroupCount>> entry : createTableTypeMap
+				.entrySet()) {
+			ComparisonAttribute.calculationRatioVo(entry.getValue(), map
+					.get(entry.getKey()), ledgerType);
+		}
+		return map;
+	}
+
+	private ThreeRecordsReportStatisticalVo getReportAccountStepsCount(
+			Map<String, Object> searchMap, ThreeRecordsReportStatisticalVo vo) {
+		if (null == searchMap) {
+			throw new BusinessValidationException("查询条件未获得");
+		}
+		Integer accountType = Integer.valueOf(searchMap.get("ledgerType")
+				.toString());
+		if (isAllReportType(accountType)) {
+			// 民生
+			searchMap.put("ledgerType", LedgerConstants.PEOPLEASPIRATION);
+			ComparisonAttribute.calculationRatioVo(
+					getReportAccountStepsCount(searchMap), vo,
+					LedgerConstants.PEOPLEASPIRATION);
+			// 困难
+			searchMap.put("ledgerType", LedgerConstants.POORPEOPLE);
+			ComparisonAttribute.calculationRatioVo(
+					getReportAccountStepsCount(searchMap), vo,
+					LedgerConstants.POORPEOPLE);
+			// 稳定
+			searchMap.put("ledgerType", LedgerConstants.STEADYWORK);
+			ComparisonAttribute.calculationRatioVo(
+					getReportAccountStepsCount(searchMap), vo,
+					LedgerConstants.STEADYWORK);
+		} else {
+			ComparisonAttribute.calculationRatioVo(
+					getReportAccountStepsCount(searchMap), vo, accountType);
+		}
+		calculateTotal(vo);
+		return vo;
+	}
+
+	private ThreeRecordsReportStatisticalVo getReportAccountOtherStepsCount(
+			Map<String, Object> searchMap, ThreeRecordsReportStatisticalVo vo) {
+		if (null == searchMap) {
+			throw new BusinessValidationException("查询条件未获得");
+		}
+		Integer accountType = Integer.valueOf(searchMap.get("ledgerType")
+				.toString());
+		if (isAllReportType(accountType)) {
+			// 民生
+			searchMap.put("ledgerType", LedgerConstants.PEOPLEASPIRATION);
+			ComparisonAttribute.calculationRatioVo(
+					getReportStateCodeCount(searchMap), vo,
+					LedgerConstants.PEOPLEASPIRATION);
+			// 困难
+			searchMap.put("ledgerType", LedgerConstants.POORPEOPLE);
+			ComparisonAttribute.calculationRatioVo(
+					getReportStateCodeCount(searchMap), vo,
+					LedgerConstants.POORPEOPLE);
+			// 稳定
+			searchMap.put("ledgerType", LedgerConstants.STEADYWORK);
+			ComparisonAttribute.calculationRatioVo(
+					getReportStateCodeCount(searchMap), vo,
+					LedgerConstants.STEADYWORK);
+		} else {
+			ComparisonAttribute.calculationRatioVo(
+					getReportStateCodeCount(searchMap), vo, accountType);
+		}
+		calculateTotal(vo);
+		return vo;
+	}
+
+	/**
+	 * 计算累计办结数(包括其它办结)
+	 * 
+	 * @param orgId
+	 * @param orgId
+	 */
+	private List<ThreeRecordsReportStatisticalVo> getCumulativeEndCounts(
+			Map<String, Object> searchMap, String rowKey, String lastRowKey,
+			boolean isOnlyAll, boolean isStatisticalSubmits) {
+		if (null == searchMap) {
+			throw new BusinessValidationException("查询条件未获得");
+		}
+		Map<String, ThreeRecordsReportStatisticalVo> voMap = getVoMapEnd(
+				rowKey, lastRowKey, isOnlyAll);
+		// 其中程报乡镇数
+		voMap.put(LedgerReportRow.AMONG_THEM + LedgerReportRow.REPORT_VILLAGES
+				+ LedgerReportRow.COUNT, new ThreeRecordsReportStatisticalVo(
+				rowKey + LedgerReportRow.AMONG_THEM
+						+ LedgerReportRow.REPORT_VILLAGES
+						+ LedgerReportRow.COUNT));
+
+		Integer accountType = Integer.valueOf(searchMap.get("ledgerType")
+				.toString());
+		if (isAllReportType(accountType)) {
+			// 民生
+			searchMap.put("ledgerType", LedgerConstants.PEOPLEASPIRATION);
+			Map<String, List<LedgerReportGroupCount>> peopleListMap = getEndCount(
+					searchMap, isOnlyAll, isStatisticalSubmits);
+			getCumulativeEndCount(peopleListMap, voMap,
+					LedgerConstants.PEOPLEASPIRATION, isOnlyAll,
+					isStatisticalSubmits);
+			// 困难
+			searchMap.put("ledgerType", LedgerConstants.POORPEOPLE);
+			Map<String, List<LedgerReportGroupCount>> poorPeopleListMap = getEndCount(
+					searchMap, isOnlyAll, isStatisticalSubmits);
+			getCumulativeEndCount(poorPeopleListMap, voMap,
+					LedgerConstants.POORPEOPLE, isOnlyAll, isStatisticalSubmits);
+			// 稳定
+			searchMap.put("ledgerType", LedgerConstants.STEADYWORK);
+			Map<String, List<LedgerReportGroupCount>> steadyWorkListMap = getEndCount(
+					searchMap, isOnlyAll, isStatisticalSubmits);
+			getCumulativeEndCount(steadyWorkListMap, voMap,
+					LedgerConstants.STEADYWORK, isOnlyAll, isStatisticalSubmits);
+		} else {
+			Map<String, List<LedgerReportGroupCount>> peopleListMap = getEndCount(
+					searchMap, isOnlyAll, isStatisticalSubmits);
+			getCumulativeEndCount(peopleListMap, voMap, accountType, isOnlyAll,
+					isStatisticalSubmits);
+		}
+		return assemblyVos(voMap);
+	}
+
+	private Map<String, List<LedgerReportGroupCount>> getEndCount(
+			Map<String, Object> searchMap, boolean isOnlyAll,
+			boolean isStatisticalSubmits) {
+		Map<String, List<LedgerReportGroupCount>> map = new HashMap<String, List<LedgerReportGroupCount>>();
+		searchMap.remove("acceptanceStateCode");
+		searchMap.remove("levelReportedStateCode");
+		// 实质性办结数
+		searchMap.put("endStateCode", LedgerReportRow.ESSENCE_SERCH
+				+ LedgerReportRow.END);
+		map.put(LedgerReportRow.ESSENCE + LedgerReportRow.END,
+				getReportStateCodeCount(searchMap));
+		// 阶段性办结数
+		searchMap.put("endStateCode", LedgerReportRow.PHASE_SERCH
+				+ LedgerReportRow.END);
+		map.put(LedgerReportRow.PHASE + LedgerReportRow.END,
+				getReportStateCodeCount(searchMap));
+		// 程序性办结数
+		searchMap.put("endStateCode", LedgerReportRow.PROCEDURE_SERCH
+				+ LedgerReportRow.END);
+		map.put(LedgerReportRow.PROCEDURE + LedgerReportRow.END,
+				getReportStateCodeCount(searchMap));
+		// 累计办结数
+		List<LedgerReportGroupCount> cumulativeEnds = new ArrayList<LedgerReportGroupCount>();
+		for (Entry<String, List<LedgerReportGroupCount>> entry : map.entrySet()) {
+			cumulativeEnds.addAll(entry.getValue());
+		}
+		if (isStatisticalSubmits) {
+			searchMap.remove("endStateCode");
+			// 其中程报乡镇数
+			searchMap.put("acceptanceStateCode", LedgerReportRow.ACCEPTANCE);
+			searchMap.put("levelReportedStateCode",
+					LedgerReportRow.LEVEL_REPORTED);
+			map.put(LedgerReportRow.AMONG_THEM
+					+ LedgerReportRow.REPORT_VILLAGES + LedgerReportRow.COUNT,
+					getReportStateCodeCount(searchMap));
+		}
+		if (isOnlyAll) {
+			map.clear();
+		}
+		if (!isStatisticalSubmits) {
+			map.remove(LedgerReportRow.AMONG_THEM
+					+ LedgerReportRow.REPORT_VILLAGES + LedgerReportRow.COUNT);
+		}
+		map.put(LedgerReportRow.CUMULATIVE + LedgerReportRow.END
+				+ LedgerReportRow.COUNT, cumulativeEnds);
+		return map;
+	}
+
+	/**
+	 * 统计list中的各种办结数
+	 * 
+	 * @param list
+	 *            源数据
+	 * @param map
+	 *            存储数据
+	 * @param ledgerType
+	 *            数据类型
+	 * @param isOnlyAll
+	 *            是否只统计所有
+	 * @param isStatisticalSubmits
+	 *            是否统计上报
+	 * @return
+	 */
+	private Map<String, ThreeRecordsReportStatisticalVo> getCumulativeEndCount(
+			Map<String, List<LedgerReportGroupCount>> peopleListMap,
+			Map<String, ThreeRecordsReportStatisticalVo> map,
+			Integer ledgerType, boolean isOnlyAll, boolean isStatisticalSubmits) {
+
+		// 累计办结数
+		ComparisonAttribute.calculationRatioVo(peopleListMap
+				.get(LedgerReportRow.CUMULATIVE + LedgerReportRow.END
+						+ LedgerReportRow.COUNT), map
+				.get(LedgerReportRow.CUMULATIVE + LedgerReportRow.END
+						+ LedgerReportRow.COUNT), ledgerType);
+		if (!isOnlyAll) {
+			// 实质性办结数
+			ComparisonAttribute.calculationRatioVo(peopleListMap
+					.get(LedgerReportRow.ESSENCE + LedgerReportRow.END), map
+					.get(LedgerReportRow.ESSENCE), ledgerType);
+			// 阶段性办结数
+			ComparisonAttribute.calculationRatioVo(peopleListMap
+					.get(LedgerReportRow.PHASE + LedgerReportRow.END), map
+					.get(LedgerReportRow.PHASE), ledgerType);
+			// 程序性办结数
+			ComparisonAttribute.calculationRatioVo(peopleListMap
+					.get(LedgerReportRow.PROCEDURE + LedgerReportRow.END), map
+					.get(LedgerReportRow.PROCEDURE), ledgerType);
+			if (isStatisticalSubmits) {
+				// 其中程报乡镇数
+				ComparisonAttribute.calculationRatioVo(peopleListMap
+						.get(LedgerReportRow.AMONG_THEM
+								+ LedgerReportRow.REPORT_VILLAGES
+								+ LedgerReportRow.COUNT), map
+						.get(LedgerReportRow.AMONG_THEM
+								+ LedgerReportRow.REPORT_VILLAGES
+								+ LedgerReportRow.COUNT), ledgerType);
+			}
+		}
+		return map;
+	}
+
+	private ThreeRecordsReportStatisticalVo getReportGroupCount(
+			Map<String, Object> searchMap, ThreeRecordsReportStatisticalVo vo) {
+		if (null == searchMap) {
+			throw new BusinessValidationException("查询条件未获得");
+		}
+		Integer accountType = Integer.valueOf(searchMap.get("ledgerType")
+				.toString());
+		if (isAllReportType(accountType)) {
+			// 民生
+			searchMap.put("ledgerType", LedgerConstants.PEOPLEASPIRATION);
+			ComparisonAttribute.calculationRatioVo(
+					getReportStateCodeCount(searchMap), vo,
+					LedgerConstants.PEOPLEASPIRATION);
+			// 困难
+			searchMap.put("ledgerType", LedgerConstants.POORPEOPLE);
+			ComparisonAttribute.calculationRatioVo(
+					getReportStateCodeCount(searchMap), vo,
+					LedgerConstants.POORPEOPLE);
+			// 稳定
+			searchMap.put("ledgerType", LedgerConstants.STEADYWORK);
+			ComparisonAttribute.calculationRatioVo(
+					getReportStateCodeCount(searchMap), vo,
+					LedgerConstants.STEADYWORK);
+		} else {
+			ComparisonAttribute.calculationRatioVo(
+					getReportStateCodeCount(searchMap), vo, accountType);
+		}
+		calculateTotal(vo);
+		return vo;
+	}
+
+	private List<ThreeRecordsReportStatisticalVo> assemblyVos(
+			Map<String, ThreeRecordsReportStatisticalVo> voMap) {
+		List<ThreeRecordsReportStatisticalVo> vos = new ArrayList<ThreeRecordsReportStatisticalVo>();
+		if (null == voMap) {
+			return vos;
+		}
+		List<String> rowKeys = LedgerReportRow.rows;
+		for (String rowKey : rowKeys) {
+			ThreeRecordsReportStatisticalVo vo = voMap.get(rowKey);
+			if (null != vo) {
+				calculateTotal(vo);
+				vos.add(vo);
+			}
+		}
+		return vos;
+	}
+
+	private ThreeRecordsReportStatisticalVo calculateTotal(
+			ThreeRecordsReportStatisticalVo vo) {
+		Integer peopleAsWorkTotal = null == vo.getPeopleAsWorkTotal() ? 0 : vo
+				.getPeopleAsWorkTotal();
+		Integer ledgerPoorPeopleTotal = null == vo.getLedgerPoorPeopleTotal() ? 0
+				: vo.getLedgerPoorPeopleTotal();
+		Integer steadyRecordWorkTotal = null == vo.getSteadyRecordWorkTotal() ? 0
+				: vo.getSteadyRecordWorkTotal();
+		vo.setTotal(peopleAsWorkTotal + ledgerPoorPeopleTotal
+				+ steadyRecordWorkTotal);
+		return vo;
+	}
+
+	/**
+	 * 获取三种办结VO
+	 * 
+	 * @param rowKey
+	 * @return
+	 */
+	private Map<String, ThreeRecordsReportStatisticalVo> getVoMapEnd(
+			String rowKey, String lastRowKey, boolean isOnlyAll) {
+		Map<String, ThreeRecordsReportStatisticalVo> voMap = new HashMap<String, ThreeRecordsReportStatisticalVo>();
+		// 累计办结数
+		voMap.put(LedgerReportRow.CUMULATIVE + LedgerReportRow.END
+				+ LedgerReportRow.COUNT, new ThreeRecordsReportStatisticalVo(
+				rowKey + lastRowKey));
+		if (!isOnlyAll) {
+			// 实质性办结数
+			voMap.put(LedgerReportRow.ESSENCE,
+					new ThreeRecordsReportStatisticalVo(rowKey
+							+ LedgerReportRow.ESSENCE + lastRowKey));
+			// 阶段性办结数
+			voMap.put(LedgerReportRow.PHASE,
+					new ThreeRecordsReportStatisticalVo(rowKey
+							+ LedgerReportRow.PHASE + lastRowKey));
+			// 程序性办结数
+			voMap.put(LedgerReportRow.PROCEDURE,
+					new ThreeRecordsReportStatisticalVo(rowKey
+							+ LedgerReportRow.PROCEDURE + lastRowKey));
+		}
+		return voMap;
+	}
+
+	/**
+	 * 根据参数组装Map
+	 * 
+	 * @param orgId
+	 *            机构ID
+	 * @param startDate
+	 *            开始日期
+	 * @param endDate
+	 *            结束日期
+	 * @param stateCode
+	 *            台账状态码
+	 * @param accountType
+	 *            台账类型
+	 * @param targetInternalCode
+	 *            目标处理部门 机构CODE
+	 * @param orgParentId
+	 *            机构父ID
+	 * @param submit
+	 *            是否提交（上报呈报）
+	 * @param sourceOrgId
+	 *            源处理部门机构ID
+	 * @param targetOrgId
+	 *            目标处理部门机构ID
+	 * @return
+	 */
+	private Map<String, Object> assemblyMap(Long orgId, Date startDate,
+			Date endDate, Integer stateCode, Integer accountType,
+			String targetInternalCode, Long orgParentId, Integer submit,
+			Long sourceOrgId, Long targetOrgId, Integer assign) {
+		Integer isSearchOrg = 0;
+		Map<String, Object> map = new HashMap<String, Object>();
+		if (null != orgId && 0 != orgId) {
+			map.put("orgId", orgId);
+		}
+		if (null != startDate) {
+			map.put("startDate", startDate);
+		}
+		if (null != endDate) {
+			map.put("endDate", endDate);
+		}
+		if (null != stateCode) {
+			map.put("stateCode", stateCode);
+		}
+		if (null != accountType) {
+			map.put("ledgerType", accountType);
+		}
+		if(null != orgParentId){
+			isSearchOrg = 1;
+			map.put("orgParentId", orgParentId);
+			Long orgType = propertyDictDubboService.getPropertyDictByDomainName(
+					OrganizationType.ADMINISTRATIVE_KEY).getId();
+			if(null != orgType){
+				map.put("orgType", orgType);
+			}
+		}
+		if (!StringUtils.isEmpty(targetInternalCode)) {
+			map.put("targetInternalCode", targetInternalCode);
+		}
+		if (null != submit) {
+			map.put("submit", submit);
+		}
+		if (null != sourceOrgId) {
+			map.put("source", sourceOrgId);
+		}
+		if (null != targetOrgId) {
+			map.put("target", targetOrgId);
+		}
+		if (null != assign) {
+			map.put("assign", assign);
+		}
+		if(isSearchOrg == 1){
+			map.put("isSearchOrg", isSearchOrg);
+		}
+		return map;
+	}
+
+	/**
+	 * 
+	 * @param map
+	 * @param acceptanceDeal
+	 *            受理-处理机构ID
+	 * @param acceptanceTarget
+	 *            受理-目标机构ID
+	 * @param acceptanceStateCode
+	 *            受理CODE
+	 * @param levelReportedDeal
+	 *            上报、交办等 -处理机构ID 6
+	 * @param levelReportedTarget
+	 *            上报、交办等 -目标机构ID 5 6上报5
+	 * @param levelReportedStateCode
+	 *            上报、交办等CODE
+	 * @param endDeal
+	 *            办结-处理机构ID
+	 * @param endTarget
+	 *            办结-目标机构ID
+	 * @param endStateCode
+	 *            办结CODE
+	 * @return
+	 */
+	private Map<String, Object> assemblyMap(Map<String, Object> map,
+			Long acceptanceDeal, Long acceptanceTarget,
+			String acceptanceStateCode, Long levelReportedDeal,
+			Long levelReportedTarget, String levelReportedStateCode,
+			Long endDeal, Long endTarget, String endStateCode) {
+		if (null != acceptanceDeal) {
+			map.put("acceptanceDeal", acceptanceDeal);
+		}
+		if (null != acceptanceTarget) {
+			map.put("acceptanceTarget", acceptanceTarget);
+		}
+		if (null != acceptanceStateCode) {
+			map.put("acceptanceStateCode", LedgerReportRow.ACCEPTANCE);
+		}
+		if (null != levelReportedDeal) {
+			map.put("levelReportedDeal", levelReportedDeal);
+		}
+		if (null != levelReportedTarget) {
+			map.put("levelReportedTarget", levelReportedTarget);
+		}
+		if (null != levelReportedStateCode) {
+			map.put("levelReportedStateCode", levelReportedStateCode);
+		}
+		if (null != endDeal) {
+			map.put("endDeal", endDeal);
+		}
+		if (null != endTarget) {
+			map.put("endTarget", endTarget);
+		}
+		if (null != endStateCode) {
+			map.put("endStateCode", endStateCode);
+		}
+		return map;
+	}
+
+	@Override
+	public String judgeReportType(AccountReport accountReport) {
+		if (accountReport == null || accountReport.getOrganization() == null
+				|| accountReport.getOrganization().getId() == null
+				|| accountReport.getOrgLevelInternalId() == null) {
+			throw new BusinessValidationException("参数错误");
+		}
+		Integer orgLevel = accountReport.getOrgLevelInternalId();
+		// 村
+		if (ComparisonAttribute.isVillageOrganization(orgLevel)) {
+			return LedgerReportType.MONTH_REPORT_VILLAGE;
+		} 
+		if (ComparisonAttribute.isTownOrganization(orgLevel)) {
+			return LedgerReportType.MONTH_REPORT_TOWN;
+		} 
+		if (ComparisonAttribute.isDistrictOrganization(orgLevel)) {
+			if (ComparisonAttribute.isRecordHandleAffairs(accountReport
+					.getOrganization())) {
+				return LedgerReportType.MONTH_REPORT
+						+ LedgerReportType.MONTH_REPORT_COUNTY_DEPARTMENT;
+			}
+			return LedgerReportType.MONTH_REPORT
+					+ LedgerReportType.MONTH_REPORT_COUNTY;
+		}
+		return LedgerReportFunctionalDepartments.NO_RESULTS_TYPE;
+	}
+
+	public Integer getOrgType(AccountReport accountReport) {
+		if (accountReport == null || accountReport.getOrganization() == null
+				|| accountReport.getOrganization().getId() == null
+				|| accountReport.getOrgLevelInternalId() == null) {
+			throw new BusinessValidationException("参数错误");
+		}
+		Integer orgLevel = accountReport.getOrgLevelInternalId();
+		// 村
+		if (ComparisonAttribute.isVillageOrganization(orgLevel)) {
+			return LedgerReportType.REPORT_VILLAGE;
+		} 
+		if (ComparisonAttribute.isTownOrganization(orgLevel)) {
+			return LedgerReportType.REPORT_TOWN;
+		} 
+		if (ComparisonAttribute.isDistrictOrganization(orgLevel)) {
+			if (isCountyDepartment(accountReport
+					.getOrganization())) {
+				return LedgerReportType.REPORT_COUNTY_DEPARTMENT;
+			}
+			return LedgerReportType.REPORT_COUNTY;
+		}
+		return null;
+	}
+
+	@Override
+	public List<ThreeRecordsReportStatisticalVo> findHomePageAccountReportVo(
+			AccountReport accountReport) {
+		if (accountReport == null || accountReport.getOrganization() == null
+				|| accountReport.getOrganization().getId() == null) {
+			throw new BusinessValidationException("参数错误");
+		}
+		try {
+			return dispatchByLedgerConstantsAndReportType(accountReport);
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"类AccountReportService的addAccountReport方法出现异常，原因：",
+					"获取三本台账首页报表信息失败", e);
+		}
+	}
+
+	/**
+	 * 台账类型判断
+	 * 
+	 * @param accountReport
+	 * @return
+	 */
+	private List<ThreeRecordsReportStatisticalVo> constructHomePageMouldContent(
+			AccountReport accountReport) {
+		if (null == accountReport || accountReport.getOrganization() == null) {
+			throw new BusinessValidationException("参数错误！");
+		}
+		accountReport.setOrganization(organizationDubboService
+				.getSimpleOrgById(accountReport.getOrganization().getId()));
+		Integer homePageViewType = accountReport.getHomePageViewType() == null ? getOrgType(accountReport)
+				: accountReport.getHomePageViewType();
+		if (null == homePageViewType) {
+			throw new BusinessValidationException("无法定位报表类型！请使用市级以下组织机构账号查看！");
+		}
+		List<ThreeRecordsReportStatisticalVo> vos = new ArrayList<ThreeRecordsReportStatisticalVo>();
+		Long orgId = accountReport.getOrganization().getId();
+		String searchOrgCode = accountReport.getOrganization()
+				.getOrgInternalCode();
+		Integer accountType = accountReport.getAccountType();
+		String targetInternalCode = null;
+		Long sourceOrgId = null;
+		Long targetOrgId = null;
+		Integer isSearchOrg = 0;
+		Boolean isNotSearchDepartmentData = Boolean.FALSE;
+		Map<String, Object> map = assemblyMap(orgId, null, null, null,
+				accountType, targetInternalCode, null, null, sourceOrgId,
+				targetOrgId, null);
+		if (homePageViewType >= LedgerReportType.REPORT_COUNTY) {
+			// 县级累计建账
+			vos.add(cumulativeCreateCount(map, LedgerReportRow.COUNTY));
+			map.remove("orgId");
+			map.put("ledgerType", 0);
+			if(null != orgId){
+				isSearchOrg = 1;
+				map.put("orgParentId", orgId);
+				Long orgType = propertyDictDubboService.getPropertyDictByDomainName(
+						LedgerReportFunctionalDepartments.FUNCTIONAL_DEPARTMENTS).getId();
+				if(null != orgType){
+					map.put("orgType", orgType);
+				}
+				map.put("isSearchOrg", isSearchOrg);
+			}else{
+				isNotSearchDepartmentData = Boolean.TRUE;
+			}
+		}
+		if (homePageViewType >= LedgerReportType.REPORT_COUNTY_DEPARTMENT) {
+			// 县部门级累计建账
+			if(isNotSearchDepartmentData){
+				vos.add(new ThreeRecordsReportStatisticalVo(LedgerReportRow.COUNTY
+						+ LedgerReportRow.DEPARTMENT));
+			}else{
+				vos.add(cumulativeCreateCount(map, LedgerReportRow.COUNTY
+						+ LedgerReportRow.DEPARTMENT));
+			}
+			map.remove("orgIdList");
+			map.remove("orgId");
+			map.remove("orgParentId");
+			map.remove("orgType");
+			map.remove("isSearchOrg");
+			map.put("ledgerType", 0);
+			map.remove("departmentType");
+			if (getOrgType(accountReport) == LedgerReportType.REPORT_COUNTY_DEPARTMENT) {
+				orgId = accountReport.getOrganization().getParentOrg().getId();
+				searchOrgCode = organizationDubboService
+				.getSimpleOrgById(orgId).getOrgInternalCode();
+			}
+			if(null != orgId){
+				isSearchOrg = 1;
+				map.put("orgParentId", orgId);
+				Long orgType = propertyDictDubboService.getPropertyDictByDomainName(
+						OrganizationType.ADMINISTRATIVE_KEY).getId();
+				if(null != orgType){
+					map.put("orgType", orgType);
+				}
+				map.put("isSearchOrg", isSearchOrg);
+			}
+		}
+		if (homePageViewType >= LedgerReportType.REPORT_TOWN) {
+			// 镇级累计建账
+			vos.add(cumulativeCreateCount(map, LedgerReportRow.TOWN));
+			map.remove("orgId");
+			map.remove("orgIdList");
+			map.remove("orgParentId");
+			map.remove("orgType");
+			map.remove("isSearchOrg");
+			map.put("ledgerType", 0);
+			isSearchOrg = 1;
+			if (getOrgType(accountReport) == LedgerReportType.REPORT_TOWN) {
+				map.put("orgParentId", orgId);
+			} else {
+				map.put("searchOrgCode", searchOrgCode);
+				map.put("orgLevel", getPropertyDict(
+						OrganizationLevel.VILLAGE).getId());
+			}
+			map.put("isSearchOrg", isSearchOrg);
+		}
+		if (homePageViewType >= LedgerReportType.REPORT_VILLAGE) {
+			// 村级累计建账
+			vos.add(cumulativeCreateCount(map, LedgerReportRow.VILLAGE));
+		}
+		return vos;
+	}
+	
+	private List<PropertyDict> getOrganizationLevel() {
+		return propertyDictDubboService
+				.findPropertyDictByDomainName(PropertyTypes.ORGANIZATION_LEVEL);
+	}
+
+	private PropertyDict getPropertyDict(Integer level) {
+		List<PropertyDict> propertyDicts = getOrganizationLevel();
+		if (null != propertyDicts && propertyDicts.size() > 0 && level != null) {
+			for (PropertyDict propertyDict : propertyDicts) {
+				if (propertyDict.getInternalId() == level) {
+					return propertyDict;
+				}
+			}
+		}
+		return null;
+	}
+
+	private Organization getDepartmentOrganization(String departmentNo,
+			Long parentId) {
+		List<Organization> organizations = organizationDubboService
+				.findByDepartmentNoAndParentId(departmentNo, parentId);
+		return organizations == null || organizations.size() <= 0 ? new Organization()
+				: organizations.get(0);
+	}
+
+	private List<LedgerReportGroupCount> getReportAccountStepsCount(
+			Map<String, Object> searchMap) {
+		List<LedgerReportGroupCount> list = ledgerReportDao
+				.getReportAccountStepsCount(searchMap);
+		for (LedgerReportGroupCount count : list) {
+			try {
+				ComparisonAttribute.loadPropertyDictValue(count, count
+						.getClass(), propertyDictDubboService);
+			} catch (Exception e) {
+				throw new ServiceValidationException("参数错误，转换失败！", e);
+			}
+		}
+		return list;
+	}
+
+	private List<LedgerReportGroupCount> getReportStateCodeCount(Map<String, Object> searchMap) {
+		List<LedgerReportGroupCount> list = ledgerReportDao
+				.getReportStateCodeCount(searchMap);
+		for (LedgerReportGroupCount count : list) {
+			try {
+				ComparisonAttribute.loadPropertyDictValue(count, count
+						.getClass(), propertyDictDubboService);
+			} catch (Exception e) {
+				throw new ServiceValidationException("参数错误，转换失败！", e);
+			}
+		}
+		return list;
+	}
+	
+	private Date getFirstDayDate(Integer year, Integer month, Integer day,
+			AccountReport accountReport){
+		return ComparisonAttribute
+		.getDateUtil(year, month, day, accountReport, Boolean.FALSE);
+	}
+	
+	private Date getLastDayDate(Integer year, Integer month, Integer day,
+			AccountReport accountReport){
+		return ComparisonAttribute.getDateUtil(year, month, day,
+				accountReport, Boolean.TRUE);
+	}
+	
+	/**
+	 * 是否是县部门
+	 * 
+	 * @param organization
+	 * @return
+	 */
+	private Boolean isCountyDepartment(Organization organization) {
+		if(null == organization || organization.getOrgType() == null || organization.getOrgType().getId() == null){
+			return false;
+		}
+		if(organization.getOrgType().getId().equals(propertyDictDubboService.getPropertyDictByDomainName(
+				LedgerReportFunctionalDepartments.FUNCTIONAL_DEPARTMENTS).getId())){
+			return true;
+		}
+		return false;
+	}
+}

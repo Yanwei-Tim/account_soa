@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="threeRecordsIssuelog">
+	<typeAlias alias="ThreeRecordsIssueLog"
+		type="com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew" />
+
+	<resultMap class="ThreeRecordsIssueLog" id="issueLogResult">
+		<result property="id" column="id" />
+		<result property="issueStep.id" column="stepId" />
+		<result property="dealOrgId" column="dealOrgId" />
+		<result property="dealUserName" column="dealUserName" />
+		<result property="dealTime" column="dealTime" />
+		<result property="dealDeadline" column="dealDeadline" />
+		<result property="mobile" column="mobile" />
+		<result property="dealType" column="dealType" />
+		<result property="dealDescription" column="dealDescription" />
+		<result property="content" column="content"/>
+		<result property="targeOrg.id" column="targeOrgId" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="ledgerId" column="ledgerId" />
+		<result property="ledgerType" column="ledgerType" />
+		<result property="completeType" column="completeType" />
+		<result property="completeDate" column="completeDate" />
+		<result property="address" column="address" />
+		<result property="exchangeDate" column="exchangeDate" />
+		<result property="submitToCommittee" column="submitToCommittee" />
+		<result property="opinion" column="opinion" />
+		<result property="operateTime" column="operateTime" />
+		<result property="dealOrgInternalCode" column="dealOrgInternalCode" />
+		
+		
+
+
+	</resultMap>
+
+	<insert id="addIssueLog" parameterClass="ThreeRecordsIssueLog">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT S_platformAccountLogs.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into platformAccountLogs (id, dealOrgId, dealUserName,
+		dealTime,dealDeadline, mobile, dealType, dealDescription,
+		content, targeOrgId, createUser, createDate, updateUser,
+		updateDate,stepId,ledgerId,ledgerType,completeType,completeDate,address,exchangeDate,submitToCommittee,opinion,operateTime,dealOrgInternalCode)
+		values(#id#, #dealOrg.id#, #dealUserName#, #dealTime#,#dealDeadline#,
+		#mobile#, #dealType#, #dealDescription#,
+		#content#,
+		#targeOrg.id#, #createUser#, #createDate#, #updateUser#,
+		#updateDate#,#issueStep.id#,#ledgerId#,#ledgerType#,#completeType#,#completeDate#,#address#,#exchangeDate#,#submitToCommittee#,#opinion#,#operateTime#,#dealOrgInternalCode#)
+	</insert>
+
+	<update id="updateIssueLog" parameterClass="ThreeRecordsIssueLog">
+		update
+		platformAccountLogs set content=#content# where id=#id#
+	</update>
+
+	<!-- 删除事件处理记录 -->
+	<delete id="deleteIssueLogByIssueId" parameterClass="map">
+		delete from
+		platformAccountLogs where ledgerId=#ledgerId# and ledgerType=
+		#ledgerType#
+	</delete>
+
+	<select id="getIssueLogById" parameterClass="java.lang.Long"
+		resultMap="issueLogResult">
+		SELECT * from platformAccountLogs where id = #value#
+	</select>
+
+	<select id="loadIssueOperationLogsByIssueId" parameterClass="map"
+		resultMap="issueLogResult">
+		SELECT log.* from platformAccountLogs log where ledgerId =
+		#ledgerId# and ledgerType=#ledgerType# order by id
+	</select>
+
+	<select id="getIssueLogsByStepId" parameterClass="long"
+		resultMap="issueLogResult">
+		SELECT * from platformAccountLogs where stepId = #value#
+		order by id
+	</select>
+
+	<sql id="id_scope">
+		<![CDATA[id >=#startId# ]]>
+		<isNotNull property="endId">
+			<![CDATA[and   id<=#endId#]]>
+		</isNotNull>
+	</sql>
+	<!-- 查询一个部门从事件进去到流出这一周期内的处理记录 -->
+	<select id="getIssueLogsByIssuMap" parameterClass="map"
+		resultMap="issueLogResult">
+		SELECT platformAccountLogs.* from platformAccountLogs where ledgerId =
+		#ledgerId# and
+		ledgerType =#ledgerType# and
+		<include refid="id_scope" />
+		order by id
+	</select>
+
+</sqlMap>

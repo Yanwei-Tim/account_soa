@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="sessionManage" extends="default"
+		namespace="/sessionManage">
+		<default-class-ref class="sessionManageController"></default-class-ref>
+
+		<action name="login"
+			method="login">
+			<result name="loginSuccess" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="firstLogin" type="json">
+				<param name="root">false</param>
+			</result>
+			<result name="loginFailure" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="mockLogin"
+			method="mockLogin">
+			<result name="loginSuccess" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="firstLogin" type="json">
+				<param name="root">false</param>
+			</result>
+			<result name="loginFailure" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="loginForDlg"
+			method="login">
+			<result name="loginSuccess" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="loginFailure" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="logout"
+			method="logout">
+			<result name="success" type="redirect">${#parameters.indexPath[0]}/login.jsp</result>
+		</action>
+		<action name="getLoginInfo"
+			method="getLoginInfo">
+			<result name="success" type="json">
+				<param name="root">user</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="getCurrentSession"
+			method="getCurrentSession">
+			<result name="success" type="json">
+				<param name="root">session</param>
+			</result>
+		</action>
+		<action name="toFirstPasswordUpdate"
+			method="getCurrentSession">
+			<result name="success">
+				/passwordUpdate.jsp
+			</result>
+		</action>
+		<action name="onlineSessions"
+			method="getSessionList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="findAllSessions"
+			method="findAllSessions">
+			<result type="json">
+				<param name="root">sessions</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="deleteSession"
+			method="deleteSession">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+	</package>
+</struts>

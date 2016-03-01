@@ -1,0 +1,103 @@
+package com.tianque.plugin.account.dao;
+
+import java.util.List;
+import java.util.Map;
+
+import com.tianque.plugin.account.domain.ThreeRecordsIssueMap;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStep;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStepGroup;
+import com.tianque.plugin.account.domain.ThreeRecordsYearTurn;
+
+public interface ThreeRecordsIssueProcessDao {
+
+	/***
+	 * 保存台账的处理步骤
+	 * 
+	 * @param issueStep
+	 *            台账步骤
+	 * @return
+	 */
+	ThreeRecordsIssueStep addLedgerStep(ThreeRecordsIssueStep issueStep);
+	void addThreeRecordsYearTurn(ThreeRecordsYearTurn yearTurn);
+
+	void deleteLedgerStepsByIdAndType(Map map);
+
+	void deleteLedgerStepGroupsByIdAndType(Map map);
+
+	/**
+	 * 根据id获取台账步骤
+	 * 
+	 * @param id
+	 *            台账步骤id
+	 * @return
+	 */
+	ThreeRecordsIssueStep getSimpleIssueStepById(Long id);
+
+	ThreeRecordsIssueStep updateIssueStepExceptOrg(ThreeRecordsIssueStep step);
+
+	boolean updateGroupId(ThreeRecordsIssueStep step);
+	boolean updateBackTo(ThreeRecordsIssueStep step);
+
+	ThreeRecordsIssueStepGroup addIssueStepGroup(
+			ThreeRecordsIssueStepGroup issueStepGroup);
+
+	ThreeRecordsIssueStepGroup getSimpleIssueStepGroupById(Long id);
+
+	/***
+	 * 根据台账id 获取该台账所有的处理步骤组
+	 * 
+	 * @param issueId
+	 * @return
+	 */
+	List<ThreeRecordsIssueStepGroup> getIssueStepGroupByIssueId(Long issueId,
+			int ledgerType);
+
+	boolean updateOutLog(ThreeRecordsIssueStepGroup issueStepGroup);
+
+	/***
+	 * 根据台账IssueStepGroup issuemap
+	 * 
+	 * @param issueStepGroup
+	 *            处理步骤组
+	 * @return
+	 */
+	ThreeRecordsIssueMap getIssueMapByStepGroup(
+			ThreeRecordsIssueStepGroup issueStepGroup);
+
+	/**
+	 * 根据台账id 获取该台账所有的处理步骤
+	 * 
+	 * @param ledgerId
+	 * @param ledgerType
+	 * @return
+	 */
+	List<ThreeRecordsIssueStep> getIssueStepByLedgerIdAndType(Long ledgerId,
+			int ledgerType);
+	
+	public List<ThreeRecordsIssueStep> getIssueLastStepByLedgerIdAndType(Long ledgerId,
+			int ledgerType);
+
+	/*
+	 * 台账导入时更新
+	 */
+	void updateIssueStepForImport(ThreeRecordsIssueStep step);
+
+	/*
+	 * 根据groupId 获取步骤
+	 */
+	public List<ThreeRecordsIssueStep> getIssueStepByGroupId(Long groupId);
+
+	/*
+	 * 根据台账编号 ，类型查询未完成状态的协办，抄告步骤
+	 */
+	public List<ThreeRecordsIssueStep> getStepSupportByLedgerIdAndType(
+			Long ledgerId, int ledgerType);
+
+	/*
+	 * 根据步骤编号更新未完成状态的协办，抄告步骤为完成
+	 * 
+	 * @param stepIds
+	 */
+	public void updateStepStateCodeBySupportOrNotice(List<Long> stepIds);
+
+}

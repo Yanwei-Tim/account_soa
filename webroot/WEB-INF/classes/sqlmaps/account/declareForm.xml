@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="declareForm">
+	<typeAlias alias="declareForm" type="com.tianque.plugin.account.domain.DeclareForm" />
+	<typeAlias alias="declareFormVo" type="com.tianque.plugin.account.vo.DeclareFormVo" />
+	<resultMap class="declareForm" id="declareFormMap">
+		<result property="id" column="id"/>
+		<result property="stepId" column="stepId"/>
+		<result property="ledgerId" column="ledgerId"/>
+		<result property="ledgerType" column="ledgerType"/>
+		<result property="sourceOrg.id" column="sourceOrg"/>
+		<result property="targetOrg.id" column="targetOrg"/>
+		<result property="reason" column="reason"/>
+		<result property="handleContent" column="handleContent"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="name" column="name"/>
+		<result property="mobile" column="mobile"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="declareDate" column="declareDate"/>
+		<result property="ledgerSerialNumber" column="ledgerSerialNumber"/>
+		<result property="ledgerHandleContent" column="ledgerHandleContent"/>
+		<result property="jointContent" column="jointContent"/>
+		
+	</resultMap>
+	<insert id="addDeclareForm" parameterClass="declareForm">
+		<selectKey keyProperty="id" resultClass="long">
+			<![CDATA[SELECT S_accountDeclareForm.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into accountDeclareForm(id ,stepId ,ledgerId ,ledgerType ,sourceOrg ,targetOrg ,reason ,handleContent ,serialNumber ,name ,mobile , CREATEUSER , UPDATEUSER ,CREATEDATE , UPDATEDATE,ledgerSerialNumber,declareDate,jointContent,ledgerHandleContent )
+		values(#id# ,#stepId# ,#ledgerId# ,#ledgerType# ,#sourceOrg.id# ,#targetOrg.id# ,#reason# ,#handleContent# ,#serialNumber# ,#name# ,#mobile#, #createUser#, #updateUser#,  #createDate#, #updateDate#,#ledgerSerialNumber#,#declareDate#,#jointContent#,#ledgerHandleContent# )
+	</insert>
+	<sql id="search_sql_where">
+		<dynamic>
+			<isNotNull property="id" prepend=" and ">
+			id = #id#
+			</isNotNull>
+			<isNotNull property="stepId" prepend=" and ">
+			stepId = #stepId#
+			</isNotNull>
+			<isNotNull property="ledgerId" prepend=" and ">
+			ledgerId = #ledgerId#
+			</isNotNull>
+			<isNotNull property="ledgerType" prepend=" and ">
+			ledgerType = #ledgerType#
+			</isNotNull>
+			<isNotNull property="sourceOrg" prepend=" and ">
+			sourceOrg = #sourceOrg#
+			</isNotNull>
+			<isNotNull property="targetOrg" prepend=" and ">
+			targetOrg = #targetOrg#
+			</isNotNull>
+			<isNotNull property="reason" prepend=" and ">
+			reason = #reason#
+			</isNotNull>
+			<isNotNull property="handleContent" prepend=" and ">
+			handleContent = #handleContent#
+			</isNotNull>
+			<isNotNull property="serialNumber" prepend=" and ">
+			serialNumber = #serialNumber#
+			</isNotNull>
+			<isNotNull property="name" prepend=" and ">
+			name = #name#
+			</isNotNull>
+			<isNotNull property="mobile" prepend=" and ">
+			mobile = #mobile#
+			</isNotNull>
+			<isNotNull property="ledgerHandleContent" prepend=" and ">
+			ledgerHandleContent = #ledgerHandleContent#
+			</isNotNull>
+			<isNotNull property="jointContent" prepend=" and ">
+			jointContent = #jointContent#
+			</isNotNull>
+		</dynamic>
+	</sql>
+	<select id="countFindDeclareForms" parameterClass="declareFormVo" resultClass="java.lang.Integer">
+		select count(id) from accountDeclareForm where 1=1
+		<include refid="search_sql_where"/>
+	</select>
+	<select id="findDeclareForms" parameterClass="declareFormVo" resultMap="declareFormMap">
+		select * from accountDeclareForm where 1=1
+		<include refid="search_sql_where"/>
+		order by id desc
+	</select>
+	
+	<update id="updateDeclareForm" parameterClass="declareForm">
+		update accountDeclareForm set id=#id#
+		  <isNotNull property="stepId" prepend=",">
+			  stepId = #stepId#
+		  </isNotNull>
+		  <isNotNull property="ledgerId" prepend=",">
+			  ledgerId = #ledgerId#
+		  </isNotNull>
+		  <isNotNull property="ledgerType" prepend=",">
+			  ledgerType = #ledgerType#
+		  </isNotNull>
+		  <isNotNull property="sourceOrg" prepend=",">
+			  sourceOrg = #sourceOrg.id#
+		  </isNotNull>
+		  <isNotNull property="targetOrg" prepend=",">
+			  targetOrg = #targetOrg.id#
+		  </isNotNull>
+		  <isNotNull property="reason" prepend=",">
+			  reason = #reason#
+		  </isNotNull>
+		  <isNotNull property="handleContent" prepend=",">
+			  handleContent = #handleContent#
+		  </isNotNull>
+		  <isNotNull property="serialNumber" prepend=",">
+			  serialNumber = #serialNumber#
+		  </isNotNull>
+		  <isNotNull property="name" prepend=",">
+			  name = #name#
+		  </isNotNull>
+		  <isNotNull property="mobile" prepend=",">
+			  mobile = #mobile#
+		  </isNotNull>
+		  <isNotNull prepend="," property="updateUser">
+			 UPDATEUSER = #updateUser#
+		  </isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				UPDATEDATE = #updateDate#
+		  </isNotNull>
+		  <isNotNull prepend="," property="declareDate">
+				declareDate = #declareDate#
+		  </isNotNull>
+		   <isNotNull prepend="," property="jointContent">
+				jointContent = #jointContent#
+		  </isNotNull>
+		   <isNotNull prepend="," property="ledgerHandleContent">
+				ledgerHandleContent = #ledgerHandleContent#
+		  </isNotNull>
+		  <isNotNull prepend="," property="ledgerSerialNumber">
+				ledgerSerialNumber = #ledgerSerialNumber#
+		  </isNotNull> 
+		  
+		  
+	   
+		where id=#id#
+	</update>
+	
+	<select id="getSimpleDeclareFormById" parameterClass="java.lang.Long"
+		resultMap="declareFormMap">
+		<![CDATA[select * from accountDeclareForm where id=#value#]]>
+	</select>
+	
+	<select id="getSimpleDeclareFormByStepId" parameterClass="java.lang.Long"
+		resultMap="declareFormMap">
+		<![CDATA[select * from accountDeclareForm where stepId=#value#]]>
+	</select>
+	
+</sqlMap>

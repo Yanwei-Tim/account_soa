@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="workMemo">
+	<typeAlias alias="WorkMemo" type="com.tianque.workMemo.domain.WorkMemo"/>
+	<resultMap class="WorkMemo" id="workMemoResult">
+		<result property="id" column="id"/>
+		<result column="userId" property="userId"/>
+		<result property="addMemoDate" column="addMemoDate"/>
+		<result property="memoContents" column="memoContents"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+		<result property="updateUser" column="updateUser"/>
+		<result property="updateDate" column="updateDate"/>
+	</resultMap>
+	
+	<resultMap class="WorkMemo" id="memoContentsResult">
+		<result property="id" column="id"/>
+		<result property="memoContents" column="memoContents"/>
+	</resultMap>
+	
+	<insert id="addWorkMemo" parameterClass="WorkMemo">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+		<![CDATA[SELECT s_WorkMemo.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into workMemo(id,userId,addMemoDate,memoContents,createUser,createDate,updateUser,updateDate)
+		values(#id#,#userId#,#addMemoDate#,#memoContents#,#createUser#,#createDate#,#updateUser#,#updateDate#)
+	</insert>
+	
+	<select id="getWorkMemoById" parameterClass="java.lang.Long" resultMap="workMemoResult">
+		<![CDATA[select * from workMemo where id=#value#]]>		
+	</select>
+	
+	<select id="getMemoContentsByUserIdAndAddMemoDate" parameterClass="java.util.Map" resultMap="memoContentsResult">
+		<![CDATA[select id,memoContents from workMemo where userId=#userId# and to_char(addMemoDate,'yyyy-mm-dd')=#date#]]>		
+	</select>
+	
+	<select id="getDaysByUserIdAndDate" parameterClass="java.util.Map" resultClass="java.lang.String">
+		<![CDATA[select to_char(addMemoDate,'dd') as day from workMemo where userId=#userId# and to_char(addMemoDate,'yyyy-mm')=#year#||'-'||#month#]]>		
+	</select>
+	
+	<delete id="deleteWorkMemoById" parameterClass="java.lang.Long">
+		<![CDATA[delete from workMemo where id=#id#]]>
+	</delete>
+	<delete id="deleteWorkMemoByUserId" parameterClass="java.lang.Long">
+		<![CDATA[delete from workMemo where userId=#userId#]]>
+	</delete>
+</sqlMap>

@@ -1,0 +1,237 @@
+package com.tianque.plugin.account.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.account.api.ThreeRecordsKeyGeneratorDubboService;
+import com.tianque.core.validate.DomainValidator;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.dao.ReplyFormDao;
+import com.tianque.plugin.account.domain.ReplyForm;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.service.ReplyFormService;
+import com.tianque.plugin.account.service.ThreeRecordsIssueService;
+import com.tianque.plugin.account.service.ThreeRecordsKeyGeneratorService;
+import com.tianque.plugin.account.vo.LedgerAttachFileReturnVo;
+import com.tianque.plugin.account.vo.ReplyFormVo;
+import com.tianque.userAuth.api.OrganizationDubboRemoteService;
+
+@Service("replyFormService")
+@Transactional
+public class ReplyFormServiceImpl implements ReplyFormService {
+
+	@Autowired
+	private ReplyFormDao replyFormDao;
+
+	@Autowired
+	private OrganizationDubboRemoteService organizationDubboService;
+
+	@Autowired
+	private ThreeRecordsKeyGeneratorDubboService threeRecordsKeyGeneratorDubboService;
+	@Autowired
+	private ThreeRecordsKeyGeneratorService threeRecordsKeyGeneratorService;
+	@Autowired
+	@Qualifier("replyFormValidatorImpl")
+	private DomainValidator<ReplyForm> replyFormValidator;
+	@Autowired
+	private ThreeRecordsIssueService threeRecordsIssueService;
+
+	@Override
+	public ReplyForm addReplyForm(ReplyForm replyForm) {
+		ValidateResult result = replyFormValidator.validate(replyForm);
+		if (result.hasError()) {
+			throw new BusinessValidationException(result.getErrorMessages());
+		}
+		try {
+			replyForm
+					.setSerialNumber(threeRecordsKeyGeneratorService
+							.getNextFormKey(getLedgerPrefix(replyForm
+									.getLedgerType() == null ? 0 : replyForm
+									.getLedgerType().intValue()),
+									LedgerConstants.REPLY_FORM));
+			return replyFormDao.addReplyForm(replyForm);
+		} catch (Exception e) {
+			throw new ServiceValidationException("新增回复单失败!", e);
+		}
+	}
+
+	public PageInfo<ReplyForm> findReplyForms(ReplyFormVo replyFormVo,
+			Integer page, Integer rows) {
+		if (replyFormVo == null) {
+			throw new BusinessValidationException("回复单查询参数不对!");
+		}
+		PageInfo<ReplyForm> pageInfo = replyFormDao.findReplyForms(replyFormVo,
+				page, rows);
+		return pageInfo;
+	}
+
+	@Override
+	public ReplyForm updateReplyForm(ReplyForm replyForm) {
+		if (replyForm == null || replyForm.getId() == null) {
+			throw new BusinessValidationException("回复单更新参数不对!");
+		}
+		try {
+			return replyFormDao.updateReplyForm(replyForm);
+		} catch (Exception e) {
+			throw new ServiceValidationException("更新回复单失败!", e);
+		}
+	}
+
+	@Override
+	public ReplyForm getSimpleReplyFormById(Long id) {
+		if (id == null) {
+			throw new BusinessValidationException("参数错误！回复单编号不能为空");
+		}
+		ReplyForm ReplyForm = replyFormDao.getSimpleReplyFormById(id);
+		findOrg(ReplyForm);
+		return ReplyForm;
+	}
+
+	public ReplyForm convertReplyForm(ReplyForm replyForm,
+			ThreeRecordsIssueLogNew log) {
+		if (replyForm == null || log == null) {
+			throw new BusinessValidationException("参数错误！");
+		}
+		replyForm.setSerialNumber(threeRecordsKeyGeneratorDubboService
+				.getNextFormKey(LedgerConstants.PRE_KEY_PEOPLE_ASPARITION,
+						LedgerConstants.REPLY_FORM));
+
+		replyForm.setHandleContent(log.getContent());
+		// replyForm.setReason(reason);
+		replyForm.setTargetOrg(log.getTargeOrg());
+		replyForm = addReplyForm(replyForm);
+		findOrg(replyForm);
+		return replyForm;
+	}
+
+	/*
+	 * 查询上级部门和操作部门
+	 */
+	private void findOrg(ReplyForm replyForm) {
+		if (replyForm == null) {
+			return;
+		}
+		if (replyForm.getTargetOrg() != null
+				&& replyForm.getTargetOrg().getId() != null) {
+			replyForm.setTargetOrg(organizationDubboService
+					.getSimpleOrgById(replyForm.getTargetOrg().getId()));
+		}
+		if (replyForm.getSourceOrg() != null
+				&& replyForm.getSourceOrg().getId() != null) {
+			replyForm.setSourceOrg(organizationDubboService
+					.getSimpleOrgById(replyForm.getSourceOrg().getId()));
+		}
+	}
+
+	@Override
+	public List<ReplyForm> getSimpleReplyFormByLedgerIdAndType(Long id, int type) {
+		if (id == null) {
+			throw new BusinessValidationException("参数错误！");
+		}
+		List<ReplyForm> replys = replyFormDao
+				.getSimpleReplyFormByLedgerIdAndType(id, type);
+		for (ReplyForm reply : replys) {
+			findOrg(reply);
+		}
+		return replys;
+	}
+
+	@Override
+	public List<ReplyForm> getReplyFormAndFilesByLedgerIdAndType(Long id,
+			int type) {
+		List<ReplyForm> replys = getSimpleReplyFormByLedgerIdAndType(id, type);
+		List<ThreeRecordsIssueAttachFile> files = threeRecordsIssueService
+				.findReplyFormFiles(id, type);
+		loadReplyFile(replys, files);
+		return replys;
+	}
+
+	private String getLedgerPrefix(int type) {
+		if (type == LedgerConstants.POORPEOPLE
+				|| type == LedgerConstants.STEADYWORK) {
+			return "0" + type;
+		}
+		return LedgerConstants.PRE_KEY_PEOPLE_ASPARITION;
+
+	}
+
+	@Override
+	public ReplyForm addReplyForm(ReplyForm replyForm, List<ThreeRecordsIssueAttachFile> fileList) {
+
+		try {
+			replyForm = addReplyForm(replyForm);
+//			List<ThreeRecordsIssueAttachFile> fileList = threeRecordsIssueService
+//					.combineIssueAttachFile(fileNameAndIdS);
+			fillFilesReplyForm(replyForm, fileList);
+			LedgerAttachFileReturnVo attachFileReturnUtil = null;
+			if (fileList != null) {
+				attachFileReturnUtil = threeRecordsIssueService
+						.addIssueAttachFiles(fileList);
+			}
+			if (attachFileReturnUtil != null) {
+				replyForm.setLedgerAttachFileReturnUtil(attachFileReturnUtil);
+			}
+			return replyForm;
+		} catch (Exception e) {
+			throw new ServiceValidationException("新增回复单失败!", e);
+		}
+
+	}
+
+	private void fillFilesReplyForm(ReplyForm replyForm,
+			List<ThreeRecordsIssueAttachFile> files) {
+		if (files != null && !files.isEmpty()) {
+			for (ThreeRecordsIssueAttachFile issueAttachFile : files) {
+				issueAttachFile.setLedgerId(replyForm.getLedgerId());
+				issueAttachFile
+						.setLedgerType(replyForm.getLedgerType() == null ? 0
+								: replyForm.getLedgerType().intValue());
+				issueAttachFile.setReplyForm(replyForm);
+			}
+		}
+	}
+
+	private void loadReplyFile(List<ReplyForm> replys,
+			List<ThreeRecordsIssueAttachFile> files) {
+		if (files == null || replys == null || files.size() == 0
+				|| replys.size() == 0) {
+			return;
+		}
+		List<ThreeRecordsIssueAttachFile> fileList = null;
+		for (ReplyForm replyForm : replys) {
+			fileList = new ArrayList<ThreeRecordsIssueAttachFile>();
+			for (ThreeRecordsIssueAttachFile file : files) {
+				if (file.getReplyForm() == null || replyForm.getId() == null
+						|| file.getReplyForm().getId() == null) {
+					continue;
+				}
+				if (replyForm.getId().longValue() == file.getReplyForm()
+						.getId().longValue()) {
+					fileList.add(file);
+				}
+			}
+			replyForm.setAttachFiles(fileList);
+		}
+	}
+
+	@Override
+	public ReplyForm getReplyFormAndFilesByReplyId(Long id) {
+		ReplyForm replyForm = getSimpleReplyFormById(id);
+		if (replyForm != null) {
+			List<ThreeRecordsIssueAttachFile> attachFiles = threeRecordsIssueService
+					.findReplyFormFilesByReplyId(id);
+			replyForm.setAttachFiles(attachFiles);
+		}
+		return replyForm;
+	}
+}

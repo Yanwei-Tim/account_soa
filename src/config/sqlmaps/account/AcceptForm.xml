@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="acceptForm">
+	<typeAlias alias="acceptForm" type="com.tianque.plugin.account.domain.AcceptForm" />
+	<typeAlias alias="acceptFormVo" type="com.tianque.plugin.account.vo.AcceptFormVo" />
+	<resultMap class="acceptForm" id="acceptFormMap">
+		<result property="id" column="id"/>
+		<result property="stepId" column="stepId"/>
+		<result property="ledgerId" column="ledgerId"/>
+		<result property="ledgerType" column="ledgerType"/>
+		<result property="acceptOrg.id" column="acceptOrg"/>
+		<result property="formComeDate" column="formComeDate"/>
+		<result property="formAcceptDate" column="formAcceptDate"/>
+		<result property="formType.id" column="formType"/>
+		<result property="currentOrgOpinion" column="currentOrgOpinion"/>
+		<result property="inChargeOfLeaderOpinion" column="inChargeOfLeaderOpinion"/>
+		<result property="majorLeaderOpinion" column="majorLeaderOpinion"/>
+		<result property="handleResult" column="handleResult"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="dealUserName" column="dealUserName"/>
+	</resultMap>
+	<insert id="addAcceptForm" parameterClass="acceptForm">
+		<selectKey keyProperty="id" resultClass="long">
+			<![CDATA[SELECT S_accountAcceptForm.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into accountAcceptForm(id ,stepId, ledgerId ,ledgerType ,acceptOrg ,formComeDate ,formAcceptDate ,formType ,currentOrgOpinion ,
+		inChargeOfLeaderOpinion ,majorLeaderOpinion, handleResult, CREATEUSER , UPDATEUSER ,CREATEDATE , UPDATEDATE, serialNumber, dealUserName)
+		values(#id# ,#stepId# ,#ledgerId# ,#ledgerType# ,#acceptOrg.id# ,#formComeDate# ,#formAcceptDate# ,#formType.id# ,#currentOrgOpinion# ,
+		#inChargeOfLeaderOpinion# ,#majorLeaderOpinion#, #handleResult#, #createUser#, #updateUser#,  #createDate#, #updateDate#, #serialNumber#, #dealUserName#)
+	</insert>
+	<sql id="search_sql_where">
+		<dynamic>
+			<isNotNull property="id" prepend=" and ">
+			id = #id#
+			</isNotNull>
+			<isNotNull property="stepId" prepend=" and ">
+			stepId = #stepId#
+			</isNotNull>
+			<isNotNull property="ledgerId" prepend=" and ">
+			ledgerId = #ledgerId#
+			</isNotNull>
+			<isNotNull property="ledgerType" prepend=" and ">
+			ledgerType = #ledgerType#
+			</isNotNull>
+			<isNotNull property="acceptOrg" prepend=" and ">
+			acceptOrg = #acceptOrg.id#
+			</isNotNull>
+			<isNotNull property="formComeDate" prepend=" and ">
+			formComeDate = #formComeDate#
+			</isNotNull>
+			<isNotNull property="formAcceptDate" prepend=" and ">
+			formAcceptDate = #formAcceptDate#
+			</isNotNull>
+			<isNotNull property="formType" prepend=" and ">
+			formType = #formType.id#
+			</isNotNull>
+			<isNotNull property="serialNumber" prepend=" and ">
+			serialNumber = #serialNumber#
+			</isNotNull>
+			<isNotNull property="dealUserName" prepend=" and ">
+			dealUserName = #dealUserName#
+			</isNotNull>
+		</dynamic>
+	</sql>
+	<select id="countFindAcceptForms" parameterClass="acceptFormVo" resultClass="java.lang.Integer">
+		select count(id) from accountAcceptForm where 1=1
+		<include refid="search_sql_where"/>
+	</select>
+	<select id="findAcceptForms" parameterClass="acceptFormVo" resultMap="acceptFormMap">
+		select * from accountAcceptForm where 1=1
+		<include refid="search_sql_where"/>
+		order by id desc
+	</select>
+	
+	<update id="updateAcceptForm" parameterClass="acceptForm">
+		update accountAcceptForm set id=#id#
+		<isNotNull property="stepId" prepend=",">
+			  stepId = #stepId#
+		  </isNotNull>
+		  <isNotNull property="ledgerId" prepend=",">
+			  ledgerId = #ledgerId#
+		  </isNotNull>
+		  <isNotNull property="ledgerType" prepend=",">
+			  ledgerType = #ledgerType#
+		  </isNotNull>
+		  <isNotNull property="acceptOrg" prepend=",">
+			  acceptOrg = #acceptOrg.id#
+		  </isNotNull>
+		  <isNotNull property="formComeDate" prepend=",">
+			  formComeDate = #formComeDate#
+		  </isNotNull>
+		  <isNotNull property="formAcceptDate" prepend=",">
+			  formAcceptDate = #formAcceptDate#
+		  </isNotNull>
+		  <isNotNull property="formType" prepend=",">
+			  formType = #formType.id#
+		  </isNotNull>
+		  <isNotNull property="currentOrgOpinion" prepend=",">
+			  currentOrgOpinion = #currentOrgOpinion#
+		  </isNotNull>
+		  <isNotNull property="inChargeOfLeaderOpinion" prepend=",">
+			  inChargeOfLeaderOpinion = #inChargeOfLeaderOpinion#
+		  </isNotNull>
+		  <isNotNull property="majorLeaderOpinion" prepend=",">
+			  majorLeaderOpinion = #majorLeaderOpinion#
+		  </isNotNull>
+		  <isNotNull property="handleResult" prepend=",">
+			  handleResult = #handleResult#
+		  </isNotNull>
+		  <isNotNull prepend="," property="updateUser">
+			 UPDATEUSER = #updateUser#
+		  </isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				UPDATEDATE = #updateDate#
+		  </isNotNull>
+		  <isNotNull prepend="," property="serialNumber">
+				serialNumber = #serialNumber#
+		  </isNotNull>
+		  <isNotNull prepend="," property="dealUserName">
+				dealUserName = #dealUserName#
+		  </isNotNull>
+	   
+		where id=#id#
+	</update>
+	
+	<select id="getSimpleAcceptFormById" parameterClass="java.lang.Long"
+		resultMap="acceptFormMap">
+		<![CDATA[select * from accountAcceptForm where id=#value#]]>
+	</select>
+	
+	<select id="getSimpleAcceptFormByStepId" parameterClass="java.lang.Long"
+		resultMap="acceptFormMap">
+		<![CDATA[select * from accountAcceptForm where stepId=#value# order by id desc]]>
+	</select>
+	
+</sqlMap>

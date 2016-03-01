@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+	<name>ExposureRatingPlugin</name>
+	<version>3.0</version>
+	<author>test</author>
+	<property-init-class>com.tianque.init.ExposureRatingPropertyInit</property-init-class>
+	<permission-init-xml>ratingPermissionInit.xml</permission-init-xml>
+	<sql-file>ratingInit.sql</sql-file>
+</plugin>

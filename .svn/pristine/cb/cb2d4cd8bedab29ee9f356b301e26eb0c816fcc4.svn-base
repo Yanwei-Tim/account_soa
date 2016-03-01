@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns:artifact="antlib:org.apache.maven.artifact.ant" name="tianqueGrid" basedir="." >
+
+	<property file=".properties" />
+
+	<path id="build.lib">
+		<fileset dir="${build.lib.dir}" includes="*.jar,*/*.jar" />
+	</path>
+
+	<path id="runtime.lib">
+		<fileset dir="${runtime.lib.dir}" includes="*.jar,*/*.jar" />
+	</path>
+
+	<path id="all.lib">
+		<path refid="build.lib" />
+		<path refid="runtime.lib" />
+	</path>
+	
+	<target name="clean">
+		<delete dir="${classes.dir}">
+		</delete>
+
+		<mkdir dir="${classes.dir}" />
+	</target>
+
+	<!-- 编译源代码 -->
+	<target name="compile" depends="clean">
+		<javac destdir="${classes.dir}" srcdir="${src.dir}:${config.dir}:${test.dir}" encoding="UTF-8" fork="true" memorymaximumsize="500m">
+			<classpath refid="build.lib" />
+			<classpath refid="runtime.lib" />
+		</javac>
+		<copy todir="${classes.dir}">
+			<fileset dir="${src.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}">
+			<fileset dir="${config.dir}">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- 拷贝文件到存放目录中并且把WEB-INF/calsses目录下的.calss文件打jar包 -->
+	<target name="build">
+		<delete file="${web.dir}/WEB-INF/web.xml" />
+		<move file="${web.dir}/WEB-INF/web.xml.product" tofile="${web.dir}/WEB-INF/web.xml" />
+		<mkdir dir="${web.dir}/uploadFile" />
+		<symlink link="${basedir}/webroot/uploadFile/tmp" resource="/home/admin/share/tmp/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/issue" resource="/home/admin/share/issue/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/dailylog" resource="/home/admin/share/dailylog/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/mail" resource="/home/admin/share/mail/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/upload" resource="/home/admin/share/upload/" overwrite="true"></symlink>
+    	<symlink link="${basedir}/webroot/uploadFile/exposureRating" resource="/home/admin/share/exposureRating/" overwrite="true"></symlink>
+		<symlink link="${basedir}/webroot/uploadFile/dataChangeFile" resource="/home/datachange/dataChangeUploadFile/" overwrite="true"></symlink>
+		<symlink link="${basedir}/webroot/uploadFile/documents" resource="/home/admin/share/documents/" overwrite="true"></symlink>
+		<symlink link="${basedir}/webroot/uploadFile/threeRecords" resource="/home/admin/share/threeRecords/" overwrite="true"></symlink>
+	</target>
+
+
+
+	<target name="stopJetty">
+		<java classname="com.tianque.JettyStop" classpath="${classes.dir}" classpathref="all.lib" fork="true">
+			<arg value="${listenerport}" />
+		</java>
+	</target>
+
+	<target name="startJetty">
+		<mkdir dir="../logs" />
+		<java classname="com.tianque.JettyProduction" spawn="true" classpath="${classes.dir}" classpathref="all.lib" fork="true">
+			<arg value="${port}" />
+			<arg value="${listenerport}" />
+			<arg value="${path}" />
+			<arg value="${rootdir}" />
+			<jvmarg value="-server" />
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-XX:PermSize=128M" />
+			<jvmarg value="-XX:MaxPermSize=512m" />
+			<jvmarg value="-Xms256m" />
+	  		<jvmarg value="-Xmx2048m" />
+			<jvmarg value="-XX:+HeapDumpOnOutOfMemoryError" />
+		</java>
+	</target>
+	
+</project>

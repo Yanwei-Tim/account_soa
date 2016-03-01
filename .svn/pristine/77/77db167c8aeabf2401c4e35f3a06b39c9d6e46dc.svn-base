@@ -1,0 +1,912 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="ledgerSteadyWork">
+
+
+	<typeAlias alias="ledgerSteadyWork"
+		type="com.tianque.plugin.account.domain.LedgerSteadyWork" />
+	<typeAlias alias="BaseWork"
+		type="com.tianque.plugin.account.domain.BaseWorking" />
+	<resultMap id="ledgerSteadyWorkResult" class="ledgerSteadyWork">
+		<result property="id" column="ID" />
+		<result property="involvingSteadyNum" column="involvingSteadyNum" />
+		<result property="involvingSteadyType.id" column="involvingSteadyType" />
+		<result property="involvingSteadyInfo" column="involvingSteadyInfo" />
+		<result property="steadyUnit" column="steadyUnit" />
+		<result property="steadyUser" column="steadyUser" />
+		<result property="resolveUnit" column="resolveUnit" />
+		<result property="resolveUser" column="resolveUser" />
+		<result property="aspirationType.id" column="aspirationType" />
+		<result property="steadyInfo" column="steadyInfo" />
+		<result property="attentionLevel" column="attentionLevel" />
+		<result property="steadyWorkType.id" column="steadyWorkType" />
+		<result property="steadyWorkProblemType.id" column="steadyWorkProblemType" />
+		<result property="steadyWorkWarnLevel.id" column="steadyWorkWarnLevel" />
+		<result property="steadyWorkWarnLevelDate" column="steadyWorkWarnLevelDate" />
+		<result property="otherRemark" column="otherRemark" />
+
+		<result property="organization.id" column="ORGID" />
+		<result property="orgInternalCode" column="ORGINTERNALCODE" />
+		<result property="name" column="NAME" />
+		<result property="idCardNo" column="IDCARDNO" />
+		<result property="gender.id" column="GENDER" />
+		<result property="mobileNumber" column="MOBILENUMBER" />
+		<result property="birthDay" column="BIRTHDAY" />
+		<result property="isPartyMember" column="ISPARTYMEMBER" />
+		<result property="permanentAddress" column="PERMANENTADDRESS" />
+		<result property="position.id" column="POSITION" />
+		<result property="serverContractor" column="SERVERCONTRACTOR" />
+		<result property="serverTelephone" column="SERVERTELEPHONE" />
+		<result property="serverJob" column="SERVERJOB" />
+		<result property="serverUnit" column="SERVERUNIT" />
+		<result property="serialNumber" column="SERIALNUMBER" />
+		<result property="createTableType.id" column="CREATETABLETYPE" />
+		<result property="occurOrg.id" column="OCCURORGID" />
+		<result property="occurOrgInternalCode" column="OCCURORGINTERNALCODE" />
+		<result property="gridNo" column="GRIDNO" />
+		<result property="bookingUnit" column="BOOKINGUNIT" />
+		<result property="registrant" column="REGISTRANT" />
+		<result property="registrationTime" column="REGISTRATIONTIME" />
+		<result property="hasAccountLog" column="HASACCOUNTLOG" />
+		<result property="displayLevel" column="DISPLAYLEVEL" />
+		<result property="earingWarn" column="EARINGWARN" />
+		<result property="ledgerType" column="LEDGERTYPE" />
+		<result property="ledgerId" column="LEDGERID" />
+		<result property="createOrg.id" column="CREATEORG" />
+		<result property="status" column="STATUS" />
+		<result property="currentStep.id" column="CURRENTSTEP" />
+		<result property="currentOrg.id" column="CURRENTORG" />
+		<result property="hours" column="HOURS" />
+		<result property="minute" column="MINUTE" />
+		<result property="occurDate" column="OCCURDATE" />
+		<result property="subject" column="SUBJECT" />
+		<result property="sourceKind.id" column="SOURCEKIND" />
+		<result property="createUser" column="CREATEUSER" />
+		<result property="updateUser" column="UPDATEUSER" />
+		<result property="createDate" column="CREATEDATE" />
+		<result property="updateDate" column="UPDATEDATE" />
+		<result property="oldIssueId" column="oldIssueId" />
+		<result property="historyId" column="historyId" />
+		<result property="isAnonymity" column="isAnonymity" />
+		<result property="oldHistoryId" column="oldHistoryId"/>
+		<result property="oldLedgerId" column="oldLedgerId"/>
+		<result property="oldLedgerType" column="oldLedgerType"/>
+		<result property="isCanFeedBack" column="isCanFeedBack"/>
+	</resultMap>
+
+	<resultMap id="ledgerSteadyWorkVoResult" class="ledgerSteadyWork">
+		<result property="name" column="NAME" />
+		<result property="idCardNo" column="IDCARDNO" />
+		<result property="gender.id" column="GENDER" />
+		<result property="birthDay" column="BIRTHDAY" />
+	</resultMap>
+
+	<typeAlias alias="ledgerSteadyWorkVo"
+		type="com.tianque.plugin.account.vo.LedgerSteadyWorkVo" />
+	<resultMap id="ledgerSteadyWorkFullVoResult" class="ledgerSteadyWorkVo">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="birthDay" column="birthDay" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="serialNumber" column="serialnumber" />
+		<result property="subject" column="subject" />
+		<result property="status" column="status" />
+		<result property="occurDate" column="occurdate" />
+		<result property="occurOrg.id" column="occurorgId" />
+		<result property="sourceKind.id" column="sourcekind" />
+		<result property="createUser" column="CREATEUSER" />
+		<result property="createOrg.id" column="createOrg" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="createTableType.id" column="createTableType" />
+		<result property="currentOrg.id" column="CURRENTORG" />
+		<result property="targetOrg.id" column="targetOrg" />
+		<result property="lastdealDate" column="lastdealdate" />
+		<result property="stepId" column="stepId" />
+		<result property="superviseLevel" column="superviseLevel" />
+		<result property="delayState" column="delayState" />
+		<result property="stateCode" column="stateCode" />
+		<result property="state" column="state" />
+		<result property="involvingSteadyInfo" column="involvingSteadyInfo" />
+	</resultMap>
+
+	<resultMap class="BaseWork" id="simpleBaseWork">
+		<result property="id" column="id" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="occurOrg.id" column="occurOrgId" />
+		<result property="occurOrg.orgInternalCode" column="occurOrgInternalCode" />
+		<result property="createOrg.id" column="orgId" />
+		<result property="createOrg.orgInternalCode" column="orgInternalCode" />
+		<result property="occurDate" column="occurDate" />
+		<result property="status" column="status" />
+		<result property="createDate" column="createDate" />
+		<result property="createUser" column="createUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="hours" column="hours" />
+		<result property="minute" column="minute" />
+		<result property="ledgerId" column="ledgerId" />
+		<result property="ledgerType" column="ledgerType" />
+	</resultMap>
+
+	<select id="getLedgerSteadyWorkById" parameterClass="java.lang.Long"
+		resultMap="ledgerSteadyWorkResult">
+		select * from ledgerSteadyWork where id=#value#
+	</select>
+	
+	<select id="needTurnSteadyWork" parameterClass="map" resultMap="ledgerSteadyWorkResult">
+		<![CDATA[select * from ledgerSteadyWork where id not in (select ledgerId from platformAccountSteps cstep  
+		where cstep.stateCode = #completeCode# and ledgerType = #ledgerSteadyWorkType#) and serialnumber like #year#||'%']]>
+	</select>
+
+	<insert id="addLedgerSteadyWork" parameterClass="ledgerSteadyWork">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT s_ledgerSteadyWork.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerSteadyWork (ID, involvingSteadyNum,
+		involvingSteadyType, involvingSteadyInfo, steadyUnit, steadyUser,
+		resolveUnit,
+		resolveUser, aspirationType, steadyInfo, attentionLevel, steadyWorkType,
+		steadyWorkProblemType, steadyWorkWarnLevel, steadyWorkWarnLevelDate,otherRemark, ORGID, ORGINTERNALCODE, NAME, IDCARDNO, GENDER,
+		MOBILENUMBER, BIRTHDAY, ISPARTYMEMBER,
+		PERMANENTADDRESS, POSITION, SERVERCONTRACTOR, SERVERTELEPHONE, SERVERJOB, SERVERUNIT,
+		SERIALNUMBER, CREATETABLETYPE, OCCURORGID,
+		OCCURORGINTERNALCODE, GRIDNO, BOOKINGUNIT, REGISTRANT, REGISTRATIONTIME, HASACCOUNTLOG,
+		DISPLAYLEVEL, EARINGWARN, LEDGERTYPE,
+		LEDGERID, CREATEORG, STATUS, CURRENTSTEP, CURRENTORG, HOURS, MINUTE, OCCURDATE,
+		SUBJECT, SOURCEKIND, CREATEUSER, UPDATEUSER, CREATEDATE,
+		UPDATEDATE,oldIssueId,historyId,isAnonymity,oldHistoryId,oldLedgerId,oldLedgerType)
+		values(#id#, #involvingSteadyNum#, #involvingSteadyType.id#,
+		#involvingSteadyInfo#, #steadyUnit#, #steadyUser#, #resolveUnit#,
+		#resolveUser#, #aspirationType.id#, #steadyInfo#, #attentionLevel#,
+		#steadyWorkType.id#, #steadyWorkProblemType.id#, #steadyWorkWarnLevel.id#, #steadyWorkWarnLevelDate#,#otherRemark#, #organization.id#,
+		#orgInternalCode#, #name#, #idCardNo#, #gender.id#, #mobileNumber#,
+		#birthDay#, #isPartyMember#, #permanentAddress#, #position.id#,
+		#serverContractor#, #serverTelephone#, #serverJob#, #serverUnit#,
+		#serialNumber#, #createTableType.id#, #occurOrg.id#,
+		#occurOrgInternalCode#, #gridNo#, #bookingUnit#, #registrant#,
+		#registrationTime#,
+		#hasAccountLog#, #displayLevel#, #earingWarn#, #ledgerType#, #ledgerId#,
+		#createOrg.id#, #status#, #currentStep.id#, #currentOrg.id#,
+		#hours#, #minute#, #occurDate#, #subject#, #sourceKind.id#, #createUser#,
+		#updateUser#, #createDate#, #updateDate#,#oldIssueId#,#historyId#,#isAnonymity#,#oldHistoryId#,#oldLedgerId#,#oldLedgerType#)
+	</insert>
+
+	<update id="updateLedgerSteadyWork" parameterClass="ledgerSteadyWork">
+		update ledgerSteadyWork set
+		<dynamic>
+			id = #id#
+			<isNotNull prepend="," property="involvingSteadyNum">
+				involvingSteadyNum = #involvingSteadyNum#
+				</isNotNull>
+			<isNotNull prepend="," property="involvingSteadyType.id">
+				involvingSteadyType = #involvingSteadyType.id#
+				</isNotNull>
+			<isNotNull prepend="," property="involvingSteadyInfo">
+				involvingSteadyInfo = #involvingSteadyInfo#
+				</isNotNull>
+			<isNotNull prepend="," property="steadyUnit">
+				steadyUnit = #steadyUnit#
+				</isNotNull>
+			<isNotNull prepend="," property="steadyUser">
+				steadyUser = #steadyUser#
+				</isNotNull>
+			<isNotNull prepend="," property="resolveUnit">
+				resolveUnit = #resolveUnit#
+				</isNotNull>
+			<isNotNull prepend="," property="resolveUser">
+				resolveUser = #resolveUser#
+				</isNotNull>
+			<isNotNull prepend="," property="aspirationType.id">
+				aspirationType = #aspirationType.id#
+				</isNotNull>
+			<isNotNull prepend="," property="steadyInfo">
+				steadyInfo = #steadyInfo#
+				</isNotNull>
+			<isNotNull prepend="," property="attentionLevel">
+				attentionLevel = #attentionLevel#
+				</isNotNull>
+			<isNotNull prepend="," property="steadyWorkType.id">
+				steadyWorkType = #steadyWorkType.id#
+				</isNotNull>
+			<isNotNull prepend="," property="steadyWorkProblemType.id">
+				steadyWorkProblemType = #steadyWorkProblemType.id#
+			</isNotNull>
+			<isNotNull prepend="," property="steadyWorkWarnLevel.id">
+				steadyWorkWarnLevel = #steadyWorkWarnLevel.id#
+			</isNotNull>
+			<isNotNull prepend="," property="steadyWorkWarnLevelDate">
+				steadyWorkWarnLevelDate = #steadyWorkWarnLevelDate#
+			</isNotNull>
+			<isNotNull prepend="," property="otherRemark">
+				otherRemark = #otherRemark#
+			</isNotNull>
+			
+			
+			<isNotNull prepend="," property="organization.id">
+				ORGID = #organization.id#
+				</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				ORGINTERNALCODE = #orgInternalCode#
+				</isNotNull>
+			<isNotNull prepend="," property="name">
+				NAME = #name#
+				</isNotNull>
+			<isNotNull prepend="," property="idCardNo">
+				IDCARDNO = #idCardNo#
+				</isNotNull>
+			<isNotNull prepend="," property="gender.id">
+				GENDER = #gender.id#
+				</isNotNull>
+			<isNotNull prepend="," property="mobileNumber">
+				MOBILENUMBER = #mobileNumber#
+				</isNotNull>
+			<isNotNull prepend="," property="birthDay">
+				BIRTHDAY = #birthDay#
+				</isNotNull>
+			<isNotNull prepend="," property="isPartyMember">
+				ISPARTYMEMBER = #isPartyMember#
+				</isNotNull>
+			<isNotNull prepend="," property="permanentAddress">
+				PERMANENTADDRESS = #permanentAddress#
+				</isNotNull>
+			<isNotNull prepend="," property="position.id">
+				POSITION = #position.id#
+				</isNotNull>
+			<isNotNull prepend="," property="serverContractor">
+				SERVERCONTRACTOR = #serverContractor#
+				</isNotNull>
+			<isNotNull prepend="," property="serverTelephone">
+				SERVERTELEPHONE = #serverTelephone#
+				</isNotNull>
+			<isNotNull prepend="," property="serverJob">
+				SERVERJOB = #serverJob#
+				</isNotNull>
+			<isNotNull prepend="," property="serverUnit">
+				SERVERUNIT = #serverUnit#
+				</isNotNull>
+			<isNotNull prepend="," property="serialNumber">
+				SERIALNUMBER = #serialNumber#
+				</isNotNull>
+			<isNotNull prepend="," property="createTableType.id">
+				CREATETABLETYPE = #createTableType.id#
+				</isNotNull>
+			<isNotNull prepend="," property="occurOrg.id">
+				OCCURORGID = #occurOrg.id#
+				</isNotNull>
+			<isNotNull prepend="," property="occurOrgInternalCode">
+				OCCURORGINTERNALCODE = #occurOrgInternalCode#
+				</isNotNull>
+			<isNotNull prepend="," property="gridNo">
+				GRIDNO = #gridNo#
+				</isNotNull>
+			<isNotNull prepend="," property="bookingUnit">
+				BOOKINGUNIT = #bookingUnit#
+				</isNotNull>
+			<isNotNull prepend="," property="registrant">
+				REGISTRANT = #registrant#
+				</isNotNull>
+			<isNotNull prepend="," property="registrationTime">
+				REGISTRATIONTIME = #registrationTime#
+				</isNotNull>
+			<isNotNull prepend="," property="hasAccountLog">
+				HASACCOUNTLOG = #hasAccountLog#
+				</isNotNull>
+			<isNotNull prepend="," property="displayLevel">
+				DISPLAYLEVEL = #displayLevel#
+				</isNotNull>
+			<isNotNull prepend="," property="earingWarn">
+				EARINGWARN = #earingWarn#
+				</isNotNull>
+			<isNotNull prepend="," property="ledgerType">
+				LEDGERTYPE = #ledgerType#
+				</isNotNull>
+			<isNotNull prepend="," property="ledgerId">
+				LEDGERID = #ledgerId#
+				</isNotNull>
+			<isNotNull prepend="," property="createOrg.id">
+				CREATEORG = #createOrg.id#
+				</isNotNull>
+			<isNotNull prepend="," property="status">
+				STATUS = #status#
+				</isNotNull>
+			<isNotNull prepend="," property="currentStep.id">
+				CURRENTSTEP = #currentStep.id#
+				</isNotNull>
+			<isNotNull prepend="," property="currentOrg.id">
+				CURRENTORG = #currentOrg.id#
+				</isNotNull>
+			<isNotNull prepend="," property="hours">
+				HOURS = #hours#
+				</isNotNull>
+			<isNotNull prepend="," property="minute">
+				MINUTE = #minute#
+				</isNotNull>
+			<isNotNull prepend="," property="occurDate">
+				OCCURDATE = #occurDate#
+				</isNotNull>
+			<isNotNull prepend="," property="subject">
+				SUBJECT = #subject#
+				</isNotNull>
+			<isNotNull prepend="," property="sourceKind.id">
+				SOURCEKIND = #sourceKind.id#
+				</isNotNull>
+			<isNotNull prepend="," property="createUser">
+				CREATEUSER = #createUser#
+				</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				UPDATEUSER = #updateUser#
+				</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				CREATEDATE = #createDate#
+				</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				UPDATEDATE = #updateDate#
+				</isNotNull>
+			<isNotNull prepend="," property="isAnonymity">
+					isAnonymity=#isAnonymity#
+				</isNotNull>
+			where id = #id#
+		</dynamic>
+	</update>
+
+	<delete id="deleteLedgerSteadyWorkById" parameterClass="java.lang.Long">
+		delete from ledgerSteadyWork where id = #value#	
+	</delete>
+
+	<select id="getFullById" parameterClass="long" resultMap="ledgerSteadyWorkResult">
+		select
+		* from ledgerSteadyWork where id=#value#
+	</select>
+
+	<select id="findByIdCardNo" parameterClass="java.lang.String"
+		resultMap="ledgerSteadyWorkResult">
+		select * from ledgerSteadyWork where idCardNo = #value#
+	</select>
+
+	<sql id="sql_findJurisdictions_leaderView">
+		<dynamic>
+			<isPropertyAvailable property="issueType"
+				prepend=" and ">
+				cstep.ledgerType = #issueType#
+			</isPropertyAvailable>
+			<isEqual property="seachValue" compareValue="all">
+				  <![CDATA[and cstep.targetinternalcode like #orgCode#||'%' ]]>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="present">
+				  <![CDATA[and cstep.targetinternalcode = #orgCode#  ]]>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="subordinate">
+               <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and cstep.target in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+			</isEqual>
+		</dynamic>
+	</sql>
+
+
+	<sql id="sql_findJurisdictions_result">
+		select
+		lsw.name,lsw.mobileNumber,lsw.birthDay,
+		lsw.id,
+		lsw.serialnumber,
+		lsw.subject,
+		lsw.status,
+		lsw.occurdate,
+		lsw.occurOrgID as occurorgID,
+		lsw.sourcekind,
+		lsw.CREATEUSER,
+		lsw.orgId as createOrg,
+		lsw.hours,
+		lsw.minute,
+		lsw.createTableType,
+		lsw.involvingSteadyInfo,
+		cstep.source currentOrg,
+		cstep.target targetOrg,
+		cstep.lastdealdate,
+		cstep.id as stepId,
+		cstep.superviselevel,
+		cstep.statecode,
+		cstep.state,
+		cstep.delayState
+	</sql>
+
+	<sql id="sqlResult">
+		select
+		lsw.name,lsw.mobileNumber,lsw.birthDay,
+		lsw.id,
+		lsw.serialnumber,
+		lsw.subject,
+		lsw.status,
+		lsw.occurdate,
+		lsw.occurOrgID as occurorgID,
+		lsw.sourcekind,
+		lsw.CREATEUSER,
+		lsw.orgId as createOrg,
+		lsw.hours,
+		lsw.minute,
+		lsw.createTableType,
+		lsw.involvingSteadyInfo,
+		istep.source currentOrg,
+		istep.target targetOrg,
+		istep.lastdealdate,
+		istep.id as stepId,
+		istep.superviselevel,
+		istep.statecode,
+		istep.state,
+		istep.delayState
+    </sql>
+
+
+	<sql id="sqlOrderBy">
+		<dynamic>
+			<isPropertyAvailable property="sortField"
+				prepend=" order by ">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+
+	<delete id="deleteLedgerSteadyWorkByIds">
+		DELETE FROM ledgerSteadyWork where
+		<iterate conjunction="," open="id in (" close=")">
+			#[]#
+		</iterate>
+	</delete>
+
+
+	<!-- 下辖待办事件列表   lsw.createOrg, iu.lastOrg,-->
+	<select id="findJurisdictionsNeedDo" parameterClass="map"
+		resultMap="ledgerSteadyWorkFullVoResult">
+		<include refid="sql_findJurisdictions_result" />
+	   <![CDATA[  from platformAccountSteps cstep,ledgerSteadyWork lsw  
+			where lsw.id=cstep.ledgerId  ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	   <![CDATA[ and cstep.stateCode<#completeCode# and cstep.isSupported=#isSupported# ]]>
+	   <isNotNull property="year" >
+			and lsw.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and lsw.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+	   
+		<include refid="sqlOrderBy" />
+	</select>
+
+	<!-- 下辖待办事件数量 -->	<!--判断是否查询所有，本级，下辖-->
+	<select id="countJurisdictionsNeedDo" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(*) from platformAccountSteps cstep,ledgerSteadyWork iu 	where iu.id=cstep.ledgerId  and cstep.ledgerType=3	]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+		<![CDATA[ 	and cstep.stateCode<#completeCode#   ]]>
+		<isPropertyAvailable property="isSupported">
+			<isNotNull property="isSupported" >
+				and cstep.isSupported = #isSupported#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isNotPropertyAvailable property="isSupported">
+			and cstep.isSupported = 0
+		</isNotPropertyAvailable>
+		
+		<isNotNull property="year" >
+			and iu.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and iu.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+	</select>
+
+	<!-- 根据stepid查询完整的事件信息 -->
+	<select id="getSimpleBaseWorkByStepId" parameterClass="long"
+		resultMap="simpleBaseWork">
+		select iu.*,steps.ledgerId,steps.ledgerType from
+		ledgerSteadyWork iu,platformAccountSteps steps where
+		iu.id=steps.ledgerId and steps.id=#value#
+	</select>
+	
+	
+	<sql id="_sql_findJurisdictions_leaderView">
+		<dynamic>
+			<isPropertyAvailable property="issueType"
+				prepend=" and ">
+				ledgerType = #issueType#
+			</isPropertyAvailable>
+			<isEqual property="seachValue" compareValue="all">
+				  <![CDATA[and targetinternalcode like #orgCode#||'%' ]]>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="present">
+				  <![CDATA[and targetinternalcode = #orgCode#  ]]>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="subordinate">
+               <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and target in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+			</isEqual>
+		</dynamic>
+	</sql>
+
+	<!-- 下辖已办台账数量 -->
+	<select id="countJurisdictionsDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId
+	          from platformAccountSteps
+	         where id in
+	               (select max(id)
+	                  from platformAccountSteps cstep
+	                 where cstep.stateCode = #completeCode# and cstep.isFeedBack=1]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	   <![CDATA[ group by ledgerId)) istep,ledgerSteadyWork iu where istep.ledgerId=iu.id ]]>
+	   
+	   <isNotNull property="year" >
+			and iu.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and iu.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+	   
+	   <![CDATA[ and istep.ledgerid not in(select ledgerid from platformaccountsteps p where dealType = #complete# and ledgerid in 
+ 		 (select ledgerid from platformaccountsteps where stateCode = #completeCode# or stateCode = #substanceCode# and isFeedBack=1 ]]>  
+        		<include refid="_sql_findJurisdictions_leaderView" />        
+                <![CDATA[ group by ledgerid) and p.ledgertype = #issueType#) ]]>
+	   
+	</select>
+
+	<!-- 下辖已办事件列表 -->
+	<select id="findJurisdictionsDone" parameterClass="map"
+		resultMap="ledgerSteadyWorkFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep    where cstep.stateCode = #completeCode# and cstep.isFeedBack=1 ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerSteadyWork lsw   
+		 		where istep.ledgerId = lsw.id ]]>
+		 		
+		<isNotNull property="year" >
+			and lsw.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and lsw.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+		 		
+		 		 <![CDATA[ and istep.ledgerid not in(select ledgerid from platformaccountsteps p where dealType = #complete# and ledgerid in 
+ 		 (select ledgerid from platformaccountsteps where stateCode = #completeCode# or stateCode = #substanceCode# and isFeedBack=1 ]]>  
+        		<include refid="_sql_findJurisdictions_leaderView" />        
+                <![CDATA[ group by ledgerid) and p.ledgertype = #issueType#) ]]>
+		 		
+		<include refid="sqlOrderBy" />
+	</select>
+
+	<update id="updateIssueCurrentStepAndOrg" parameterClass="ledgerSteadyWork">
+		update ledgerSteadyWork set status=#status# 
+		<isNotNull prepend="," property="isCanFeedBack">
+			isCanFeedBack = #isCanFeedBack#
+		</isNotNull>
+		 where id=#id#
+   </update>
+
+
+
+
+	<!-- 下辖待反馈台账列表 -->
+	<select id="findJurisdictionsFeedBack" parameterClass="map"
+		resultMap="ledgerSteadyWorkFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[	
+			   from (select *
+					  from platformAccountSteps
+					 where id in
+				(select max(cstep.id)
+				 from platformAccountSteps cstep where 1=1
+		]]>
+		<isPropertyAvailable property="issueType"
+			prepend=" and ">
+			cstep.ledgerType = #issueType#
+		</isPropertyAvailable>
+		<![CDATA[ group by cstep.ledgerId,cstep.ledgerType)) istep,
+			  ledgerSteadyWork lsw 
+			 where istep.ledgerId= lsw.id   and lsw.isCanFeedBack=0 ]]>
+		<isEqual property="seachValue" compareValue="all">
+				  <![CDATA[  and lsw.orginternalcode like #orgCode#||'%' ]]>
+				</isEqual>
+		<isEqual property="seachValue" compareValue="present">
+			  <![CDATA[    and lsw.orgId = #orgId#  ]]>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and lsw.orgId in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</isEqual>	 
+		<isNotNull property="year" >
+			and lsw.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and lsw.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+		
+		<include refid="sqlOrderBy" />
+	</select>
+
+
+
+
+	<select id="countJurisdictionsFeedBack" parameterClass="map"
+		resultClass="java.lang.Integer">
+	<![CDATA[select count(0) from (select ledgerId,ledgerType  , stateCode,id
+		  from platformaccountsteps
+		 where id in
+			   (select max(cstep.id)
+				  from platformaccountsteps cstep
+				  where 1=1
+	]]>
+	<isPropertyAvailable property="issueType"
+			prepend=" and ">
+			cstep.ledgerType = #issueType#
+		</isPropertyAvailable>
+	<![CDATA[  group by cstep.ledgerId,cstep.ledgerType) ) istep,ledgerSteadyWork lsw  where istep.ledgerId=lsw.id  
+	    and lsw.isCanFeedBack=0 ]]>
+	  <isEqual property="seachValue" compareValue="all">
+				  <![CDATA[  and lsw.orginternalcode like #orgCode#||'%' ]]>
+				</isEqual>
+		<isEqual property="seachValue" compareValue="present">
+			  <![CDATA[    and lsw.orgId = #orgId#  ]]>
+		</isEqual>
+		<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and lsw.orgId in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+		</isEqual>	   
+	    <isNotNull property="year" >
+			and lsw.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and lsw.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+	</select>
+
+
+	<!-- 下辖上报台账数量 -->
+	<select id="countJurisdictionsSubmit" parameterClass="map"
+		resultClass="java.lang.Integer">
+		select count(0)
+		<![CDATA[ from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep    where cstep.submit = #submit# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerSteadyWork lsw   
+		 		where istep.ledgerId = lsw.id ]]>
+		<isNotNull property="year" >
+			and lsw.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and lsw.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+	</select>
+	<!-- 下辖上报台账列表 -->
+	<select id="findJurisdictionsSubmit" parameterClass="map"
+		resultMap="ledgerSteadyWorkFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep    where cstep.submit = #submit# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerSteadyWork lsw   
+		 		where istep.ledgerId = lsw.id ]]>
+		 		
+		<isNotNull property="year" >
+			and lsw.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and lsw.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+		<include refid="sqlOrderBy" />
+	</select>
+	<!-- 下辖阶段已办事件列表 -->
+	<select id="findJurisdictionsPeriodDone" parameterClass="map"
+		resultMap="ledgerSteadyWorkFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select *  from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep   where cstep.stateCode = #completeCode# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	   <![CDATA[ ) where rnk=1)  istep,ledgerSteadyWork lsw   
+ 				where istep.ledgerId = lsw.id ]]>
+ 		<isNotNull property="year" >
+			and lsw.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and lsw.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+		<include refid="sqlOrderBy" />
+	</select>
+
+
+	<!-- 下辖实质已办台账数量 -->
+	<select id="countJurisdictionsPeriodDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId   from platformAccountSteps
+	         	where id in (select max(id) from platformAccountSteps cstep   where cstep.stateCode = #completeCode# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ group by ledgerId)) istep,ledgerSteadyWork iu where istep.ledgerId=iu.id ]]>
+	    <isNotNull property="year" >
+			and iu.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and iu.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+	</select>
+
+
+	<!-- 下辖上级交办台账列表 -->
+	<select id="findJurisdictionsAssgin" parameterClass="map"
+		resultMap="ledgerSteadyWorkFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep    where cstep.assign = #assgin# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerSteadyWork lsw   
+		 		where istep.ledgerId = lsw.id ]]>
+		<isNotNull property="year" >
+			and lsw.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and lsw.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+		<include refid="sqlOrderBy" />
+	</select>
+
+	<!-- 下辖上级交办台账数量 -->	<!--判断是否查询所有，本级，下辖-->
+	<select id="countJurisdictionsAssgin" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[ select count(0)  from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep    where cstep.assign = #assgin# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerSteadyWork lsw   
+		 		where istep.ledgerId = lsw.id ]]>
+		<isNotNull property="year" >
+			and lsw.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and lsw.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+	</select>
+
+
+	<!-- 下辖实质已办事件列表 
+	<select id="findJurisdictionsSubstanceDone" parameterClass="map"
+		resultMap="ledgerSteadyWorkFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep   where cstep.stateCode = #completeCode# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ ) where rnk=1)  istep,ledgerSteadyWork lsw  
+ 				where istep.ledgerId = lsw.id ]]>
+		<include refid="sqlOrderBy" />
+	</select>-->
+	
+	
+	<sql id="sql_findJurisdictions_leaderView_">
+		<dynamic>
+			<isEqual property="seachValue" compareValue="all">
+			  <![CDATA[  and pl.targetinternalcode like #orgCode#||'%' ]]>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="present">
+			  <![CDATA[    and pl.targetinternalcode = #orgCode#  ]]>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and pl.target in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+			</isEqual>
+		</dynamic>
+	</sql>
+	<!-- 下辖实质已办台账列表(只要经过了此部门，台账实质性办结后都显示在此部门的实质性办结中) -->
+	<select id="findJurisdictionsSubstanceDone" parameterClass="map"
+		resultMap="ledgerSteadyWorkFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select * from (select pl.*,row_number()over(partition by pl.ledgerid order by pl.id desc) as rn from platformaccountsteps pl 
+		where pl.ledgerid in (select ledgerid from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk 
+		from platformAccountSteps cstep  where cstep.stateCode = #completeCode# and cstep.ledgerType = #issueType#) where rnk = 1) and pl.ledgertype = #issueType#]]>
+		<include refid="sql_findJurisdictions_leaderView_" />
+	    <![CDATA[ ) where rn=1)  istep,ledgerSteadyWork lsw 
+ 			where istep.ledgerId = lsw.id ]]>
+ 			
+ 		<isNotNull property="year" >
+			and lsw.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and lsw.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+		<include refid="sqlOrderBy" />
+	</select>
+	
+
+	<!-- 下辖实质已办台账数量 
+	<select id="countJurisdictionsSubstanceDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId
+	          from platformAccountSteps
+	         where id in
+	               (select max(id)
+	                  from platformAccountSteps cstep
+	                 where cstep.stateCode = #completeCode# ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	                <![CDATA[ group by ledgerId)) istep,ledgerSteadyWork iu where istep.ledgerId=iu.id ]]>
+	</select>-->
+	
+	
+	<select id="countJurisdictionsSubstanceDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+	       <![CDATA[select count(0) from (select * from (select pl.*,row_number()over(partition by pl.ledgerid order by pl.id desc) as rn from platformaccountsteps pl 
+		where pl.ledgerid in (select ledgerid from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk 
+		from platformAccountSteps cstep  where cstep.stateCode = #completeCode# and cstep.ledgerType = #issueType#) where rnk = 1) and pl.ledgertype = #issueType#]]>
+		<include refid="sql_findJurisdictions_leaderView_" />
+	    <![CDATA[ ) where rn=1)  istep,ledgerSteadyWork lsw 
+ 			where istep.ledgerId = lsw.id ]]>
+ 			
+ 		<isNotNull property="year" >
+			and lsw.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and lsw.serialnumber like '__'||#month#||'%'
+		</isNotNull>       
+	</select>
+	
+	
+	<select id="getLedgerSteadyWorkByHistoryId" parameterClass="java.lang.String" resultMap="ledgerSteadyWorkResult">
+		select * from ledgerSteadyWork where historyId=#value#
+	</select>
+	
+	<update id="updateFeedBackStatus" parameterClass="map">
+		update ledgerSteadyWork set	isCanFeedBack = #isFeedBack# where id=#ledgerId#
+	</update>
+	
+	<!-- 下辖已办和新建台账列表 -->
+	<select id="findJurisdictionsCreateAndDone" parameterClass="map"
+		resultMap="ledgerSteadyWorkFullVoResult">
+		<include refid="sqlResult" />
+		<![CDATA[ from (select *  from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+                  from platformAccountSteps cstep   where cstep.stateCode in (500,600,700,120) ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	   <![CDATA[ ) where rnk=1)  istep,ledgerSteadyWork lsw   
+ 				where istep.ledgerId = lsw.id ]]>
+ 		<isNotNull property="year" >
+			and lsw.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and lsw.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+		<include refid="sqlOrderBy" />
+	</select>
+	
+	<!-- 下辖已办和新建台账数量 -->
+	<select id="countJurisdictionsCreateAndDone" parameterClass="map"
+		resultClass="java.lang.Integer">
+		<![CDATA[select count(0) from (select ledgerId   from platformAccountSteps
+	         	where id in (select max(id) from platformAccountSteps cstep   where cstep.stateCode in (500,600,700,120) ]]>
+		<include refid="sql_findJurisdictions_leaderView" />
+	    <![CDATA[ group by ledgerId)) istep,ledgerSteadyWork iu where istep.ledgerId=iu.id ]]>
+	    <isNotNull property="year" >
+			and iu.serialnumber like #year#||'%'
+		</isNotNull>
+		<isNotNull property="month" >
+			and iu.serialnumber like '__'||#month#||'%'
+		</isNotNull>
+	</select>
+	
+	<!-- 统计台账数，数据导入用，判断是否已经导入过 -->
+	<select id="countLedgerByOldHistoryId" parameterClass="map"
+		resultClass="java.lang.Integer">
+		select count(0) from ledgerSteadyWork where oldHistoryId=#oldHistoryId#
+		<isNotEmpty property="orgCode">and orginternalcode like #orgCode#||'%'</isNotEmpty>
+	</select>
+</sqlMap>

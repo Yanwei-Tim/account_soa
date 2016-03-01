@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="systemLog">
+	<typeAlias alias="SystemLog" type="com.tianque.core.systemLog.domain.SystemLog" />
+
+	<resultMap class="SystemLog" id="systemLogResult">
+		<result property="id" column="id"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="operation" column="operation"/>
+		<result property="operationType" column="operationType"/>
+		<result property="moduleName" column="moduleName"/>
+		<result property="operationContent" column="OPERATIONCONTENT" typeHandler="org.springframework.orm.ibatis.support.ClobStringTypeHandler" />
+		<result property="operateTime" column="operateTime"/>
+		<result property="userName" column="username"/>
+		<result property="logLevel" column="logLevel"/>
+		<result property="clientIp" column="clientIp"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+	</resultMap>
+
+<!-- 新增系统日志信息 -->
+	<insert id="addSystemLog" parameterClass="SystemLog">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_systemLogs.NEXTVAL as id from dual ]]>
+		</selectKey>
+			INSERT INTO systemLogs(
+					id,orgId,operation,logLevel,operationType,moduleName,username,clientIp,orgInternalCode,operateTime,operationContent
+			)VALUES(
+					#id#,#organization.id#,#operation#,#logLevel#,#operationType#,#moduleName#,#userName#,#clientIp#,#orgInternalCode#,#operateTime#,
+					#operationContent,handler=org.springframework.orm.ibatis.support.ClobStringTypeHandler#
+			)
+	</insert>
+	<!-- 系统日志查询条件   -->
+	<sql id="sql_where">
+		FROM systemLogs where orgInternalCode like '$orgInternalCode$%' and moduleName = '系统登录'
+		<dynamic>
+			<isPropertyAvailable property="userName">
+				<isNotEmpty prepend="AND" property="userName">
+					username like '$userName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startDate">
+				<isNotNull prepend="AND" property="startDate">
+					<![CDATA[
+						operateTime > #startDate#
+					]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate">
+				<isNotNull prepend="AND" property="endDate">
+					<![CDATA[
+						operateTime < #endDate#
+					]]>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<!-- 根据用户名或者时间段查询系统日志 -->
+	<select id="findSystemlogsByQueryBuilder" resultMap="systemLogResult" parameterClass="java.util.Map">
+		SELECT *
+		<include refid="sql_where" />
+		or (
+			<![CDATA[
+				operateTime > #startDate#
+				AND
+				operateTime < #endDate#
+			]]>
+		AND orgInternalCode is null )
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+    <!-- 根据用户名或者时间段查询登录成功的系统日志 -->
+	<select id="findSuccessSystemlogsByQueryBuilder" resultMap="systemLogResult" parameterClass="java.util.Map">
+		SELECT *
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	 <!-- 根据用户名或者时间段查询登录失败的系统日志 -->
+	<select id="findFailSystemlogsByQueryBuilder" resultMap="systemLogResult" parameterClass="java.util.Map">
+		SELECT * FROM systemLogs where
+
+		<![CDATA[
+				operateTime > #startDate#
+				AND
+				operateTime < #endDate#
+			]]>
+
+		and moduleName = '系统登录' AND logLevel = 3
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<!--  查询所有的系统日志的总记录数-->
+	<select id="countAllSystemlogsByQueryBuilder" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+	    <include refid="common.sql_count"/>
+		<include refid="sql_where" />
+		or (
+			<![CDATA[
+				operateTime > #startDate#
+				AND
+				operateTime < #endDate#
+			]]>
+		AND orgInternalCode is null )
+	</select>
+	<!-- 查询登录成功的系统日志总记录数 -->
+	<select id="countSystemlogsByQueryBuilder" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+	<!-- 查询登录失败的系统日志总记录数 -->
+	<select id="countFailSystemlogsByQueryBuilder" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		FROM systemLogs where
+		<![CDATA[
+				operateTime > #startDate#
+				AND
+				operateTime < #endDate#
+			]]>
+		and moduleName = '系统登录' AND logLevel = 3
+	</select>
+
+
+
+	<select id="getSystemLogById" parameterClass="java.lang.Long" resultMap="systemLogResult">
+		select * from systemLogs where id=#value#
+	</select>
+
+	<sql id="sql_where1">
+		from systemlogs where orgInternalCode like '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="moduleName">
+				<isNotEmpty prepend="AND" property="moduleName">
+					moduleName like '$moduleName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="operationType">
+				<isNotEmpty prepend="AND" property="operationType">
+					operationType = #operationType#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="userName">
+				<isNotEmpty prepend="AND" property="userName">
+					username like '$userName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startDate">
+				<isNotNull prepend="AND" property="startDate">
+					<![CDATA[
+						operateTime > #startDate#
+					]]>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate">
+				<isNotNull prepend="AND" property="endDate">
+					<![CDATA[
+						operateTime < #endDate#
+					]]>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+
+	</sql>
+
+ <select id="findAllSystemLogsForPagebyQuery" parameterClass="java.util.Map" resultMap="systemLogResult">
+
+  select *
+      <include refid="sql_where1" />
+        <dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+ </select>
+	 <select id="countAllSystemhighlogs"  parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		 select count(*)
+		 <include refid="sql_where1" />
+      or (
+			<![CDATA[
+				operateTime > #startDate#
+				AND
+				operateTime < #endDate#
+			]]>
+		AND orgInternalCode is null )
+		</select>
+
+        <select id="countAllSystemhighlogsbyQuery"  parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		 select count(*)
+		 <include refid="sql_where1" />
+		</select>
+		 <select id="findAllSystemhighLogsForPage" parameterClass="java.util.Map" resultMap="systemLogResult">
+      select *
+      <include refid="sql_where1" />
+	   or (
+			<![CDATA[
+				operateTime > #startDate#
+				AND
+				operateTime < #endDate#
+			]]>
+		AND orgInternalCode is null )
+      <dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+   </select>
+
+	<insert id="archiveSystemLogsByDateRange" parameterClass="map">
+		insert into systemLogs_Archive(id, orgId, operationContent, logLevel, operation, moduleName, username, clientIp, orgInternalCode, operateTime, operationType)
+		select id, orgId, operationContent, logLevel, operation, moduleName, username, clientIp, orgInternalCode, operateTime, operationType from systemLogs
+		where 
+		<![CDATA[
+				operateTime > #startDate#
+				AND
+				operateTime < #endDate#
+			]]>
+	</insert>
+
+	<delete id="deleteSystemLogsByDateRange" parameterClass="map">
+		delete systemLogs
+		where  
+		<![CDATA[
+				operateTime > #startDate#
+				AND
+				operateTime < #endDate#
+			]]>
+	</delete>
+</sqlMap>

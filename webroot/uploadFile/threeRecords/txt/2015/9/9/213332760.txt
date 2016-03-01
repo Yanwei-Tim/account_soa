@@ -1,0 +1,119 @@
+select * from ledgerpoorpeople
+platformAccountLogs
+ledgerpeopleaspirations
+platformaccountstepgroups
+platformaccountrelatedpeople
+ledgerenergy
+ledgerpoorpeople
+
+select * from platformaccountstepgroups order by id desc
+
+select * from ledgerpeopleaspirations order by id desc
+
+select * from platformAccountLogs order by id desc
+
+select * from platformaccountsteps order by id desc
+
+select * from platformaccounthasattachfiles
+
+select * from  ledgerAttachFiles
+
+
+
+
+select lpa.id as issueId,
+		lpa.serialnumber,
+		lpa.subject,
+		lpa.status,
+		lpa.name,
+		lpa.mobileNumber,
+		lpa.appealContent,
+		lpa.occurdate,
+		lpa.occurOrgId as occurorg,
+		lpa.orgId as createOrg,
+		lpa.sourceKind,
+		lpa.CREATEUSER,
+		lpa.createTableType,
+		lpa.hours,
+		lpa.subject,
+		lpa.minute,
+		istep.source currentOrg,
+		istep.target targetOrg,
+		istep.lastdealdate,
+		istep.id as stepId,
+		istep.superviselevel,
+		istep.statecode,
+		istep.state,
+		istep.delayState from (select *
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode = 500 and cstep.ledgerType = 11 and and cstep.targetinternalcode = '.1.5.1.46.' )where rnk=1)  istep,ledgerPeopleAspirations lpa  
+ 		     where istep.ledgerId = lpa.id order by order
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+select lpa.id as issueId,lpa.serialnumber,lpa.subject,lpa.name,lpa.mobileNumber,lpa.appealContent,lpa.status,lpa.occurdate,lpa.createTableType,   lpa.hours,lpa.subject,lpa.minute,lpa.occurOrgId as occurorg,lpa.sourcekind,lpa.CREATEUSER,lpa.orgId as createOrg,cstep.source currentOrg,cstep.target targetOrg,cstep.lastdealdate,cstep.id as stepId,cstep.superviselevel,cstep.statecode,cstep.state,cstep.delayState from platformAccountSteps cstep,ledgerPeopleAspirations lpa where lpa.id=cstep.ledgerId and cstep.ledgerType = ? and cstep.targetinternalcode like ?||'%' and cstep.stateCode<? and cstep.isSupported=? order by issueId desc
+
+
+
+
+select lpa.id as issueId, lpa.serialnumber,lpa.name,lpa.mobileNumber,lpa.appealContent,lpa.subject,lpa.status,lpa.occurdate,lpa.CREATEUSER,lpa.orgId as createOrg,lpa.occurOrgId as occurorg,lpa.sourcekind,lpa.hours,lpa.subject,lpa.minute,lpa.createTableType,cstep.source currentOrg,cstep.target targetOrg,        cstep.lastdealdate,cstep.id as stepId,cstep.superviselevel,cstep.statecode,cstep.delayState,cstep.state from platformAccountSteps cstep,ledgerPeopleAspirations lpa where lpa.id=cstep.ledgerId and cstep.ledgerType = ? and cstep.targetinternalcode like ?||'%' and cstep.stateCode<? order by issueId desc 
+
+
+
+select lpp.name,lpp.ISOWNER,lpp.mobileNumber,lpp.birthDay,lpp.securityType, lpp.id, lpp.serialnumber, lpp.subject, lpp.status, lpp.occurdate,        lpp.occurOrg as  occurorg, lpp.sourcekind, lpp.CREATEUSER, lpp.orgId as createOrg, lpp.hours, lpp.minute, lpp.createTableType, lpp.REQUIREDTYPE,        lpp.SECURITYTYPE, cstep.source currentOrg, cstep.target targetOrg, cstep.lastdealdate, cstep.id as stepId,  cstep.superviselevel,  cstep.statecode,  cstep.state, cstep.delayState from (select * from (select cstep.*,row_number()over(partition by cstep.ledgerId order by cstep.id desc ) as rnk  from platformAccountSteps cstep  where cstep.stateCode = ? and cstep.isFeedBack=1 and cstep.ledgerType = ? and cstep.targetinternalcode like ?||'%'  ) where rnk=1)  cstep,ledgerPoorPeople lpp where cstep.ledgerId = lpp.id  order by id desc
+
+
+
+
+
+
+findJurisdictionsFeedBack
+
+
+
+
+select lpp.name,lpp.ISOWNER,lpp.mobileNumber,lpp.birthDay,lpp.securityType,
+		lpp.id,
+		lpp.serialnumber,
+		lpp.subject,
+		lpp.status,
+		lpp.occurdate,
+		lpp.occurOrg as occurorg,
+		lpp.sourcekind,
+		lpp.CREATEUSER,
+		lpp.orgId as createOrg,
+		lpp.hours,
+		lpp.minute,
+		lpp.createTableType,
+		lpp.REQUIREDTYPE,
+		lpp.SECURITYTYPE,
+		istep.source currentOrg,
+		istep.target targetOrg,
+		istep.lastdealdate,
+		istep.id as stepId,
+		istep.superviselevel,
+		istep.statecode,
+		istep.state,
+		istep.delayState 
+ from (select * from platformAccountSteps where id in (select max(cstep.id) from platformAccountSteps cstep where 1=1 and cstep.ledgerType = 2  group by cstep.ledgerId,cstep.ledgerType)) istep, ledgerPoorPeople lpp where istep.ledgerId= lpp.id and lpp.isCanFeedBack=0 and lpp.orginternalcode like '.1.5.1.1.%' and lpp.orgId = 9 and lpp.orgId in (10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25) order by id desc
+ 
+ from (select * from platformAccountSteps where id in (select max(cstep.id) from platformAccountSteps cstep where 1=1 and cstep.ledgerType = 2  group by cstep.ledgerId,cstep.ledgerType)) istep, ledgerPoorPeople lpp where istep.ledgerId= lpp.id and lpp.isCanFeedBack=0 and lpp.orgId = 9 order by id desc
+ 
+ 
+ select lpp.name,lpp.ISOWNER,lpp.mobileNumber,lpp.birthDay,lpp.securityType,   lpp.id,   lpp.serialnumber,   lpp.subject,   lpp.status,   lpp.occurdate,   lpp.occurOrg as occurorg,   lpp.sourcekind,   lpp.CREATEUSER,   lpp.orgId as createOrg,   lpp.hours,   lpp.minute,   lpp.createTableType,   lpp.REQUIREDTYPE,   lpp.SECURITYTYPE,   istep.source currentOrg,   istep.target targetOrg,   istep.lastdealdate,   istep.id as stepId,   istep.superviselevel,   istep.statecode,   istep.state,   istep.delayState                from (select *        from platformAccountSteps       where id in     (select max(cstep.id)      from platformAccountSteps cstep      where  1=1       and     cstep.ledgerType = 2       group by cstep.ledgerId,cstep.ledgerType)) istep,      ledgerPoorPeople lpp       where istep.ledgerId= lpp.id   and lpp.isCanFeedBack=0                    and lpp.orgId = 9                  order by      id     desc
+ 
+ 
+ 
+ select   lpp.name,lpp.ISOWNER,lpp.mobileNumber,lpp.birthDay,lpp.securityType,   lpp.id,   lpp.serialnumber,   lpp.subject,   lpp.status,   lpp.occurdate,   lpp.occurOrg as occurorg,   lpp.sourcekind,   lpp.CREATEUSER,   lpp.orgId as createOrg,   lpp.hours,   lpp.minute,   lpp.createTableType,   lpp.REQUIREDTYPE,   lpp.SECURITYTYPE,   istep.source currentOrg,   istep.target targetOrg,   istep.lastdealdate,   istep.id as stepId,   istep.superviselevel,   istep.statecode,   istep.state,   istep.delayState                
+ 
+ 
+ from (select *        from platformAccountSteps       where id in     (select max(cstep.id)      from platformAccountSteps cstep      where  1=1       and     cstep.ledgerType = 2       group by cstep.ledgerId,cstep.ledgerType)) istep,      ledgerPoorPeople lpp       where istep.ledgerId= lpp.id   and lpp.isCanFeedBack=0                    and lpp.orgId = 9                  order by      id     desc

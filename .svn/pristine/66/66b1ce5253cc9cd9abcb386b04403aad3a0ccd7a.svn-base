@@ -1,0 +1,138 @@
+package com.tianque.account.api.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.tianque.account.api.LedgerAccountReportDubboService;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.dao.LedgerPoorPeopleDao;
+import com.tianque.plugin.account.dao.LedgerSteadyWorkDao;
+import com.tianque.plugin.account.dao.ThreeRecordsIssueDao;
+import com.tianque.plugin.account.domain.AccountReport;
+import com.tianque.plugin.account.service.LedgerAccountReportService;
+import com.tianque.plugin.account.service.ThreeAccountReportService;
+import com.tianque.plugin.account.state.ThreeRecordsIssueState;
+import com.tianque.plugin.account.vo.LedgerCurrentYearCollectByMonthReportStatisticalVo;
+import com.tianque.plugin.account.vo.LedgerCurrentYearCollectDoneRateReportStatisticalVo;
+import com.tianque.plugin.account.vo.LedgerMonthReportStatisticalVo;
+import com.tianque.plugin.account.vo.ThreeRecordsReportStatisticalVo;
+import com.tianque.userAuth.api.OrganizationDubboRemoteService;
+
+@Component
+public class LedgerAccountReportDubboServiceImpl implements
+		LedgerAccountReportDubboService {
+
+	@Autowired
+	private LedgerAccountReportService ledgerAccountReportService;
+	@Autowired
+	private ThreeAccountReportService threeAccountReportService;
+	@Autowired
+	private OrganizationDubboRemoteService organizationDubboRemoteService;
+	@Autowired
+	protected ThreeRecordsIssueDao issueDao;
+	@Autowired
+	private LedgerSteadyWorkDao ledgerSteadyWorkDao;
+	@Autowired
+	private LedgerPoorPeopleDao ledgerPoorPeopleDao;
+	@Override
+	public List<ThreeRecordsReportStatisticalVo> findAccountReportBySearchVo(
+			AccountReport accountReport) {
+		return threeAccountReportService.createThreeAccountRecord(accountReport.getReportYear(), accountReport.getReportMonth(), accountReport.getOrganization().getId());
+	}
+	
+	@Override
+	public List<LedgerMonthReportStatisticalVo> findMonthCollectDoneReportVo(
+			AccountReport accountReport){
+		return ledgerAccountReportService.findMonthCollectDoneReportVo(accountReport);
+	}
+
+	@Override
+	public List<ThreeRecordsReportStatisticalVo> findHomePageAccountReportVo(
+			AccountReport accountReport) {
+		return ledgerAccountReportService
+				.findHomePageAccountReportVo(accountReport);
+	}
+	
+	@Override
+	public List<LedgerCurrentYearCollectByMonthReportStatisticalVo> getYearCollectByMonth(AccountReport accountReport){
+		return ledgerAccountReportService.getYearCollectByMonth(accountReport);
+	}
+	
+	@Override
+	public List<LedgerCurrentYearCollectDoneRateReportStatisticalVo> getYearCollectDoneRate(AccountReport accountReport){
+		return ledgerAccountReportService.getYearCollectDoneRate(accountReport);
+	}
+
+	@Override
+	public String judgeReportType(AccountReport accountReport) {
+		return ledgerAccountReportService.judgeReportType(accountReport);
+	}
+
+	@Override
+	public Map<String, Integer> queryHomePageNeedDoCount(String issueTypes, Long orgId) {
+		Map<String, Integer> resultMap = new HashMap<String, Integer>();
+		if (StringUtils.isBlank(issueTypes)) {
+			return resultMap;
+		}
+		String[] countTypes = issueTypes.split(",");
+		Organization org = organizationDubboRemoteService.getSimpleOrgById(orgId);
+		for (String type : countTypes) {
+			if (StringUtils.isNotBlank(type)) {
+				int count = 0;
+				Long typeLong = Long.parseLong(type);
+				if (LedgerConstants.STEADYWORK == typeLong) {
+					count = getSteadyNeedDoCount(org, typeLong);
+				} else if (LedgerConstants.POORPEOPLE == typeLong) {
+					count = getPoorPeopleNeedDoCount(org, typeLong);
+				} else {
+					count = this.getJurisdictionsNeedDoCount(org,
+						Long.parseLong(type));
+				}
+				resultMap.put(type, count);
+			}
+		}
+		return resultMap;
+	}
+
+	/**
+	* 查询待办的数量  ->ThreeRecordsAbstractIssueServiceImpl.java
+	* 
+	* @param map
+	* @return
+	*/
+	private int getJurisdictionsNeedDoCount(Organization organization, Long issueType) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("seachValue", "present");
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		map.put("orgCode", organization.getOrgInternalCode());
+		map.put("targetOrg", organization.getId());
+		map.put("issueType", issueType);
+		return issueDao.getJurisdictionsNeedDoCount(map);
+	}
+
+	private int getSteadyNeedDoCount(Organization organization, Long issueType) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("seachValue", "present");
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		map.put("orgCode", organization.getOrgInternalCode());
+		map.put("targetOrg", organization.getId());
+		map.put("issueType", issueType);
+		return ledgerSteadyWorkDao.getJurisdictionsNeedDoCount(map);
+	}
+
+	private int getPoorPeopleNeedDoCount(Organization organization, Long issueType) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("seachValue", "present");
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		map.put("orgCode", organization.getOrgInternalCode());
+		map.put("targetOrg", organization.getId());
+		map.put("issueType", issueType);
+		return ledgerPoorPeopleDao.getJurisdictionsNeedDoCount(map);
+	}
+}

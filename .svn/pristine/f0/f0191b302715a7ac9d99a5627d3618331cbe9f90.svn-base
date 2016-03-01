@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="ledgerPeopleBaseSituation">
+	<typeAlias alias="ThreeRecordsViewObject" type="com.tianque.plugin.account.vo.ThreeRecordsViewObject" />
+	<resultMap class="ThreeRecordsViewObject" id="poorPeopleResult">
+		<result property="createDate" column="createdate" />
+		<result property="serialNumber" column="serialnumber" />
+		<result property="org.id" column="orgid" />
+		<result property="name" column="name" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="permanentAddress" column="permanentAddress" />
+		<result property="gender.id" column="gender" />
+		<result property="birthDay" column="birthDay" />
+		<result property="memberNo" column="memberNo" />
+		<result property="poorType" column="poortype" />
+		<result property="poorSource" column="poorsource" />
+		<result property="securityType.id" column="securityType" />
+		<result property="dealUserName" column="dealusername" />
+		<result property="dealdescription" column="dealdescription" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="steadyWorkResult">
+		<result property="createDate" column="createdate" />
+		<result property="serialNumber" column="serialnumber" />
+		<result property="org.id" column="orgid" />
+		<result property="steadyWorkWarnLevel.id" column="steadyWorkWarnLevel" />
+		<result property="serverContractor" column="serverContractor" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="involvingSteadyNum" column="involvingSteadyNum" />
+		<result property="name" column="name" />
+		<result property="idCardNo" column="idCardNo" />
+		<result property="occurOrg.id" column="occurorgId" />
+		<result property="involvingSteadyInfo" column="involvingSteadyInfo" />
+		<result property="steadyWorkType.id" column="steadyWorkType" />
+		<result property="steadyWorkProblemType.id" column="steadyWorkProblemType" />
+		<result property="dealUserName" column="Dealusername" />
+		<result property="dealdescription" column="dealdescription" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="baseResult">
+		<result property="dealUserName" column="dealUserName" />
+		<result property="dealdescription" column="dealdescription" />
+		<result property="createDate" column="createDate" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="org.id" column="orgid" />
+		<result property="appealContent" column="appealContent" />
+		<result property="responseGroupNo" column="responseGroupNo" />
+		<result property="projectCategory.id" column="projectCategory" />
+		<result property="buildType.id" column="buildType" />
+		<result property="projectName" column="projectName" />
+		<result property="beneficiaryNumber" column="beneficiaryNumber" />
+		<result property="plannedInvestment" column="plannedInvestment" />
+		<result property="selfFund" column="selfFund" />
+		<result property="gapFund" column="gapFund" />
+		<result property="name" column="name" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="fromAddress" column="fromAddress" />
+		<result property="toAddress" column="toAddress" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="waterResult" extends="baseResult">
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="num" column="num" />
+		<result property="centralized" column="centralized" />
+		<result property="scatter" column="scatter" />
+		<result property="impoundage" column="impoundage" />
+		<result property="mileage" column="mileage" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="trafficResult" extends="baseResult">
+		<result property="mileage" column="mileage" />
+		<result property="roadCategory.id" column="roadCategory" />
+		<result property="roadSurfaceCategory.id" column="roadSurfaceCategory" />
+		<result property="securityCategory.id" column="securityCategory" />
+		<result property="passengerCategory.id" column="passengerCategory" />
+		<result property="publicTransportCategory.id" column="publicTransportCategory" />
+		<result property="passengerManageCategory.id" column="passengerManageCategory" />
+		<result property="passengerBuildCategory.id" column="passengerBuildCategory" />
+		<result property="rodeLength" column="rodeLength" />
+		<result property="rodeWide" column="rodeWide" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="energyResult" extends="baseResult">
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="energyNumber" column="energyNumber" />
+		<result property="capacity" column="capacity" />
+		<result property="lineCategory.id" column="lineCategory" />
+		<result property="pipeLineCategory.id" column="pipeLineCategory" />
+		<result property="pipeMaterialCategory.id" column="pipeMaterialCategory" />
+		<result property="securityCategory.id" column="securityCategory" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="educationResult" extends="baseResult">
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="buildCompanyName" column="buildCompanyName" />
+		<result property="buildArea" column="buildArea" />
+		<result property="distanceCategory.id" column="distanceCategory" />
+		<result property="roadConditionCategory.id" column="roadConditionCategory" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="scienceResult" extends="baseResult">
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="scienceScope" column="scienceScope" />
+		<result property="projectLevelCategory.id" column="projectLevelCategory" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="medicalResult" extends="baseResult">
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="buildArea" column="buildArea" />
+		<result property="equipment" column="equipment" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="laborResult">
+		<result property="createDate" column="createDate" />
+		<result property="serialNumber" column="serialNumber" />
+		<result property="org.id" column="orgid" />
+		<result property="appealContent" column="appealContent" />
+		<result property="name" column="name" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="responseGroupNo" column="responseGroupNo" />
+		<result property="projectCategory.id" column="projectCategory" />
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="projectSubContentCategory.id" column="projectSubContentCategory" />
+		<result property="relationNumber" column="relationNumber" />
+		<result property="money" column="money" />
+		<result property="company" column="company" />
+		<result property="dealUserName" column="dealUserName" />
+		<result property="dealdescription" column="dealdescription" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="environmentResult" extends="baseResult">
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="governNumber" column="governNumber" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="townResult" extends="baseResult">
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="projectNumber" column="projectNumber" />
+		<result property="scopeNumber" column="scopeNumber" />
+		<result property="area" column="area" />
+		<result property="mileage" column="mileage" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="agricultureResult" extends="baseResult">
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="quantities" column="quantities" />
+		<result property="scopeNumber" column="scopeNumber" />
+	</resultMap>
+	<resultMap class="ThreeRecordsViewObject" id="otherResult" extends="baseResult">
+		<result property="scopeContent" column="scopeContent" />
+		<result property="otherContent" column="otherContent" />
+	</resultMap>
+	
+	<sql id="sql_people_select">
+		<dynamic>
+			<isNotNull property="appealContent">  
+				<![CDATA[   and lpa.appealContent like  '%'||#appealContent#||'%' ]]>
+			</isNotNull>
+			
+			<isNotNull property="beginCreateDate">  
+				<![CDATA[   and lpa.createDate > #beginCreateDate# ]]>
+			</isNotNull> 
+			
+			<isNotNull property="endCreateDate">  
+				<![CDATA[   and lpa.createDate < #endCreateDate# ]]>
+			</isNotNull> 
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_resources_select">
+		<dynamic>
+			<isNotNull property="gapFund">  
+				<isEqual property="isGtGapFund" compareValue="1">
+			  		<![CDATA[  and ledger.gapFund >= #gapFund# ]]>
+				</isEqual>
+				<isEqual property="isGtGapFund" compareValue="0">
+			  		<![CDATA[  and ledger.gapFund < #gapFund# ]]>
+				</isEqual>
+			</isNotNull>
+			
+			<isNotNull property="selfFund">  
+				<isEqual property="isGtSelfFund" compareValue="1">
+			  		<![CDATA[  and ledger.selfFund >= #selfFund# ]]>
+				</isEqual>
+				<isEqual property="isGtSelfFund" compareValue="0">
+			  		<![CDATA[  and ledger.selfFund < #selfFund# ]]>
+				</isEqual>
+			</isNotNull> 
+			
+			<isNotNull property="beneficiaryNumber">  
+				<isEqual property="isGtbeneficiaryNumber" compareValue="1">
+			  		<![CDATA[ and ledger.BENEFICIARYNUMBER >= #beneficiaryNumber# ]]>
+				</isEqual>
+				<isEqual property="isGtbeneficiaryNumber" compareValue="0">
+			  		<![CDATA[  and ledger.BENEFICIARYNUMBER < #beneficiaryNumber# ]]>
+				</isEqual>
+			</isNotNull> 
+			
+			<isNotNull property="plannedInvestment">  
+				<isEqual property="isGtPlannedInvestment" compareValue="1">
+			  		<![CDATA[  and ledger.PLANNEDINVESTMENT >= #plannedInvestment# ]]>
+				</isEqual>
+				<isEqual property="isGtPlannedInvestment" compareValue="0">
+			  		<![CDATA[   and ledger.PLANNEDINVESTMENT < #plannedInvestment# ]]>
+				</isEqual>
+			</isNotNull> 
+			
+			<isNotNull property="projectCategory">  
+				<![CDATA[   and ledger.PROJECTCATEGORY = #projectCategory# ]]>
+			</isNotNull>
+			
+			<isNotNull property="buildType">  
+				<![CDATA[   and ledger.BUILDTYPE = #buildType# ]]>
+			</isNotNull> 
+			
+			<isNotNull property="buildAddress">  
+				<![CDATA[   and (ledger.FROMADDRESS like  '%'||#buildAddress#||'%' or ledger.TOADDRESS like  '%'||#buildAddress#||'%') ]]>
+			</isNotNull> 
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_findJurisdictions_leaderView">
+		<dynamic>
+			<isPropertyAvailable property="issueType"
+				prepend=" and ">
+				cstep.ledgerType = #issueType#
+			</isPropertyAvailable>
+			<isEqual property="seachValue" compareValue="all">
+			  		<iterate  prepend=" and " conjunction="or" property="orgCode" open="(" close=")">
+						cstep.targetinternalcode like #orgCode[]#||'%'
+					</iterate>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="present">
+			  		<iterate property="orgCode" open="and cstep.targetinternalcode in (" conjunction="," close=")">  
+                     	#orgCode[]#  
+                   </iterate>
+			</isEqual>
+			<isEqual property="seachValue" compareValue="subordinate">
+			   <isNotNull property="targetOrgs">  
+			       <iterate property="targetOrgs" open="and cstep.target in (" conjunction="," close=")">  
+                     #targetOrgs[]#  
+                   </iterate>  
+			   </isNotNull>  
+			</isEqual>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_select">
+		<include refid="sql_findJurisdictions_leaderView" />
+	              <![CDATA[ ) where rnk=1)  istep,ledgerPeopleAspirations lpa where istep.ledgerId = lpa.id]]>
+				<include refid="sql_people_select" />
+	     <![CDATA[ )t,$tableName$ ledger where t.ledgerid = ledger.ledgerPeopleaspirationsId]]>
+	      <include refid="sql_resources_select" />
+		<![CDATA[ ) tt, platformaccountlogs lg where tt.ledgerid = lg.ledgerId and lg.ledgerType = #issueType#
+	
+		) a where a.rnk = 1]]>
+	</sql>
+	
+<select id="getWaterBaseSituation" parameterClass="map" resultMap="waterResult">
+	<![CDATA[select a.dealUserName,a.dealdescription,a.createDate,a.serialnumber,a.orgid,a.appealcontent,a.name,a.mobileNumber,a.responseGroupNo,a.fromAddress,a.toAddress,a.projectCategory,a.buildType,
+	a.projectName,a.projectSubCategory,a.num,a.centralized,a.scatter,a.impoundage,a.mileage,a.beneficiarynumber,a.plannedinvestment,a.selffund,a.gapfund from(
+	
+	select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,tt.* from(
+	select t.ledgerid,t.createDate,t.serialnumber,t.orgid,t.appealcontent,t.name,t.mobileNumber,t.responseGroupNo,ledger.fromAddress,ledger.toAddress,ledger.projectCategory,ledger.buildType,
+	ledger.projectName,ledger.projectSubCategory,ledger.num,ledger.centralized,ledger.scatter,ledger.impoundage,ledger.mileage,ledger.beneficiarynumber,ledger.plannedinvestment,ledger.selffund,ledger.gapfund from(
+	 
+	select lpa.id as ledgerid,lpa.createDate,lpa.serialNumber,lpa.orgid,lpa.appealContent,lpa.name,lpa.responseGroupNo,lpa.mobileNumber from (select ledgerid
+		          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+	              from platformAccountSteps cstep  where cstep.stateCode in (500,600,700,120)]]>
+	    <include refid="sql_select" />
+</select>
+
+<select id="getTrafficBaseSituation" parameterClass="map" resultMap="trafficResult">
+	<![CDATA[select a.dealUserName,a.dealdescription,a.createDate,a.serialnumber,a.orgid,a.appealcontent,a.name,a.mobileNumber,a.responseGroupNo,a.roadCategory,a.roadSurfaceCategory,a.securityCategory,
+       a.rodeLength,a.rodeWide,a.projectCategory,a.projectName,a.passengerCategory,a.publicTransportCategory,a.passengerManageCategory,a.buildType,
+       a.passengerBuildCategory,a.mileage,a.beneficiarynumber,a.plannedinvestment,a.selffund,a.gapfund,a.fromAddress,a.toAddress from(
+
+		select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,tt.* from(
+		select t.ledgerid,t.createDate,t.serialnumber,t.orgid,t.appealcontent,t.name,t.mobileNumber,t.responseGroupNo,ledger.roadCategory,ledger.roadSurfaceCategory,ledger.securityCategory,ledger.buildType,
+       ledger.rodeLength,ledger.rodeWide,ledger.projectCategory,ledger.projectName,ledger.passengerCategory,ledger.publicTransportCategory,ledger.passengerManageCategory,
+       ledger.passengerBuildCategory,ledger.mileage,ledger.beneficiarynumber,ledger.plannedinvestment,ledger.selffund,ledger.gapfund,ledger.fromAddress,ledger.toAddress from(
+	 
+	   select lpa.id as ledgerid,lpa.createDate,lpa.serialNumber,lpa.orgid,lpa.appealContent,lpa.name,lpa.responseGroupNo,lpa.mobileNumber from (select ledgerid
+		          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+	              from platformAccountSteps cstep  where cstep.stateCode in (500,600,700,120)]]>
+	   <include refid="sql_select" />
+</select>
+
+<select id="getEnergyBaseSituation" parameterClass="map" resultMap="energyResult">
+	<![CDATA[select a.dealUserName,a.dealdescription,a.createDate,a.serialnumber,a.orgid,a.appealcontent,a.name,a.mobileNumber,a.responseGroupNo,a.energyNumber,a.capacity,a.securityCategory,
+       a.pipeMaterialCategory,a.projectCategory,a.projectName,a.buildType,a.projectSubCategory,
+       a.lineCategory,a.pipeLineCategory,a.beneficiarynumber,a.plannedinvestment,a.selffund,a.gapfund,a.fromAddress,a.toAddress from(
+
+	   select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,tt.* from(
+	   select t.ledgerid,t.createDate,t.serialnumber,t.orgid,t.appealcontent,t.name,t.mobileNumber,t.responseGroupNo,ledger.energyNumber,ledger.capacity,ledger.securityCategory,ledger.buildType,
+       ledger.pipeMaterialCategory,ledger.projectCategory,ledger.projectName,ledger.projectSubCategory,
+       ledger.lineCategory,ledger.pipeLineCategory,ledger.beneficiarynumber,ledger.plannedinvestment,ledger.selffund,ledger.gapfund,ledger.fromAddress,ledger.toAddress from(
+ 
+	   select lpa.id as ledgerid,lpa.createDate,lpa.serialNumber,lpa.orgid,lpa.appealContent,lpa.name,lpa.responseGroupNo,lpa.mobileNumber from (select ledgerid
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode in (500,600,700,120)]]>
+	  <include refid="sql_select" />
+</select>
+
+<select id="getEducationBaseSituation" parameterClass="map" resultMap="educationResult">
+	<![CDATA[select a.dealUserName,a.dealdescription,a.createDate,a.serialnumber,a.orgid,a.appealcontent,a.name,a.mobileNumber,a.responseGroupNo,a.projectCategory,a.buildCompanyName,a.buildArea,
+       a.distanceCategory,a.projectName,a.buildType,a.projectSubCategory,
+       a.roadConditionCategory,a.beneficiarynumber,a.plannedinvestment,a.selffund,a.gapfund,a.fromAddress,a.toAddress from(
+
+		select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,tt.* from(
+		select t.ledgerid,t.createDate,t.serialnumber,t.orgid,t.appealcontent,t.name,t.mobileNumber,t.responseGroupNo,ledger.projectCategory,ledger.buildCompanyName,ledger.buildArea,ledger.buildType,
+       ledger.distanceCategory,ledger.projectName,ledger.projectSubCategory,
+       ledger.roadConditionCategory,ledger.beneficiarynumber,ledger.plannedinvestment,ledger.selffund,ledger.gapfund,ledger.fromAddress,ledger.toAddress from(
+ 
+		select lpa.id as ledgerid,lpa.createDate,lpa.serialNumber,lpa.orgid,lpa.appealContent,lpa.name,lpa.responseGroupNo,lpa.mobileNumber from (select ledgerid
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode in (500,600,700,120)]]>
+	    <include refid="sql_select" />
+</select>
+
+<select id="getScienceBaseSituation" parameterClass="map" resultMap="scienceResult">
+	<![CDATA[select a.dealUserName,a.dealdescription,a.createDate,a.serialnumber,a.orgid,a.appealcontent,a.name,a.mobileNumber,a.responseGroupNo,a.projectCategory,a.scienceScope,a.projectLevelCategory,
+       a.projectName,a.buildType,a.projectSubCategory,
+       a.beneficiarynumber,a.plannedinvestment,a.selffund,a.gapfund,a.fromAddress,a.toAddress from(
+
+		select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,tt.* from(
+		select t.ledgerid,t.createDate,t.serialnumber,t.orgid,t.appealcontent,t.name,t.mobileNumber,t.responseGroupNo,ledger.projectCategory,ledger.scienceScope,ledger.projectLevelCategory,ledger.buildType,
+       ledger.projectName,ledger.projectSubCategory,
+       ledger.beneficiarynumber,ledger.plannedinvestment,ledger.selffund,ledger.gapfund,ledger.fromAddress,ledger.toAddress from(
+ 
+		select lpa.id as ledgerid,lpa.createDate,lpa.serialNumber,lpa.orgid,lpa.appealContent,lpa.name,lpa.responseGroupNo,lpa.mobileNumber from (select ledgerid
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode in (500,600,700,120)]]>
+	   <include refid="sql_select" />
+</select>
+
+<select id="getMedicalBaseSituation" parameterClass="map" resultMap="medicalResult">
+	<![CDATA[select a.dealUserName,a.dealdescription,a.createDate,a.serialnumber,a.orgid,a.appealcontent,a.name,a.mobileNumber,a.responseGroupNo,a.projectCategory,a.equipment,
+       a.projectName,a.buildType,a.projectSubCategory,a.buildArea,
+       a.beneficiarynumber,a.plannedinvestment,a.selffund,a.gapfund,a.fromAddress,a.toAddress from(
+
+		select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,tt.* from(
+		select t.ledgerid,t.createDate,t.serialnumber,t.orgid,t.appealcontent,t.name,t.mobileNumber,t.responseGroupNo,ledger.projectCategory,ledger.equipment,ledger.buildType,
+       ledger.projectName,ledger.projectSubCategory,ledger.buildArea,
+       ledger.beneficiarynumber,ledger.plannedinvestment,ledger.selffund,ledger.gapfund,ledger.fromAddress,ledger.toAddress from(
+ 
+		select lpa.id as ledgerid,lpa.createDate,lpa.serialNumber,lpa.orgid,lpa.appealContent,lpa.name,lpa.responseGroupNo,lpa.mobileNumber from (select ledgerid
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode in (500,600,700,120)]]>
+	   <include refid="sql_select" />
+</select>
+
+<select id="getLaborBaseSituation" parameterClass="map" resultMap="laborResult">
+	<![CDATA[select a.dealUserName,a.dealdescription,a.createDate,a.serialnumber,a.orgid,a.appealcontent,a.name,a.mobileNumber,a.responseGroupNo,a.projectCategory,
+       a.projectSubContentCategory,a.relationNumber,a.projectSubCategory,a.money,a.company from(
+
+    	select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,tt.* from(
+    	select t.ledgerid,t.createDate,t.serialnumber,t.orgid,t.appealcontent,t.name,t.mobileNumber,t.responseGroupNo,ledger.projectCategory,ledger.relationNumber,
+       ledger.projectSubContentCategory,ledger.projectSubCategory,ledger.money,ledger.company from(
+ 
+    	select lpa.id as ledgerid,lpa.createDate,lpa.serialNumber,lpa.orgid,lpa.appealContent,lpa.name,lpa.responseGroupNo,lpa.mobileNumber from (select ledgerid
+            from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode in (500,600,700,120)]]>
+	    <include refid="sql_select" />
+</select>
+
+<select id="getEnvironmentBaseSituation" parameterClass="map" resultMap="environmentResult">
+	<![CDATA[select a.dealUserName,a.dealdescription,a.createDate,a.serialnumber,a.orgid,a.appealcontent,a.name,a.mobileNumber,a.responseGroupNo,a.projectCategory,
+       a.projectName,a.buildType,a.projectSubCategory,a.governNumber,
+       a.beneficiarynumber,a.plannedinvestment,a.selffund,a.gapfund,a.fromAddress,a.toAddress from(
+
+		select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,tt.* from(
+		select t.ledgerid,t.createDate,t.serialnumber,t.orgid,t.appealcontent,t.name,t.mobileNumber,t.responseGroupNo,ledger.projectCategory,ledger.buildType,
+       ledger.projectName,ledger.projectSubCategory,ledger.governNumber,
+       ledger.beneficiarynumber,ledger.plannedinvestment,ledger.selffund,ledger.gapfund,ledger.fromAddress,ledger.toAddress from(
+ 
+		select lpa.id as ledgerid,lpa.createDate,lpa.serialNumber,lpa.orgid,lpa.appealContent,lpa.name,lpa.responseGroupNo,lpa.mobileNumber from (select ledgerid
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode in (500,600,700,120)]]>
+	    <include refid="sql_select" />
+</select>
+
+<select id="getTownBaseSituation" parameterClass="map" resultMap="townResult">
+	<![CDATA[select a.dealUserName,a.dealdescription,a.createDate,a.serialnumber,a.orgid,a.appealcontent,a.name,a.mobileNumber,a.responseGroupNo,a.projectCategory,
+       a.projectName,a.buildType,a.projectSubCategory,a.projectNumber,a.scopeNumber,a.area,a.mileage,
+       a.beneficiarynumber,a.plannedinvestment,a.selffund,a.gapfund,a.fromAddress,a.toAddress from(
+
+		select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,tt.* from(
+		select t.ledgerid,t.createDate,t.serialnumber,t.orgid,t.appealcontent,t.name,t.mobileNumber,t.responseGroupNo,ledger.projectCategory,ledger.buildType,
+       ledger.projectName,ledger.projectSubCategory,ledger.projectNumber,ledger.scopeNumber,ledger.area,ledger.mileage,
+       ledger.beneficiarynumber,ledger.plannedinvestment,ledger.selffund,ledger.gapfund,ledger.fromAddress,ledger.toAddress from(
+ 
+		select lpa.id as ledgerid,lpa.createDate,lpa.serialNumber,lpa.orgid,lpa.appealContent,lpa.name,lpa.responseGroupNo,lpa.mobileNumber from (select ledgerid
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode in (500,600,700,120)]]>
+	    <include refid="sql_select" />
+</select>
+
+<select id="getAgricultureBaseSituation" parameterClass="map" resultMap="agricultureResult">
+	<![CDATA[select a.dealUserName,a.dealdescription,a.createDate,a.serialnumber,a.orgid,a.appealcontent,a.name,a.mobileNumber,a.responseGroupNo,a.projectCategory,
+       a.projectName,a.buildType,a.projectSubCategory,a.quantities,a.scopeNumber,
+       a.beneficiarynumber,a.plannedinvestment,a.selffund,a.gapfund,a.fromAddress,a.toAddress from(
+
+		select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,tt.* from(
+		select t.ledgerid,t.createDate,t.serialnumber,t.orgid,t.appealcontent,t.name,t.mobileNumber,t.responseGroupNo,ledger.projectCategory,ledger.buildType,
+       ledger.projectName,ledger.projectSubCategory,ledger.quantities,ledger.scopeNumber,
+       ledger.beneficiarynumber,ledger.plannedinvestment,ledger.selffund,ledger.gapfund,ledger.fromAddress,ledger.toAddress from(
+ 
+		select lpa.id as ledgerid,lpa.createDate,lpa.serialNumber,lpa.orgid,lpa.appealContent,lpa.name,lpa.responseGroupNo,lpa.mobileNumber from (select ledgerid
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode in (500,600,700,120)]]>
+	   <include refid="sql_select" />
+</select>
+
+<select id="getOtherBaseSituation" parameterClass="map" resultMap="otherResult">
+	<![CDATA[select a.dealUserName,a.dealdescription,a.createDate,a.serialnumber,a.orgid,a.appealcontent,a.name,a.mobileNumber,a.responseGroupNo,a.projectCategory,
+       a.projectName,a.buildType,a.scopeContent,a.otherContent,
+       a.beneficiarynumber,a.plannedinvestment,a.selffund,a.gapfund,a.fromAddress,a.toAddress from(
+
+		select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,tt.* from(
+		select t.ledgerid,t.createDate,t.serialnumber,t.orgid,t.appealcontent,t.name,t.mobileNumber,t.responseGroupNo,ledger.projectCategory,ledger.buildType,
+       ledger.projectName,ledger.scopeContent,ledger.otherContent,
+       ledger.beneficiarynumber,ledger.plannedinvestment,ledger.selffund,ledger.gapfund,ledger.fromAddress,ledger.toAddress from(
+ 
+		select lpa.id as ledgerid,lpa.createDate,lpa.serialNumber,lpa.orgid,lpa.appealContent,lpa.name,lpa.responseGroupNo,lpa.mobileNumber from (select ledgerid
+	          from (select cstep.*,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep  where cstep.stateCode in (500,600,700,120)]]>
+	 <include refid="sql_select" />
+</select>
+
+<sql id="sql_poorPeople_select">
+		<dynamic>
+			<isNotNull property="poorType">  
+				<![CDATA[   and lpp.POORTYPE like '%'||#poorType#||'%' ]]>
+			</isNotNull>
+			
+			<isNotNull property="permanentAddress">  
+				<![CDATA[   and lpp.permanentAddress like  '%'||#permanentAddress#||'%' ]]>
+			</isNotNull>
+			
+			<isNotNull property="beginCreateDate">  
+				<![CDATA[   and lpp.createDate > #beginCreateDate# ]]>
+			</isNotNull> 
+			
+			<isNotNull property="endCreateDate">  
+				<![CDATA[   and lpp.createDate < #endCreateDate# ]]>
+			</isNotNull> 
+		</dynamic>
+	</sql>
+
+<select id="getPoorPeopleBaseSituation" parameterClass="map" resultMap="poorPeopleResult">
+	<![CDATA[select tt.createdate,tt.serialnumber,tt.orgid,tt.name,tt.mobileNumber,tt.permanentAddress,tt.gender,tt.birthDay,tt.memberNo,tt.poortype,tt.poorsource,
+        tt.securityType,tt.dealusername,tt.dealdescription from (
+		select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,t.* from(
+		select lpp.createdate,lpp.serialnumber,lpp.orgid,lpp.name,lpp.mobileNumber,lpp.permanentAddress,lpp.gender,lpp.birthDay,lpp.memberNo,lpp.poortype,lpp.poorsource,
+        lpp.securityType,istep.ledgerid from(select ledgerid
+	          from (select cstep.ledgerid,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep where cstep.stateCode in (500,600,700,120)]]>
+	    <include refid="sql_findJurisdictions_leaderView" />
+	<![CDATA[ ) where rnk=1)  istep,ledgerPoorPeople lpp where istep.ledgerId = lpp.id]]>
+	 	<include refid="sql_poorPeople_select" />
+    <![CDATA[ ) t,platformaccountlogs lg where t.ledgerid = lg.ledgerid and lg.ledgerType = #issueType#
+		) tt where tt.rnk = 1 ]]>
+</select>
+
+<sql id="sql_steadyWork_select">
+		<dynamic>
+			<isNotNull property="steadyWorkType">  
+				<![CDATA[   and lsw.steadyWorkType = #steadyWorkType# ]]>
+			</isNotNull>
+			
+			<isNotNull property="steadyWorkWarnLevel">  
+				<![CDATA[   and lsw.STEADYWORKWARNLEVEL = #steadyWorkWarnLevel# ]]>
+			</isNotNull>
+			
+			<isNotNull property="involvingSteadyInfo">  
+				<![CDATA[   and lsw.INVOLVINGSTEADYINFO like  '%'||#involvingSteadyInfo#||'%' ]]>
+			</isNotNull>
+			
+			<isNotNull property="beginCreateDate">  
+				<![CDATA[   and lsw.createDate > #beginCreateDate# ]]>
+			</isNotNull> 
+			
+			<isNotNull property="endCreateDate">  
+				<![CDATA[   and lsw.createDate < #endCreateDate# ]]>
+			</isNotNull> 
+		</dynamic>
+	</sql>
+
+<select id="getSteadyWorkBaseSituation" parameterClass="map" resultMap="steadyWorkResult">
+	<![CDATA[select tt.createdate,tt.serialnumber,tt.orgid,tt.steadyWorkWarnLevel,tt.serverContractor,tt.mobileNumber,tt.involvingSteadyNum,tt.name,tt.idCardNo,tt.occurorgId,
+       tt.involvingSteadyInfo,tt.steadyWorkType,tt.steadyWorkProblemType,tt.Dealusername,tt.dealdescription from(
+		select row_number()over(partition by lg.ledgerId order by lg.id desc ) as rnk,lg.Dealusername,lg.dealdescription,t.* from(
+		select lsw.createdate,lsw.serialnumber,lsw.orgid,lsw.steadyWorkWarnLevel,lsw.serverContractor,lsw.mobileNumber,lsw.involvingSteadyNum,lsw.name,lsw.idCardNo,lsw.occurorgId,
+       lsw.involvingSteadyInfo,lsw.steadyWorkType,lsw.steadyWorkProblemType,istep.ledgerid from(select ledgerid
+	          from (select cstep.ledgerid,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id desc ) as rnk
+              from platformAccountSteps cstep where cstep.stateCode in (500,600,700,120)]]>
+	          <include refid="sql_findJurisdictions_leaderView" />
+	           <![CDATA[ ) where rnk=1)  istep,ledgersteadywork lsw where istep.ledgerId = lsw.id]]>
+            <include refid="sql_steadyWork_select" />    
+	<![CDATA[) t,platformaccountlogs lg where t.ledgerid = lg.ledgerid and lg.ledgerType = #issueType#
+	)tt where tt.rnk = 1]]>
+</select>
+
+</sqlMap>

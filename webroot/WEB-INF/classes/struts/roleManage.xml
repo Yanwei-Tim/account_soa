@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="roleManage" extends="default"
+		namespace="/sysadmin/roleManage">
+		<default-class-ref class="roleManageController"></default-class-ref>
+		<action name="roleList"
+			method="findRolesByUseInLevel">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="prepareRole"
+			method="prepareRole">
+			<result name="success" type="freemarker">/sysadmin/roleManage/maintainRoleDlg.ftl</result>
+		</action>
+		<action name="roleDetail"
+			method="prepareRole">
+			<result name="success" type="freemarker">/sysadmin/roleManage/roleDetailDlg.ftl</result>
+		</action>		
+		<action name="validateRoleName"
+			method="validateRoleName">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>		
+		</action>		
+		<action name="updateRole"
+			method="updateRole">
+			<result  name="success" type="json">
+				<param name="root">role</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>		
+		</action>	
+		<action name="addRole"
+			method="addRole">
+			<result  name="success" type="json">
+				<param name="root">role</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="copyRole"
+			method="copyRole">
+			<result name="success" type="json">
+				<param name="root">role</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>	
+		</action>
+		<action name="deleteRole"
+			method="deleteRole">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="preparePermissionTree"
+			method="preparePermissionTree">
+			<result  name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="excludeNullProperties">true</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+				
+		<action name="valideteUseInLevel"
+			method="valideteUseInLevel">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>		
+		</action>	
+		<action name="checkWorkBenchType"
+			method="checkWorkBenchType">
+			<result name="success">/newWorkBench/workBenchTabList.jsp</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+	</package>
+</struts>

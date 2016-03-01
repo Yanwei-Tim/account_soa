@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="globalSettingManage" extends="default"
+		namespace="/sysadmin/globalSettingManage">
+		<default-class-ref class="globalSettingController"></default-class-ref>
+
+		<action name="dispatch" method="dispatch">
+			<result name="sysHeaderAndBottomPage">
+				/sysadmin/sysGlobalSetting/maintainHeaderAndBottomPage.jsp
+			</result>
+			<result name="fileDirectory">
+				/sysadmin/sysGlobalSetting/maintainFileDirectory.jsp
+			</result>
+			<result name="pluginSettings">
+				/sysadmin/sysGlobalSetting/maintainPluginSettings.jsp
+			</result>
+			<result name="mobileVersion">
+				/sysadmin/sysGlobalSetting/maintainMobileVersion.jsp
+			</result>
+			<result name="loginPageImage">
+				/sysadmin/sysGlobalSetting/maintainLoginPage.jsp
+			</result>
+			<result name="simpleRelease">
+				/sysadmin/sysGlobalSetting/maintainSimpleRelease.jsp
+			</result>
+			<result name="gridParams">
+				/sysadmin/sysGlobalSetting/maintainGridParams.jsp
+			</result>
+			<result name="organizationDeparmentNoSettings">
+				/sysadmin/sysGlobalSetting/maintainOrganizationUpload.jsp
+			</result>
+			<result name="personInfoChangeLevel">
+				/sysadmin/sysGlobalSetting/maintainPersonInfoChangeLevel.jsp
+			</result>
+			<result name="baseInfoRestrict">
+				/sysadmin/sysGlobalSetting/maintainBaseInfoRestrict.jsp
+			</result>
+			<result name="platformMessage">
+				/sysadmin/sysGlobalSetting/maintainPlatformMessage.jsp
+			</result>
+		</action>
+
+		<action name="updateGlobalLoginSetting" method="updateGlobalLoginSetting">
+		</action>
+		<action name="resetGlobalLoginSetting" method="resetGlobalLoginSetting">
+		</action>
+		<action name="updateGlobalSetting" method="updateGlobalSetting">
+			<result name="success" type="json">
+				<param name="root">map</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateFileDirectorySetting" method="updateFileDirectorySetting">
+			<result name="success" type="json">
+				<param name="root">map</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateMobileVersion" method="updateMobileVersion">
+			<result name="success" type="json">
+				<param name="root">map</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+	</package>
+</struts>

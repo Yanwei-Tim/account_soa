@@ -1,0 +1,699 @@
+package com.tianque.plugin.account.service.impl;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.util.DateUtil;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.property.PropertyTypes;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.plugin.account.constants.CompleteType;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueTag;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueViewType;
+import com.tianque.plugin.account.dao.LedgerSteadyWorkComprehensiveDao;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.service.LedgerSteadyWorkComprehensiveService;
+import com.tianque.plugin.account.service.ThreeRecordsIssueLogService;
+import com.tianque.plugin.account.state.ThreeRecordsIssueOperate;
+import com.tianque.plugin.account.state.ThreeRecordsIssueState;
+import com.tianque.plugin.account.util.ComparisonAttribute;
+import com.tianque.plugin.account.util.ThreeRecordsIssueOperationUtil;
+import com.tianque.plugin.account.vo.LedgerPeopleSubstanceDesc;
+import com.tianque.plugin.account.vo.LedgerSteadyWorkVo;
+import com.tianque.plugin.account.vo.LedgerStedayWorkDetail;
+import com.tianque.plugin.account.vo.SearchComprehensiveVo;
+import com.tianque.plugin.account.vo.ThreeRecordsViewObject;
+import com.tianque.userAuth.api.OrganizationDubboRemoteService;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+
+@Service("ledgerSteadyWorkComprehensiveService")
+@Transactional
+public class LedgerSteadyWorkComprehensiveServiceImpl implements
+		LedgerSteadyWorkComprehensiveService {
+	
+	@Autowired
+	private OrganizationDubboRemoteService organizationDubboService;
+	@Autowired
+	private LedgerSteadyWorkComprehensiveDao comprehensiveDao;
+	@Autowired
+	private ThreeRecordsIssueLogService issueLogService;
+	@Autowired
+	private PropertyDictDubboService propertyDictDubboService;
+	
+	private List<Organization> getOrgs(List<Long> orgIds){
+		List<Organization> orgs = new ArrayList<Organization>();
+		for(Long orgId : orgIds){
+			Organization org = organizationDubboService.getFullOrgById(orgId);
+			orgs.add(org);
+		}
+		return orgs;
+	}
+	
+	private List<Long> getChildIds(List<Organization> orgs){
+		List<Long> childOrg = new ArrayList<Long>();
+		for(Organization org : orgs){
+			List<Long> childIds = ComparisonAttribute.getOrgIds(organizationDubboService.findOrganizationsByParentId(org.getId()));
+			if(childIds != null && !childIds.isEmpty()){
+				childOrg.addAll(childIds);
+			}
+		}
+		return childOrg;
+	}
+	
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsNeedDo(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Long functionalorgType,
+			Integer viewProcess, int supportType) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsNeedDo(searchVo, orgs, childOrg, page, rows, functionalorgType, viewProcess, supportType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+	
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsDone(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsDone(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if(StringUtil.isStringAvaliable(searchVo.getDetailDoneType()) && !searchVo.getDetailDoneType().equals(CompleteType.ALL_QUERY)){
+			pageInfo = getDeatilIssues(searchVo, page, rows, pageInfo);
+		}
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsAssgin(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsAssgin(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsFeedBack(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo =comprehensiveDao.findJurisdictionsFeedBack(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsPeriodDone(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsPeriodDone(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if(StringUtil.isStringAvaliable(searchVo.getDetailDoneType()) && !searchVo.getDetailDoneType().equals(CompleteType.ALL_QUERY)){
+			pageInfo = getDeatilIssues(searchVo, page, rows, pageInfo);
+		}
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSubstanceDone(SearchComprehensiveVo searchVo, 
+			List<Long> orgIds, Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsSubStanceDone(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if(StringUtil.isStringAvaliable(searchVo.getDetailDoneType()) && !searchVo.getDetailDoneType().equals(CompleteType.ALL_QUERY)){
+			pageInfo = getDeatilIssues(searchVo, page, rows, pageInfo);
+		}
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSubmit(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsSubmit(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsCreateAndDone(SearchComprehensiveVo searchVo, 
+			List<Long> orgIds, Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsCreateAndDone(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+	
+	private void orgIsFun(List<Organization> orgs, SearchComprehensiveVo searchVo){
+		for(Organization org : orgs){
+			org.setOrgType(propertyDictDubboService.getPropertyDictById(org.getOrgType().getId()));
+			if(ThreeRecordsIssueOperationUtil.orgIsFunctional(org)){
+				searchVo.setSearchValue("present");
+				break;
+			}
+		}
+	}
+	
+	private PageInfo<LedgerSteadyWorkVo> getDeatilIssues(SearchComprehensiveVo searchVo, Integer page, Integer rows, 
+			PageInfo<LedgerSteadyWorkVo> result){
+		List<LedgerSteadyWorkVo> list = new ArrayList<LedgerSteadyWorkVo>();
+		for(LedgerSteadyWorkVo issue : result.getResult()){
+			List<ThreeRecordsIssueLogNew> logs = issueLogService.getLogsByStepId(issue.getStepId());
+			for(ThreeRecordsIssueLogNew log : logs){
+				if(log.getDealDescription().contains(searchVo.getDetailDoneType())){
+					list.add(issue);
+					break;
+				}
+			}
+		}
+		PageInfo<LedgerSteadyWorkVo> results = createIssueVoPageInfoInstance(list.size(), rows, page);
+		results.setResult(list);
+		return results;
+	}
+	
+	private PageInfo<LedgerSteadyWorkVo> createIssueVoPageInfoInstance(
+			int totalRecord, int pageSize, int pageIndex) {
+		PageInfo<LedgerSteadyWorkVo> result = new PageInfo<LedgerSteadyWorkVo>();
+		result.setTotalRowSize(totalRecord);
+		result.setCurrentPage(pageIndex);
+		result.setPerPageSize(pageSize);
+		return result;
+	}
+	
+	private void loadIssueOccurOrgAndCurrentOrgAndIssueTypes(
+			PageInfo<LedgerSteadyWorkVo> pageInfo) {
+		if (null != pageInfo.getResult() && pageInfo.getResult().size() > 0) {
+			for (LedgerSteadyWorkVo ivo : pageInfo.getResult()) {
+				ivo.setOccurOrg(organizationDubboService.getSimpleOrgById(ivo
+						.getOccurOrg() == null ? null : ivo.getOccurOrg()
+						.getId()));
+				ivo.setCurrentOrg(organizationDubboService.getSimpleOrgById(ivo
+						.getCurrentOrg() == null ? null : ivo.getCurrentOrg()
+						.getId()));
+				ivo.setCreateOrg(organizationDubboService.getSimpleOrgById(ivo
+						.getCreateOrg() == null ? null : ivo.getCreateOrg()
+						.getId()));
+			}
+		}
+	}
+	
+	@Override
+	public Integer countPoorPeopleCreateAndDone(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows){
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		return comprehensiveDao.exportCountCreateAndDone(searchVo, orgs, childOrg, page, rows);
+	}
+	@Override
+	public PageInfo<ThreeRecordsViewObject> exportPoorPeopleCreateAndDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page, Integer rows){
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		return comprehensiveDao.exportCreateAndDone(searchVo, orgs, childOrg, page, rows);
+	}
+	
+	@Override
+	public Map<Integer, BigDecimal> getSteadyWorkDetail(SearchComprehensiveVo searchVo, Organization org){
+		Map<String, Object> map = new HashMap<String, Object>();
+		initMap(map, searchVo, org);
+		Map<Integer, BigDecimal> rMap = new HashMap<Integer, BigDecimal>();
+		for(int i = 1; i <= 124; i++){
+			rMap.put(i, new BigDecimal(0));
+		}
+		List<LedgerStedayWorkDetail> wList = comprehensiveDao.getCountGroupBySteadyWorkWarnLevel(map);
+		List<LedgerStedayWorkDetail> sList = comprehensiveDao.getCountGroupBySteadyWorkType(map);
+		List<PropertyDict> steadyWorkTypes = propertyDictDubboService.findPropertyDictByDomainName(PropertyTypes.STEADY_RECORD_WORK_TYPE);
+		List<PropertyDict> warnLevelTypes = propertyDictDubboService.findPropertyDictByDomainName(PropertyTypes.STEADY_RECORD_WORK_WARN_LEVEL);
+		int jCount = 0,rCount = 0,sCount = 0,lCount = 0,hCount = 0,cCount = 0,hoCount = 0;
+		for(LedgerStedayWorkDetail s : wList){
+			if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("涉法涉诉")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(8, new BigDecimal(s.getCount()));
+				rMap.put(9, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(11, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(12, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(13, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(14, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("林水土")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(15, new BigDecimal(s.getCount()));
+				rMap.put(16, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(18, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(19, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(20, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(21, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("惠农政策及村（社区）政务、财务")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(22, new BigDecimal(s.getCount()));
+				rMap.put(23, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(25, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(26, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(27, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(28, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("民政问题")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(29, new BigDecimal(s.getCount()));
+				rMap.put(30, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(32, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(33, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(34, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(35, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("人口与医疗卫生")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(36, new BigDecimal(s.getCount()));
+				rMap.put(37, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(39, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(40, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(41, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(42, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("劳动保障")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(43, new BigDecimal(s.getCount()));
+				rMap.put(44, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(46, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(47, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(48, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(49, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("交通运输")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(50, new BigDecimal(s.getCount()));
+				rMap.put(51, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(53, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(54, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(55, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(56, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("城建及综合执法")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(57, new BigDecimal(s.getCount()));
+				rMap.put(58, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(60, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(61, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(62, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(63, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("党纪政纪")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(64, new BigDecimal(s.getCount()));
+				rMap.put(65, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(67, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(68, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(69, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(70, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("教育")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(71, new BigDecimal(s.getCount()));
+				rMap.put(72, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(74, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(75, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(76, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(77, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("企业改制")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(78, new BigDecimal(s.getCount()));
+				rMap.put(79, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(81, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(82, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(83, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(84, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("环境保护")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(85, new BigDecimal(s.getCount()));
+				rMap.put(86, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(88, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(89, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(90, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(91, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("组织人事")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(92, new BigDecimal(s.getCount()));
+				rMap.put(93, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(95, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(96, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(97, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(98, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("其他稳定工作")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(99, new BigDecimal(s.getCount()));
+				rMap.put(100, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(102, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(103, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(104, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(105, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("重点人员")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(106, new BigDecimal(s.getCount()));
+				rMap.put(107, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(109, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(110, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(111, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(112, new BigDecimal(s.getCount()));
+				}
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("其他")){
+				jCount = jCount + s.getCount();
+				rCount = rCount + s.getResponseGroupNo();
+				rMap.put(113, new BigDecimal(s.getCount()));
+				rMap.put(114, new BigDecimal(s.getResponseGroupNo()));
+				if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("蓝色")){
+					lCount = lCount + s.getCount();
+					rMap.put(116, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("黄色")){
+					hCount = hCount + s.getCount();
+					rMap.put(117, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("橙色")){
+					cCount = cCount + s.getCount();
+					rMap.put(118, new BigDecimal(s.getCount()));
+				}else if(getDisplayName(warnLevelTypes, s.getSteadyWorkWarnLevel()).equals("红色")){
+					hoCount = hoCount + s.getCount();
+					rMap.put(119, new BigDecimal(s.getCount()));
+				}
+			}
+		}
+		rMap.put(1, new BigDecimal(jCount));
+		rMap.put(2, new BigDecimal(rCount));
+		rMap.put(4, new BigDecimal(lCount));
+		rMap.put(5, new BigDecimal(hCount));
+		rMap.put(6, new BigDecimal(cCount));
+		rMap.put(7, new BigDecimal(hoCount));
+		for(LedgerStedayWorkDetail s : sList){
+			sCount = sCount + s.getCount();
+			if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("涉法涉诉")){
+				rMap.put(10, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("林水土")){
+				rMap.put(17, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("惠农政策及村（社区）政务、财务")){
+				rMap.put(24, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("民政问题")){
+				rMap.put(31, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("人口与医疗卫生")){
+				rMap.put(38, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("劳动保障")){
+				rMap.put(45, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("交通运输")){
+				rMap.put(52, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("城建及综合执法")){
+				rMap.put(59, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("党纪政纪")){
+				rMap.put(66, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("教育")){
+				rMap.put(73, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("企业改制")){
+				rMap.put(80, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("环境保护")){
+				rMap.put(87, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("组织人事")){
+				rMap.put(94, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("其他稳定工作")){
+				rMap.put(101, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("重点人员")){
+				rMap.put(108, new BigDecimal(s.getCount()));
+			}else if(getDisplayName(steadyWorkTypes, s.getSteadyWorkType()).equals("其他")){
+				rMap.put(115, new BigDecimal(s.getCount()));
+			}
+		}
+		rMap.put(3, new BigDecimal(sCount));
+		
+		List<LedgerPeopleSubstanceDesc> sDescs = comprehensiveDao.getCountGroupByDesc(map);
+		for(LedgerPeopleSubstanceDesc sDesc : sDescs){
+			if(sDesc.getDealdescription().trim().equals(CompleteType.REALCOMPLETE_SOLVE_NAME)){//实质性化解
+				rMap.put(120, new BigDecimal(sDesc.getCount()));
+			}else if(sDesc.getDealdescription().trim().equals(CompleteType.PROGRAM_COMPLETE_NAME)){//程序性终结
+				rMap.put(121, new BigDecimal(sDesc.getCount()));
+			}else if(sDesc.getDealdescription().trim().equals(CompleteType.COMPLETE_NAME)){//实质性终结 
+				rMap.put(122, new BigDecimal(sDesc.getCount()));
+			}
+		}
+		
+		List<String> cList = new ArrayList<String>();
+		cList.add(map.get("orgCode").toString());
+		map.put("orgCode", cList);
+		rMap.put(123, new BigDecimal(comprehensiveDao.getJurisdictionsDone(map)));//程序性办结
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		rMap.put(124, new BigDecimal(comprehensiveDao.getJurisdictionsNeedDoCount(map)));//办理中
+		return rMap;
+	}
+	
+	
+	private String getDisplayName(List<PropertyDict> proTypes, int dId){
+		for(PropertyDict dict : proTypes){
+			if(dict.getId().longValue() == dId){
+				return dict.getDisplayName().trim();
+			}
+		}
+		return "";
+	}
+
+	private void initMap(Map<String, Object> map, SearchComprehensiveVo searchVo, Organization org){
+		map.put("orgCode", org.getOrgInternalCode());
+		if(searchVo.getLedgerType() != null){
+			map.put("issueType", searchVo.getLedgerType());
+		}
+		map.put("seachValue", "all");
+		if(searchVo.getBeginCreateDate() != null){
+			map.put("beginCreateDate", searchVo.getBeginCreateDate());
+		}
+		if(searchVo.getEndCreateDate() != null){
+			map.put("endCreateDate", DateUtil.getEndTime(searchVo.getEndCreateDate()));
+		}
+		if(searchVo.getSteadyWorkType() != null){
+			map.put("steadyWorkType", searchVo.getSteadyWorkType());
+		}
+		if(searchVo.getSteadyWorkWarnLevel() != null){
+			map.put("steadyWorkWarnLevel", searchVo.getSteadyWorkWarnLevel());
+		}
+		if(StringUtil.isStringAvaliable(searchVo.getInvolvingSteadyInfo())){
+			map.put("involvingSteadyInfo", searchVo.getInvolvingSteadyInfo());
+		}
+		map.put("isSupported", 0);
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		map.put("substanceCode", ThreeRecordsIssueState.SUBSTANCE_CODE);
+		map.put("issueTag", ThreeRecordsIssueTag.DONE_ISSUE);
+		map.put("complete", ThreeRecordsIssueOperate.COMPLETE_CODE);
+	}
+}

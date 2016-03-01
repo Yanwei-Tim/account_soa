@@ -1,0 +1,59 @@
+package com.tianque.plugin.account.constants;
+
+
+import javolution.util.FastMap;
+
+import java.util.Map;
+
+/**
+ * Created by daniel on 2015/10/26.
+ */
+public class LedgerMonthReportType {
+
+    public static final Map<Integer, String> REPORT_PEOPLEASPIRATION_TYPE = FastMap.newInstance();
+
+    public static final Map<Integer, String> REPORT_POORPEOPLE_TYPE = FastMap.newInstance();
+
+    public static final Map<Integer, String> REPORT_STEATY_TYPE = FastMap.newInstance();
+
+    static {
+
+        REPORT_PEOPLEASPIRATION_TYPE.put(1, "PEOPLEASPIRATION_TOTALS");/*民生-合计*/
+        REPORT_PEOPLEASPIRATION_TYPE.put(2, "PEOPLEASPIRATION_WATER");/*民生-水利*/
+        REPORT_PEOPLEASPIRATION_TYPE.put(3, "PEOPLEASPIRATION_TRAFFIC");/*民生-交通*/
+        REPORT_PEOPLEASPIRATION_TYPE.put(4, "PEOPLEASPIRATION_ENERGY");/*民生-能源*/
+        REPORT_PEOPLEASPIRATION_TYPE.put(5, "PEOPLEASPIRATION_EDUCATION");/*民生-教育*/
+        REPORT_PEOPLEASPIRATION_TYPE.put(6, "PEOPLEASPIRATION_SCIENCE");/*民生-科技问题*/
+        REPORT_PEOPLEASPIRATION_TYPE.put(7, "PEOPLEASPIRATION_MEDICAL");/*民生-医疗卫生*/
+        REPORT_PEOPLEASPIRATION_TYPE.put(8, "PEOPLEASPIRATION_LABOR");/*民生-劳动与社会保障*/
+        REPORT_PEOPLEASPIRATION_TYPE.put(9, "PEOPLEASPIRATION_ENVIRONMENT");/*民生-环境保护*/
+        REPORT_PEOPLEASPIRATION_TYPE.put(10, "PEOPLEASPIRATION_TOWN");/*民生-城乡规划建设与管理*/
+        REPORT_PEOPLEASPIRATION_TYPE.put(11, "PEOPLEASPIRATION_AGRICULTURE");/*民生-农业*/
+        REPORT_PEOPLEASPIRATION_TYPE.put(12, "PEOPLEASPIRATION_OTHER");/*民生-其他*/
+
+        REPORT_POORPEOPLE_TYPE.put(1, "POORPEOPLE_HOUSE");/*困难-住房*/
+        REPORT_POORPEOPLE_TYPE.put(2, "POORPEOPLE_LIFE");/*困难-生活*/
+        REPORT_POORPEOPLE_TYPE.put(3, "POORPEOPLE_MEDICAL");/*困难-医疗*/
+        REPORT_POORPEOPLE_TYPE.put(4, "POORPEOPLE_EMPLOYMENT");/*困难-就业*/
+        REPORT_POORPEOPLE_TYPE.put(5, "POORPEOPLE_SCHOOL");/*困难-就学*/
+        REPORT_POORPEOPLE_TYPE.put(6, "POORPEOPLE_OTHER");/*困难-其他*/
+
+        REPORT_STEATY_TYPE.put(1, "STEATY_INVOLVING_LAW");/*稳定-涉法涉诉*/
+        REPORT_STEATY_TYPE.put(2, "STEATY_SOIL_WATER");/*稳定-林水土*/
+        REPORT_STEATY_TYPE.put(3, "STEATY_GOVERNMENT_FINANCE");/*稳定-惠农政策及村（社区）政务财务*/
+        REPORT_STEATY_TYPE.put(4, "STEATY_CIVIL_AFFAIRS");/*稳定-民政问题*/
+        REPORT_STEATY_TYPE.put(5, "STEATY_POPULATION_TREATMENT");/*稳定-人口与医疗卫生*/
+        REPORT_STEATY_TYPE.put(6, "STEATY_LABOR_SECURITY");/*稳定-劳动保障*/
+        REPORT_STEATY_TYPE.put(7, "STEATY_TRANSPORTATION");/*稳定-交通运输*/
+        REPORT_STEATY_TYPE.put(8, "STEATY_URBAN_CONSTRUCTION");/*稳定-城建及综合执法*/
+        REPORT_STEATY_TYPE.put(9, "STEATY_PARTY");/*稳定-党纪政纪*/
+        REPORT_STEATY_TYPE.put(10, "STEATY_EDUCATION");/*稳定-教育*/
+        REPORT_STEATY_TYPE.put(11, "STEATY_ENTERPRISE");/*稳定-企业改制*/
+        REPORT_STEATY_TYPE.put(12, "STEATY_ENVIRONMENTAL_SCIENCE");/*稳定-环境保护*/
+        REPORT_STEATY_TYPE.put(13, "STEATY_ORGANIZATION");/*稳定-组织人事*/
+        REPORT_STEATY_TYPE.put(14, "STEATY_OTHER");/*稳定-其他类*/
+        REPORT_STEATY_TYPE.put(15, "STEATY_PEOPLE");/*稳定-重点人员*/
+        REPORT_STEATY_TYPE.put(16, "STEATY_OTHER_PEOPLE");/*稳定-其他*/
+    }
+
+}

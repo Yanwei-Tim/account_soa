@@ -1,0 +1,92 @@
+package com.tianque.plugin.account.dao;
+
+import java.util.List;
+
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.account.domain.BaseWorking;
+import com.tianque.plugin.account.domain.LedgerPoorPeople;
+import com.tianque.plugin.account.domain.LedgerSteadyWork;
+import com.tianque.plugin.account.vo.LedgerSteadyWorkVo;
+
+public interface LedgerSteadyWorkDao {
+
+	public LedgerSteadyWork getLedgerSteadyWorkById(Long id);
+
+	public Long addLedgerSteadyWork(LedgerSteadyWork ledgerSteadyWork);
+
+	public void updateLedgerSteadyWork(LedgerSteadyWork ledgerSteadyWork);
+
+	public void updateLedgerCurrentStepAndOrg(LedgerSteadyWork ledgerSteadyWork);
+
+	public void deleteLedgerSteadyWorkById(Long id);
+
+	public void deletePoorPeopleByIds(String[] ids);
+
+	/** 查询返回列表 */
+	// public PageInfo<LedgerSteadyWork> queryLedgerSteadyWorkForPageResult(
+	// Map<String, Object> map, int pageNum, int pageSize);
+
+	public LedgerSteadyWork findByIdCardNo(String idCardNo);
+
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsNeedDo(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord,
+			Long issueType, Long orgLevel, String leaderView,
+			Long functionalOrgType, Integer viewProcess, Long sourceType,
+			Integer isSupported);
+
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsDone(Organization org,
+			List<Long> childOrg, Integer page, Integer rows, String sidx,
+			String sord, Long issueType, Long orgLevel, String leaderView,
+			Long functionalOrgType, Integer viewProcess, Long sourceType);
+
+	public BaseWorking getSimpleBaseWorkByStepId(Long stepId);
+
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSubmit(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord,
+			Long issueType, Long orgLevel, String leaderView,
+			Long functionalOrgType, Integer viewProcess, Long sourceType);
+
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSubStanceDone(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord,
+			Long issueType, Long orgLevel, String leaderView,
+			Long functionalOrgType, Integer viewProcess, Long sourceType);
+
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsPeriodDone(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord,
+			Long issueType, Long orgLevel, String leaderView,
+			Long functionalOrgType, Integer viewProcess, Long sourceType);
+
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsFeedBack(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord,
+			Long issueType, Long orgLevel, String leaderView,
+			Long functionalOrgType, Integer viewProcess, Long sourceType);
+
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsAssgin(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord,
+			Long issueType, Long orgLevel, String leaderView,
+			Long functionalOrgType, Integer viewProcess, Long sourceType);
+
+	public List<LedgerSteadyWork> getLedgerSteadyWorkByHistoryId(String id);
+
+	/**
+	 * 更新稳定反馈信息状态
+	 * 
+	 * @param ledgerId
+	 * @param isFeedBack
+	 */
+	public void updateFeedBackStatus(Long ledgerId, int isFeedBack);
+
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsCreateAndDone(
+			String seachValue, Organization org, List<Long> childOrg,
+			Integer page, Integer rows, String sidx, String sord,
+			Long issueType, Long orgLevel, String leaderView,
+			Long functionalOrgType, Integer viewProcess, Long sourceType);
+
+}

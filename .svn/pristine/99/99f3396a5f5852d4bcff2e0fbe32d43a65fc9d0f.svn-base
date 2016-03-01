@@ -1,0 +1,193 @@
+package com.tianque.plugin.account.listener;
+
+import java.util.List;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.account.constants.CompleteType;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.domain.BaseWorking;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStep;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStepGroup;
+import com.tianque.plugin.account.service.ThreeRecordsIssueLogService;
+import com.tianque.plugin.account.service.ThreeRecordsIssueService;
+import com.tianque.plugin.account.state.ThreeRecordsIssueOperate;
+
+/**
+ * 保存台账的处理记录
+ */
+@Repository("threeRecordsSavingOperationLog")
+public class ThreeRecordsSavingOperationLog extends
+		ThreeRecordsNothingDoIssueChangeListener {
+	Logger logger = LoggerFactory
+			.getLogger(ThreeRecordsSavingOperationLog.class);
+	@Autowired
+	private ThreeRecordsIssueLogService threeRecordsIssueLogService;
+	@Autowired
+	protected ThreeRecordsIssueService threeRecordsIssueService;
+
+	@Override
+	public void onEntry(BaseWorking issue, ThreeRecordsIssueStep step) {
+		ThreeRecordsIssueLogNew log = new ThreeRecordsIssueLogNew();
+		log.setDealDescription("新增 信息");
+		log.setDealOrg(getCurrentLoginedOrganization());
+		log.setDealUserName(getCurrentLoginedUserName());
+		log.setMobile(ThreadVariable.getUser().getMobile());
+		log.setDealTime(step.getEntryDate());
+		log.setOperateTime(step.getEntryDate());
+		log.setCreateUser(getCurrentLoginedUserName());
+		log.setCreateDate(CalendarUtil.now());
+		log.setIssueStep(step);
+		log.setLedgerId(step.getLedgerId());
+		log.setLedgerType(step.getLedgerType());
+		if (StringUtils.isNotBlank(issue.getOldHistoryId())) {// 历史数据导入的特殊处理，不是当前的登录用户
+			if (issue.getCreateOrg() != null) {
+				log.setDealOrg(issue.getCreateOrg());
+			} else if (issue.getOccurOrg() != null) {
+				log.setDealOrg(issue.getOccurOrg());
+			} else {
+				Organization org;
+				try {
+					org = (Organization) BeanUtils.cloneBean(issue.getCreateOrg());
+					org.setOrgName("[系统导入]");
+					log.setDealOrg(org);
+				} catch (Exception e) {
+				}
+			}
+			log.setMobile("");
+			if (StringUtils.isNotBlank(issue.getServerContractor())) {
+				log.setDealUserName(issue.getServerContractor());
+			} else {
+				log.setDealUserName(log.getDealOrg().getOrgName());
+			}
+			if (StringUtils.isBlank(log.getDealUserName())) {
+				log.setDealUserName("[系统导入]");
+			}
+		}
+		threeRecordsIssueLogService.addLog(log);
+	}
+
+	@Override
+	public void onChanged(BaseWorking issue, ThreeRecordsIssueStepGroup steps,
+			ThreeRecordsIssueChangeEvent event) {
+		ThreeRecordsIssueLogNew log = event.getOperateLog();
+		if (currentOrgChanged(event)) {
+			log.setTargeOrg(steps.getKeyStep().getTarget());
+		}
+		log.setDealDescription(assembleDesc(steps, event.getOperate(), log
+				.getCompleteType()));
+		log.setIssueStep(steps.getKeyStep());
+		log.setLedgerId(issue.getId());
+		log.setLedgerType(issue.getLedgerType());
+		log = threeRecordsIssueLogService.addLog(log);
+		fillIssueAttachFile(issue, log, event.getOperateFiles());
+		threeRecordsIssueService.addIssueAttachFiles(event.getOperateFiles());
+	}
+
+	private String assembleDesc(ThreeRecordsIssueStepGroup steps,
+			ThreeRecordsIssueOperate operate, Integer completeType) {
+		StringBuilder sb = new StringBuilder();
+		StringBuilder support = new StringBuilder();
+		StringBuilder notice = new StringBuilder();
+		if ("上报".equals(operate.getDesc())) {
+			sb.append("上报 信息  至  ");
+		} else if ("受理".equals(operate.getDesc())) {
+			sb.append("受理 信息  ");
+		} else if ("新增".equals(operate.getDesc())) {
+			sb.append("新增信息  ");
+		} else if ("结案".equals(operate.getDesc())) {
+			sb.append("结案 信息  ");
+		} else if ("验证".equals(operate.getDesc())) {
+			sb.append("验证 信息  ");
+		} else if ("回退".equals(operate.getDesc())) {
+			sb.append("回退 信息  至   ");
+		} else if ("交办".equals(operate.getDesc())) {
+			sb.append("交办 信息  至   ");
+		} else if ("阅读".equals(operate.getDesc())) {
+			sb.append("阅读 信息  ");
+		} else if ("申报".equals(operate.getDesc())) {
+			sb.append("申报 信息 至  ");
+		} else if ("转办".equals(operate.getDesc())) {
+			sb.append("转办 信息 至 ");
+		} else if ("协助办理".equals(operate.getDesc())) {
+			sb.append("协助办理 信息  ");
+		} else {
+			String completeContent = completeType == null ? null : CompleteType
+					.getChineseName(completeType);
+			if (StringUtil.isStringAvaliable(completeContent)) {
+				sb.append(completeContent + "  ");
+			} else {
+				sb.append(operate.toString() + "  ");
+			}
+
+		}
+		if (!"结案".equals(operate.getDesc()) && completeType == null) {
+			sb.append(descNeedContainOrgName(operate) ? steps.getKeyStep()
+					.getTarget().getOrgName() : "");
+		}
+		if (steps != null && steps.hasIncidentalStep()) {
+
+			for (ThreeRecordsIssueStep step : steps.getIncidentalSteps()) {
+				if (step.getIsSupported() == LedgerConstants.OPERATE_TYPE_SUPPORT) {
+					support.append(step.getTarget().getOrgName()).append("、");
+				} else if (step.getIsSupported() == LedgerConstants.OPERATE_TYPE_NOTICE) {
+					notice.append(step.getTarget().getOrgName()).append("、");
+				}
+			}
+			if (support.toString().lastIndexOf('、') >= 0) {
+				support = support.replace(support.length() - 1, support
+						.length(), "");
+			}
+			if (notice.toString().lastIndexOf('、') >= 0) {
+				notice = notice.replace(notice.length() - 1, notice.length(),
+						"");
+			}
+			if (support.length() > 0) {
+				sb.append(" 由 ");
+				sb.append(support.toString());
+				sb.append(" 协助办理 信息  ");
+			}
+
+			if (notice.length() > 0) {
+				sb.append(" 并抄告给 ");
+				sb.append(notice.toString());
+			}
+		}
+		return sb.toString();
+	}
+
+	private boolean descNeedContainOrgName(ThreeRecordsIssueOperate operate) {
+		return !(ThreeRecordsIssueOperate.CONCEPT.equals(operate)
+				|| ThreeRecordsIssueOperate.CANCEL_HISTORIC.equals(operate)
+				|| ThreeRecordsIssueOperate.HISTORIC.equals(operate)
+				|| ThreeRecordsIssueOperate.CANCEL_URGENT.equals(operate)
+				|| ThreeRecordsIssueOperate.URGENT.equals(operate)
+				|| ThreeRecordsIssueOperate.CANCEL_SUPERVISE.equals(operate)
+				|| ThreeRecordsIssueOperate.COMMENT.equals(operate)
+				|| ThreeRecordsIssueOperate.READ.equals(operate) || ThreeRecordsIssueOperate.TMPCOMMENT
+				.equals(operate));
+	}
+
+	private void fillIssueAttachFile(BaseWorking issue,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		if (files != null && !files.isEmpty()) {
+			for (ThreeRecordsIssueAttachFile issueAttachFile : files) {
+				issueAttachFile.setIssueLog(log);
+				issueAttachFile.setLedgerId(log.getLedgerId());
+				issueAttachFile.setLedgerType(log.getLedgerType());
+			}
+		}
+
+	}
+}

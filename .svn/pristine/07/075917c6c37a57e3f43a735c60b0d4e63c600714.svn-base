@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+	
+<sqlMap namespace="ledgerReport">
+	<typeAlias alias="threeRecordsReportStatisticalVo"
+		type="com.tianque.plugin.account.vo.ThreeRecordsReportStatisticalVo" />
+	
+	<typeAlias alias="LedgerReportGroupCount"
+		type="com.tianque.plugin.account.domain.LedgerReportGroupCount" />
+		
+	<resultMap id="threeRecordsReportStatisticalVoResult" class="threeRecordsReportStatisticalVo">
+		<result property="waterResourceCount" column="waterResourceCount" />
+		<result property="trafficCount" column="trafficCount" />
+		<result property="educationCount" column="educationCount" />
+		<result property="healthMedicalCount" column="healthMedicalCount" />
+		<result property="resourcesAgriculturalCount" column="resourcesAgriculturalCount" />
+		<result property="energyCount" column="energyCount" />
+		<result property="socialLaborCount" column="socialLaborCount" />
+		<result property="environmentalProtectionCount" column="environmentalProtectionCount" />
+		<result property="planningAdviceManagementCount" column="planningAdviceManagementCount" />
+		<result property="scienceTechnologyCount" column="scienceTechnologyCount" />
+		<result property="otherResourcesCount" column="otherResourcesCount" />
+		<result property="ledgerPoorPeopleTotal" column="ledgerPoorPeopleTotal" />
+		<result property="steadyRecordWorkTotal" column="steadyRecordWorkTotal" />
+	</resultMap>	
+		
+	<resultMap id="reportGroupCountResult" class="LedgerReportGroupCount">
+		<result property="rowType.id" column="createtabletype" />
+		<result property="item.id" column="itemcategory" />
+		<result property="count" column="counts"/>
+		<result property="stateCode" column="stateCode"/>
+		<result property="ledgerType" column="ledgerType"/>
+	</resultMap>
+	
+	<sql id="sql_searchFuncOrgInfo">
+		<isEqual property="isSearchOrg" compareValue="1" prepend=" and ">
+			p.orgid in (select o.id from organizations o where 1=1
+			<isNotEmpty property="searchOrgCode" prepend=" and ">
+				o.orgInternalCode like #searchOrgCode# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="orgLevel" prepend=" and ">
+				o.orglevel =#orgLevel#
+			</isNotEmpty>
+			<isNotEmpty property="orgType" prepend=" and ">
+				o.orgtype=#orgType#
+			</isNotEmpty>
+			<isNotEmpty property="orgParentId" prepend=" and ">
+				o.parentId = #orgParentId#
+			</isNotEmpty>
+			)
+		</isEqual>
+	</sql>
+	
+	
+	
+	<sql id="sql_basesql">
+		<isPropertyAvailable property="orgId" prepend="and">
+		 	<![CDATA[ p.orgid = #orgId# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ p.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ p.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+	</sql>
+	
+	<!-- 按照 建表类型 和 项目类型 统计数据 -->
+	<sql id="sql_getReportGroupCount">
+		 <!-- 下级 或下级职能部门-->
+		 <isPropertyAvailable property="orgIdList" prepend="and">
+		 	 <isNotNull property="orgIdList">  
+			       <iterate property="orgIdList" open="p.orgid in (" conjunction="," close=")">  
+                     #orgIdList[]#  
+                   </iterate>  
+			 </isNotNull>  
+		 </isPropertyAvailable>
+	</sql>
+	
+   <!-- 按照 建表类型 和 项目类型 统计数据 -->
+	<select id="getReportGroupCount"  parameterClass="java.util.Map" resultMap="reportGroupCountResult">
+		<isEqual property="ledgerType" compareValue="2">
+		 select createtabletype as createtabletype,
+			   <!--  poorType as itemcategory,-->
+			    null as itemcategory,
+			   count(id) as counts,
+			   2 as ledgerType,
+			   null as stateCode
+		       from ledgerPoorPeople p
+		       where 1=1 
+		 <include refid="sql_searchFuncOrgInfo" />      
+		 <include refid="sql_getReportGroupCount" />
+		 <include refid="sql_basesql" />
+		  group by createtabletype,poorType
+		</isEqual>
+		
+			
+		<isEqual property="ledgerType" compareValue="3">
+			select createtabletype as createtabletype,
+			   steadyWorkType as itemcategory,
+			   count(id) as counts,
+			   3 as ledgerType,
+			   null as stateCode
+		  from ledgerSteadyWork p
+		 where 1=1 
+		 <include refid="sql_searchFuncOrgInfo" />      
+		 <include refid="sql_getReportGroupCount" />
+		 <include refid="sql_basesql" />
+		 group by createtabletype, steadyWorkType
+		</isEqual>
+		
+		<isEqual property="ledgerType" compareValue="1">
+			 select createtabletype as createtabletype,
+			   ledgerType as itemcategory,
+			   count(id) as counts,
+			   1 as ledgerType,
+			   null as stateCode
+		  from ledgerPeopleAspirations p
+		 where  1=1 
+		 <include refid="sql_searchFuncOrgInfo" />      
+		 <include refid="sql_getReportGroupCount" />
+		 <include refid="sql_basesql" />
+		 group by createtabletype,ledgerType
+		</isEqual>
+	
+	</select>
+
+	<!-- 按呈报、交办后的数据 -->
+	<sql id="sql_getSubmitSuperiorCount">
+		<isPropertyAvailable property="submit" prepend="and">
+		 	<![CDATA[ ps.submit = #submit#  ]]>
+		 </isPropertyAvailable>
+         <isPropertyAvailable property="assign" prepend="and">
+		 	<![CDATA[ ps.assign = #assign#  ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="stateCode" prepend="and">
+		 	<![CDATA[ ps.statecode = #stateCode# ]]>
+		 </isPropertyAvailable>
+		 <!-- 下级 -->
+		 <isPropertyAvailable property="orgIdList" prepend="and">
+		 	 <isNotNull property="orgIdList">  
+			       <iterate property="orgIdList" open=" p.orgid in (" conjunction="," close=")">  
+                     #orgIdList[]#  
+                   </iterate>  
+			 </isNotNull>  
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="targetInternalCode" prepend="and">
+		 	<![CDATA[ ps.TARGETINTERNALCODE like #targetInternalCode#||'%']]>
+		 </isPropertyAvailable>
+		 <!-- 源部门 -->
+		  <isPropertyAvailable property="source" prepend="and">
+		 	<![CDATA[ ps.SOURCE = #source#]]>
+		 </isPropertyAvailable>
+		 <!-- 目标处理部门 -->
+		  <isPropertyAvailable property="target" prepend="and">
+		 	<![CDATA[ ps.target = #target#]]>
+		 </isPropertyAvailable>
+	</sql>
+	
+	<!-- 按照 建表类型 和 项目类型和事件处理状态 统计数据 -->
+	<select id="getReportAccountStepsCount"  parameterClass="java.util.Map" resultMap="reportGroupCountResult">
+		<isEqual property="ledgerType" compareValue="2">
+		 select count(pro.id) as counts, 
+		         pro.statecode as stateCode,
+		       <!--    pro.poorType as itemcategory,-->
+		          null as itemcategory,
+		         2 as ledgerType,
+		         pro.ledgertype as createtabletype from 
+          (select p.poorType,p.id,ps.ledgertype as ledgertype,ps.statecode from 
+          ledgerpoorpeople p left join platformAccountSteps ps on ps.ledgerType = p.ledgertype 
+          and ps.ledgerid = p.id where ps.id in (select MAX(id) from platformAccountSteps group by ledgerid,ledgerType)  
+		  <include refid="sql_searchFuncOrgInfo" />      
+		  <include refid="sql_getSubmitSuperiorCount" />
+		  <include refid="sql_basesql" />
+          ) pro 
+          group by pro.poorType,pro.ledgertype,pro.statecode
+		</isEqual>
+		
+			
+		<isEqual property="ledgerType" compareValue="3">
+		  select count(pro.id) as counts, 
+		         pro.statecode as stateCode,
+		         pro.steadyWorkType as itemcategory,
+		         3 as ledgerType,
+		         pro.ledgertype as createtabletype from 
+          (select p.steadyWorkType,p.id,ps.ledgertype,ps.statecode from 
+          ledgerSteadyWork p left join platformAccountSteps ps on ps.ledgerType = p.ledgertype 
+          and ps.ledgerid = p.id where ps.id in (select MAX(id) from platformAccountSteps group by ledgerid,ledgerType) 
+         <include refid="sql_searchFuncOrgInfo" />      
+         <include refid="sql_getSubmitSuperiorCount" />
+         <include refid="sql_basesql" />
+          ) pro 
+          group by pro.steadyWorkType,pro.ledgertype,pro.statecode
+		</isEqual>
+		
+		<isEqual property="ledgerType" compareValue="1">
+			 select count(pro.id) as counts, 
+		         pro.statecode as stateCode,
+		         pro.ledgertype as itemcategory,
+		         1 as ledgerType,
+		         pro.ledgertype as createtabletype from 
+          (select p.id,ps.ledgertype,ps.statecode from 
+          ledgerPeopleAspirations p left join platformAccountSteps ps on ps.ledgerType = p.ledgertype 
+          and ps.ledgerid = p.id where ps.id in (select MAX(id) from platformAccountSteps group by ledgerid,ledgerType)
+          <include refid="sql_searchFuncOrgInfo" />   
+          <include refid="sql_getSubmitSuperiorCount" />
+          <include refid="sql_basesql" />
+          ) pro 
+          group by pro.ledgertype,pro.statecode
+		</isEqual>
+	</select>
+	
+	<!-- 新的统计方法 -->
+	
+	<!-- 按呈报、交办后的数据 -->
+	<sql id="sql_getStateCodeCount">
+		 <!-- 下级 -->
+		  <isPropertyAvailable property="orgIdList" prepend="and">
+		 	 <isNotNull property="orgIdList">  
+			       <iterate property="orgIdList" open="p.orgid in (" conjunction="," close=")">  
+                     #orgIdList[]#  
+                   </iterate>  
+			 </isNotNull>  
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="levelReportedStateCode" prepend="and">
+		 	<![CDATA[ p.id in (select pal.ledgerid from platformAccountLogs pal where pal.ledgertype = p.ledgertype and pal.dealdescription like '%'||#levelReportedStateCode#||'%' ]]>
+		 	  <isPropertyAvailable property="levelReportedTarget" prepend="and">
+		 	      <![CDATA[ pal.targeorgid = #levelReportedTarget# ]]>
+		 	    </isPropertyAvailable>
+		 	    <isPropertyAvailable property="levelReportedDeal" prepend="and">
+		 	      <![CDATA[ pal.dealorgid = #levelReportedDeal# ]]>
+		 	    </isPropertyAvailable>
+		 	 <![CDATA[ group by pal.ledgerid) ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="acceptanceStateCode" prepend="and">
+		 	<![CDATA[ p.id in (select pal.ledgerid from platformAccountLogs pal where pal.ledgertype = p.ledgertype and  pal.dealdescription like '%'||#acceptanceStateCode#||'%'  ]]>
+		 	    <isPropertyAvailable property="acceptanceTarget" prepend="and">
+		 	      <![CDATA[ pal.targeorgid = #acceptanceTarget# ]]>
+		 	    </isPropertyAvailable>
+		 	    <isPropertyAvailable property="acceptanceDeal" prepend="and">
+		 	      <![CDATA[ pal.dealorgid = #acceptanceDeal# ]]>
+		 	    </isPropertyAvailable>
+		 	 <![CDATA[   group by pal.ledgerid) ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endStateCode" prepend="and">
+		 	<![CDATA[ p.id in (select pal.ledgerid from platformAccountLogs pal where pal.ledgertype = p.ledgertype and  pal.dealdescription like '%'||#endStateCode#||'%' ]]>
+		 	  <isPropertyAvailable property="endTarget" prepend="and">
+		 	      <![CDATA[ pal.targeorgid = #endTarget# ]]>
+		 	    </isPropertyAvailable>
+		 	    <isPropertyAvailable property="endDeal" prepend="and">
+		 	      <![CDATA[ pal.dealorgid = #endDeal# ]]>
+		 	    </isPropertyAvailable>
+		 	 <![CDATA[ group by pal.ledgerid) ]]>
+		 </isPropertyAvailable>
+	</sql>
+	
+	<!-- 按照状态 统计数据 -->
+	<select id="getStateCodeCount"  parameterClass="java.util.Map" resultMap="reportGroupCountResult">
+		<isEqual property="ledgerType" compareValue="2">
+		 select createtabletype as createtabletype,
+			   <!-- poorType as itemcategory, -->
+			   null as itemcategory,
+			   count(id) as counts,
+			   2 as ledgerType,
+			   null as stateCode
+		       from ledgerPoorPeople p
+		       where 1=1 
+		       <include refid="sql_searchFuncOrgInfo" />   
+               <include refid="sql_getStateCodeCount" />
+               <include refid="sql_basesql" />
+		  group by createtabletype,poorType
+		</isEqual>
+			
+		<isEqual property="ledgerType" compareValue="3">
+			select createtabletype as createtabletype,
+			   steadyWorkType as itemcategory,
+			   count(id) as counts,
+			   3 as ledgerType,
+			   null as stateCode
+		  from ledgerSteadyWork p
+		 where 1=1 
+		 <include refid="sql_searchFuncOrgInfo" />   
+		 <include refid="sql_getStateCodeCount" />
+		 <include refid="sql_basesql" />
+		 group by createtabletype, steadyWorkType
+		</isEqual>
+		
+		<isEqual property="ledgerType" compareValue="1">
+			 select createtabletype as createtabletype,
+			   ledgerType as itemcategory,
+			   count(id) as counts,
+			   1 as ledgerType,
+			   null as stateCode
+		  from ledgerPeopleAspirations p
+		 where  1=1 
+		 <include refid="sql_searchFuncOrgInfo" />   
+		 <include refid="sql_getStateCodeCount" />
+		 <include refid="sql_basesql" />
+		 group by createtabletype,ledgerType
+		</isEqual>
+	</select>
+	
+	
+	<!--三本台账报表更改9-1 王超-->
+	<select id="getThreeAccountReportForVillage"  parameterClass="java.util.Map" resultMap="threeRecordsReportStatisticalVoResult">
+		select 
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#water#  and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)waterResourceCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#traffic# and l.createdate<![CDATA[<]]>#endDate#
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)trafficCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#education# and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)educationCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#medical# and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)healthMedicalCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#agriculture# and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)resourcesAgriculturalCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#energy# and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)energyCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#labor# and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)socialLaborCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#environment#  and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)environmentalProtectionCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#town# and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)planningAdviceManagementCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#science#  and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)scienceTechnologyCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#other#  and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)otherResourcesCount,
+		
+		(
+		select count(l.id) from ledgerpoorpeople l where  l.createdate<![CDATA[<]]>#endDate#
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)ledgerPoorPeopleTotal,
+		
+		(
+		select count(l.id) from ledgersteadywork l where l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		)steadyRecordWorkTotal
+		from dual
+	</select>	
+	
+	<select id="getJurisdictionAccout" parameterClass="java.util.Map" resultMap="threeRecordsReportStatisticalVoResult">
+		select 
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#water# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)waterResourceCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#traffic# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)trafficCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#education# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)educationCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#medical# and   l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)healthMedicalCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#agriculture# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)resourcesAgriculturalCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#energy#  and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)energyCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#labor# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)socialLaborCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#environment# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)environmentalProtectionCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#town# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)planningAdviceManagementCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#science#  and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)scienceTechnologyCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#other# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)otherResourcesCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpoorpeople l where  l.createdate<![CDATA[<]]>#endDate#  and l.orgId=org.id group by l.orgId
+		)ledgerPoorPeopleTotal,
+		
+		(
+		select sum(count(l.id)) from ledgersteadywork l where l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)steadyRecordWorkTotal
+		
+		from organizations org where org.orgType=#orgType# and org.orglevel = #orgLevel# and org.ORGINTERNALCODE like #orgCode# || '%'
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</sqlMap>

@@ -1,0 +1,193 @@
+package com.tianque.plugin.account.domain;
+
+import java.util.Date;
+
+import org.apache.struts2.json.annotations.JSON;
+
+import com.tianque.core.base.BaseDomain;
+import com.tianque.domain.Organization;
+
+public class LedgerConvert extends BaseDomain {
+	/*
+	 * 事件类型名称(事件大类+"-"+事件小类名称+)
+	 */
+	private String issueTypeName;
+	/** 事件名称 */
+	private String issueName;
+	/** 发生网格(OCCURORGID) */
+	private Organization occurOrg;
+	/** 发生网格(OCCURORGINTERNALCODE) */
+	private String occurOrgInternalCode;
+
+	/** 创建网格 */
+	private Organization createOrg;
+	/** 创建网格 */
+	private String createOrgInternalCode;
+
+	/** 发生时间 */
+	private Date occurDate;
+	/* 事件编号* */
+	private Long issueId;
+	/* 事件编码* */
+	private String serialNumber;
+	/* 当事人姓名* */
+	private String name;
+	/* 当事人电话* */
+	private String mobile;
+	/* 事件简述* */
+	private String description;
+	/* 转入状态* */
+	private Integer status;
+	/*
+	 * 三本台账编号
+	 */
+	private Long ledgerId;
+	/*
+	 * 三本台账类型
+	 */
+	private Integer ledgerType;
+
+	/*
+	 * 三本台账编号
+	 */
+	private String ledgerSerialNumber;
+	/** 转换时间 （台账新建时间）*/
+	private Date convertDate;
+
+	public String getIssueTypeName() {
+		return issueTypeName;
+	}
+
+	public void setIssueTypeName(String issueTypeName) {
+		this.issueTypeName = issueTypeName;
+	}
+
+	public String getIssueName() {
+		return issueName;
+	}
+
+	public void setIssueName(String issueName) {
+		this.issueName = issueName;
+	}
+
+	public Organization getOccurOrg() {
+		return occurOrg;
+	}
+
+	public void setOccurOrg(Organization occurOrg) {
+		this.occurOrg = occurOrg;
+	}
+
+	public String getOccurOrgInternalCode() {
+		return occurOrgInternalCode;
+	}
+
+	public void setOccurOrgInternalCode(String occurOrgInternalCode) {
+		this.occurOrgInternalCode = occurOrgInternalCode;
+	}
+
+	public Organization getCreateOrg() {
+		return createOrg;
+	}
+
+	public void setCreateOrg(Organization createOrg) {
+		this.createOrg = createOrg;
+	}
+
+	public String getCreateOrgInternalCode() {
+		return createOrgInternalCode;
+	}
+
+	public void setCreateOrgInternalCode(String createOrgInternalCode) {
+		this.createOrgInternalCode = createOrgInternalCode;
+	}
+	@JSON(format = "yyyy-MM-dd")
+	public Date getOccurDate() {
+		return occurDate;
+	}
+
+	public void setOccurDate(Date occurDate) {
+		this.occurDate = occurDate;
+	}
+
+	public Long getIssueId() {
+		return issueId;
+	}
+
+	public void setIssueId(Long issueId) {
+		this.issueId = issueId;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public Integer getStatus() {
+		return status;
+	}
+
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+
+	public Long getLedgerId() {
+		return ledgerId;
+	}
+
+	public void setLedgerId(Long ledgerId) {
+		this.ledgerId = ledgerId;
+	}
+
+	public Integer getLedgerType() {
+		return ledgerType;
+	}
+
+	public void setLedgerType(Integer ledgerType) {
+		this.ledgerType = ledgerType;
+	}
+
+	public String getSerialNumber() {
+		return serialNumber;
+	}
+
+	public void setSerialNumber(String serialNumber) {
+		this.serialNumber = serialNumber;
+	}
+
+	public String getLedgerSerialNumber() {
+		return ledgerSerialNumber;
+	}
+
+	public void setLedgerSerialNumber(String ledgerSerialNumber) {
+		this.ledgerSerialNumber = ledgerSerialNumber;
+	}
+
+	public String getMobile() {
+		return mobile;
+	}
+
+	public void setMobile(String mobile) {
+		this.mobile = mobile;
+	}
+
+	public Date getConvertDate() {
+		return convertDate;
+	}
+
+	public void setConvertDate(Date convertDate) {
+		this.convertDate = convertDate;
+	}
+
+}

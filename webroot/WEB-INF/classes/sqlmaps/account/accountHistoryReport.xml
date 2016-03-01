@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<!--村级累计建账-->
+<sqlMap namespace="accountHistoryReport">
+	<typeAlias alias="HistoryReportResult" type="com.tianque.plugin.account.report.util.HistoryReportResult" />
+	
+	<resultMap id="accountHistoryResult" class="HistoryReportResult">
+		<result property="id" column="id" />
+		<result property="orgId" column="orgId" />
+		<result property="orgName" column="orgName" />
+		<result property="tp" column="tp" />
+		<result property="reportDate" column="reportDate" />
+		<result property="t1" column="t1" />
+		<result property="t2" column="t2" />
+		<result property="t3" column="t3" />
+		<result property="t4" column="t4" />
+		<result property="t5" column="t5" />
+		<result property="t6" column="t6" />
+		<result property="t7" column="t7" />
+		<result property="t8" column="t8" />
+		<result property="t9" column="t9" />
+		<result property="t10" column="t10" />
+		<result property="t11" column="t11" />
+		<result property="t12" column="t12" />
+		<result property="t13" column="t13" />
+		<result property="t14" column="t14" />
+		<result property="t15" column="t15" />
+		<result property="t16" column="t16" />
+		<result property="t17" column="t17" />
+		<result property="t18" column="t18" />
+		<result property="t19" column="t19" />
+		<result property="t20" column="t20" />
+		<result property="t21" column="t21" />
+		<result property="t22" column="t22" />
+		<result property="t23" column="t23" />
+		<result property="t24" column="t24" />
+		<result property="t25" column="t25" />
+		<result property="t26" column="t26" />
+		<result property="t27" column="t27" />
+		<result property="t28" column="t28" />
+		<result property="t29" column="t29" />
+		<result property="t30" column="t30" />
+		<result property="t31" column="t31" />
+		<result property="t32" column="t32" />
+		<result property="t33" column="t33" />
+		<result property="t34" column="t34" />
+		<result property="t35" column="t35" />
+		<result property="t36" column="t36" />
+		<result property="t37" column="t37" />
+	</resultMap>
+	
+	<select id="queryHistoryAccountReport" parameterClass="java.util.Map" resultMap="accountHistoryResult">
+		<!--  <![CDATA[select * from account_yue where orgId = #orgId# and reportDate = #reportDate# order by id]]>-->
+		<![CDATA[select * from (select A.*, ROWNUM R from (select * from account_yue where orgId = #orgId# and reportDate = #reportDate# order by id) 
+		A where ROWNUM <= #num#)WHERE R >= 1]]>
+	</select>
+	
+	<select id="villageLastMonthDoing" resultMap="accountHistoryResult">
+		<![CDATA[select id,orgId,orgName,tp,reportDate,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16,t17,t18,t19,t20,t21,t22,
+			t23,t24,t25,t26,t27,t28,t29,t30,t31,t32,t33,t34,t35,t36,t37 from (
+	select rownum r,t.* from(
+	select a.* from account_yue a where reportDate = #reportDate# and orgid = #orgId# order by id
+	) t 
+	) where r = 8]]>
+	</select>
+	
+	<select id="townLastMonthDoing" resultMap="accountHistoryResult">
+		<![CDATA[select id,orgId,orgName,tp,reportDate,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16,t17,t18,t19,t20,t21,t22,
+			t23,t24,t25,t26,t27,t28,t29,t30,t31,t32,t33,t34,t35,t36,t37 from (
+	select rownum r,t.* from(
+	select a.* from account_yue a where reportDate = #reportDate# and orgid = #orgId# order by id
+	) t 
+	) where r = 8 or r = 33 order by r]]>
+	</select>
+	
+	<select id="jgLastMonthDoing" resultMap="accountHistoryResult">
+		<![CDATA[select id,orgId,orgName,tp,reportDate,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16,t17,t18,t19,t20,t21,t22,
+			t23,t24,t25,t26,t27,t28,t29,t30,t31,t32,t33,t34,t35,t36,t37 from (
+	select rownum r,t.* from(
+	select a.* from account_yue a where reportDate = #reportDate# and orgid = #orgId# order by id
+	) t 
+	) where r = 9 or r = 10 or r = 11 or r = 12 order by r]]>
+	</select>
+	
+	<select id="funLastMonthDoing" resultMap="accountHistoryResult">
+		<![CDATA[select id,orgId,orgName,tp,reportDate,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16,t17,t18,t19,t20,t21,t22,
+			t23,t24,t25,t26,t27,t28,t29,t30,t31,t32,t33,t34,t35,t36,t37 from (
+	select rownum r,t.* from(
+	select a.* from account_yue a where reportDate = #reportDate# and orgid = #orgId# order by id
+	) t 
+	) where r = 18]]>
+	</select>
+	
+	<select id="allLastMonthDoing" resultMap="accountHistoryResult">
+		<![CDATA[select id,orgId,orgName,tp,reportDate,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16,t17,t18,t19,t20,t21,t22,
+			t23,t24,t25,t26,t27,t28,t29,t30,t31,t32,t33,t34,t35,t36,t37 from (
+	select rownum r,t.* from(
+	select a.* from account_yue a where reportDate = #reportDate# and orgid = #orgId# order by id
+	) t 
+	) where r = 27 or r = 28 or r = 29 or r = 30 order by r]]>
+	</select>
+	
+</sqlMap>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="threeRecordsStep">
+	<typeAlias alias="ThreeRecordsIssueStep"
+		type="com.tianque.plugin.account.domain.ThreeRecordsIssueStep" />
+	<typeAlias alias="ThreeRecordsIssueStepGroup"
+		type="com.tianque.plugin.account.domain.ThreeRecordsIssueStepGroup" />
+	<typeAlias alias="ThreeRecordsIssueMap"
+		type="com.tianque.plugin.account.domain.ThreeRecordsIssueMap" />
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+	<typeAlias alias="AutoCompleteData" type="com.tianque.core.vo.AutoCompleteData" />
+
+	<resultMap id="simpleOrganization" class="Organization">
+		<result property="id" column="id" />
+		<result property="orgName" column="orgName" />
+		<result property="remark" column="remark" />
+	</resultMap>
+	<resultMap id="simpleStepResult" class="ThreeRecordsIssueStep">
+		<result property="id" column="id" />
+		<result property="source.id" column="source" />
+		<result property="target.id" column="target" />
+		<result property="state" column="state" />
+		<result property="stateCode" column="stateCode" />
+		<result property="entryDate" column="entryDate" />
+		<result property="endDate" column="endDate" />
+		<result property="lastDealDate" column="lastDealDate" />
+		<result property="ledgerId" column="ledgerId" />
+		<result property="ledgerType" column="ledgerType" />
+		<result property="superviseLevel" column="superviseLevel" />
+		<result property="backTo.id" column="backTo" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="isSupported" column="isSupported" />
+		<result property="ledgerId" column="ledgerId" />
+		<result property="ledgerType" column="ledgerType" />
+		<result property="isFeedBack" column="isFeedBack" />
+		<result property="dealType" column="dealType" />
+		<result property="emergencyLevel.id" column="emergencyLevel" />
+	</resultMap>
+
+	<resultMap id="simpleStepGroupResult" class="ThreeRecordsIssueStepGroup">
+		<result property="id" column="id" />
+		<result property="ledgerId" column="ledgerId" />
+		<result property="ledgerType" column="ledgerType" />
+		<result property="keyStep.id" column="keyStep" />
+		<result property="entyLog.id" column="entyLog" />
+		<result property="outLog.id" column="outLog" />
+	</resultMap>
+
+	<resultMap id="threeRecordsMapResult" class="ThreeRecordsIssueMap">
+		<result property="dealType" column="dealtype" />
+		<result property="superviselevel" column="superviselevel" />
+		<result property="orgId" column="orgId" />
+	</resultMap>
+	
+	<resultMap class="AutoCompleteData" id="OrgAutoCompleteDataResult">
+		<result property="value" column="id" />
+		<result property="label" column="orgName"/>
+		<result property="desc" column="remark"  />
+	</resultMap>
+	<!-- 新增事件处理步骤 -->
+	<insert id="addIssueStep" parameterClass="ThreeRecordsIssueStep">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_platformAccountSteps.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO platformAccountSteps
+		(id,source,sourceInternalCode,target,targetInternalCode,entryDate,lastDealDate,superviseLevel,
+		backTo,state,stateCode,ledgerId,ledgerType,createUser,createDate,assign,targetorglevel,targetorgfunctionalorgType,isSupported,dealType,submit)
+		VALUES
+		(#id#,#source.id#,#source.orgInternalCode#,#target.id#,#target.orgInternalCode#,#entryDate#,#lastDealDate#,#superviseLevel#,
+		#backTo.id#,#state#,#stateCode#,#ledgerId#,#ledgerType#,#createUser#,#createDate#,#assign#,#target.orgLevel.id#,
+		<isNull property="target.functionalOrgType">0</isNull>
+		<isNotNull property="target.functionalOrgType">#target.functionalOrgType.id#
+		</isNotNull>
+		,#isSupported#,#dealType#,#submit#
+		)
+	</insert>
+
+	<!-- 根据id查询事件步骤  undo-->
+	<select id="loadSimpleStep" parameterClass="long" resultMap="simpleStepResult">
+		select step.* from platformAccountSteps step where step.id=#value#
+	</select>
+
+
+
+	<insert id="addIssueStepGroup" parameterClass="ThreeRecordsIssueStepGroup">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_platformAccountStepGroups.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO platformAccountStepGroups
+		(id,ledgerId,ledgerType,keyStep,entyLog,outLog)
+		VALUES
+		(#id#,#ledgerId#,#ledgerType#,#keyStep.id#,#entyLog.id#,#outLog.id#)
+	</insert>
+
+	<select id="loadSimpleStepGroup" parameterClass="long"
+		resultMap="simpleStepGroupResult">
+		select * from platformAccountStepGroups where id=#value#
+	</select>
+
+	<update id="updateGroupIdAndKeyStep" parameterClass="ThreeRecordsIssueStep">
+		update
+		platformAccountSteps set
+		groupid=#groupId#
+		where id=#id#
+	</update>
+
+	<update id="updateOutLog" parameterClass="ThreeRecordsIssueStepGroup">
+		update platformAccountStepGroups
+		set outLog=#outLog.id# where id=#id#
+	</update>
+
+	<!-- 根据事件id 获取该事件所有的处理步骤组 -->
+	<select id="getIssueStepGroupByIssueId" parameterClass="java.util.Map"
+		resultMap="simpleStepGroupResult">
+		select * from platformAccountStepGroups where ledgerId=#ledgerId#  and ledgerType=#ledgerType# order by
+		id
+	</select>
+	
+	<update id="updateIssueStepExceptOrg" parameterClass="ThreeRecordsIssueStep">
+		update platformAccountSteps set
+		endDate=#endDate#,
+		lastDealDate=#updateDate#,
+		updateUser=#updateUser#,
+		updateDate=#updateDate#
+		<isNotEmpty property="superviseLevel" prepend=",">
+			superviseLevel = #superviseLevel#
+			</isNotEmpty>
+		<isNotEmpty property="state" prepend=",">
+			state = #state#
+			</isNotEmpty>
+		<isNotEmpty property="stateCode" prepend=",">
+			stateCode = #stateCode#
+			</isNotEmpty>
+		<isNotEmpty property="submit" prepend=",">
+			submit = #submit#
+			</isNotEmpty>
+		<isNotEmpty property="isExtended" prepend=",">
+			isExtended = #isExtended#
+			</isNotEmpty>
+		<isNotEmpty property="backTo.id" prepend=",">
+			backTo = #backTo.id#
+			</isNotEmpty>
+		<isNotEmpty property="isFeedBack" prepend=",">
+			isFeedBack = #isFeedBack#
+			</isNotEmpty>
+		where id=#id#
+	</update>
+	
+	
+	<select id="getIssueMapByStepGroup" parameterClass="ThreeRecordsIssueStepGroup" resultMap="threeRecordsMapResult">
+		select ps.target orgId ,pl.dealType,ps.superviselevel from platformAccountSteps ps,platformAccountLogs pl 
+		where pl.id =#outLog.id# and ps.id=#keyStep.id# and pl.ledgerId=#ledgerId# and pl.ledgerType=#ledgerType#
+		and pl.ledgertype=ps.ledgertype 
+	</select>
+	
+
+	<delete id="deleteLedgerStepsByIdAndType" parameterClass="java.util.Map">
+		delete from platformAccountSteps where ledgerId=#ledgerId# and ledgerType=#ledgerType#
+	</delete>
+	
+	
+	<delete id="deleteLedgerStepGroupsByIdAndType" parameterClass="java.util.Map">
+		delete from platformaccountstepgroups where ledgerId=#ledgerId# and ledgerType=#ledgerType#
+	</delete>
+	
+	<!-- 根据事件id 获取该事件所有的处理步骤组 -->
+	<select id="getIssueStepByLedgerIdAndType" parameterClass="java.util.Map"
+		resultMap="simpleStepResult">
+		select * from platformaccountsteps where ledgerId=#ledgerId#  and ledgerType=#ledgerType# order by id
+	</select>
+	
+	
+	<update id="updateIssueStepForImport" parameterClass="ThreeRecordsIssueStep">
+		update platformAccountSteps set
+		endDate=#endDate#,
+		lastDealDate=#updateDate#,
+		updateUser=#updateUser#,
+		updateDate=#updateDate#
+		<isNotEmpty property="state" prepend=",">
+			state = #state#
+			</isNotEmpty>
+		<isNotEmpty property="stateCode" prepend=",">
+			stateCode = #stateCode#
+			</isNotEmpty>
+		<isNotEmpty property="submit" prepend=",">
+			submit = #submit#
+			</isNotEmpty>
+		<isNotEmpty property="backTo.id" prepend=",">
+			backTo = #backTo.id#
+			</isNotEmpty>
+		<isNotEmpty property="isFeedBack" prepend=",">
+			isFeedBack = #isFeedBack#
+			</isNotEmpty>
+		<isNotEmpty property="dealType" prepend=",">
+			dealType = #dealType#
+			</isNotEmpty>
+		where id=#id# 
+	</update>
+	
+	
+	<!-- 根据事件groupid 获取所有的步骤 -->
+	<select id="getIssueStepByGroupId" parameterClass="java.lang.Long"
+		resultMap="simpleStepResult">
+		select * from platformaccountsteps where groupId=#value# order by id
+	</select>
+	
+	
+	<update id="updateStepStateCodeBySupportOrNotice" parameterClass="java.util.List">
+		update platformAccountSteps set stateCode = 500 where  id in
+			 <iterate  conjunction="," open="(" close=")">
+			  #list[]#
+			 </iterate>
+         and (isSupported=1 or isSupported=2) 
+	</update>
+	<!-- 根据台账类型编号 ，办理类型 获取所有协办，抄告的台账 -->
+	<select id="getStepSupportByLedgerIdAndType" parameterClass="java.util.Map"
+		resultMap="simpleStepResult">
+		select * from platformaccountsteps where ledgerId=#ledgerId# and ledgerType=#ledgerType# and (isSupported=1 or  isSupported=2)
+		 <![CDATA[  and statecode<500  ]]>  order by id
+	</select>
+</sqlMap>

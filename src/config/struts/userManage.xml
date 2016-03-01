@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<constant name="struts.objectFactory" value="spring" />
+	<package name="userManage" extends="default"
+		namespace="/sysadmin/userManage">
+		<default-class-ref class="userManageController"></default-class-ref>
+		<action name="userList"
+			method="findUsers">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="searchUsers"
+			method="searchUsers">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="getUserList"
+			method="usersList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="dispatchUserOperate" method="dispatchUserOperate">
+			<result  name="success" >
+				/sysadmin/userManage/maintainUserDlg.jsp
+			</result>
+			<result name="resetPwd">
+				/sysadmin/userManage/resetUserPwdDlg.jsp
+			</result>
+			<result name="search">
+				/sysadmin/userManage/searchUserList.jsp
+			</result>
+		</action>		
+		
+		<action name="viewUserOperateByUserName" method="viewUserOperateByUserName">
+			<result  name="success" >
+				/sysadmin/userManage/maintainUserDlg.jsp
+			</result>
+			<result  name="error">
+				/common/error404.jsp
+			</result>
+		</action>
+		
+		<action name="modifyRoleForUser" method="modifyRoleForUser">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		
+		<action name="validateUserName"
+			method="validateUserName">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>		
+		</action>
+		
+		<action name="prepareZoneSelection" method="prepareZoneSelection">
+			<result  name="success" >
+				/sysadmin/userManage/organizationMultipleSelector.jsp
+			</result>
+		</action>
+		
+		<action name="deleteUserById" method="deleteUserById">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>				
+		<action name="prepareRoleTable" method="prepareRoleTable">
+			<result  name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>				
+
+		<action name="addUser"
+			method="addUser">
+			<result  name="success" type="json">
+				<param name="root">user</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="updateUser" 
+			method="updateUser">
+			<result  name="success" type="json">
+				<param name="root">user</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="resetUserPassword" 
+			method="resetUserPassword">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="firstUpdatePassword" 
+			method="updateUserPassword">
+			<result name="success">
+				/userList.jsp
+			</result>
+		</action>
+		<action name="asyncoUser" 
+			method="asyncoUser">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+
+		<action name="lockOperate"
+			method="lockOperate">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>	
+		
+		<action name="isSuperAdmin" method="currentUserIsSuperAdmin">
+			<result  name="success" type="json">
+				<param name="root">user.admin</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>	
+
+		<action name="findUserForAutocomplete"
+			method="findUserForAutocomplete">
+			<result  name="success" type="json">
+				<param name="root">userInfors</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		
+		<action name="updatePasswordEmail" method="updatePasswordEmail">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+<!-- modify by FCY at 2011.12.26 start -->
+		<action name="updatePassword2" method="updatePassword2">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+<!-- modify by FCY at 2011.12.26 end -->
+		<action name="toPersonalDetailsUpdate" method="toPersonalDetailsUpdate">
+		    <result name="success">
+		        /detailsUpdate.jsp
+		    </result>
+		</action>
+		
+		<action name="updateDetails" method="updateDetails">
+		    <result name="success" type="json">
+		        <param name="root">true</param>
+		    </result>
+		    <result name="error" type="json">
+		        <param name="root">errorMessage</param>
+		    </result>
+		</action>
+		<action name="oldPasswordIsRight" method="oldPasswordIsRight">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="reUsed" method="reUsed">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="stopUsed" method="stopUsed">
+			<result name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">false</param>
+			</result>
+		</action>
+		<action name="searchUserList"
+			method="searchUserList">
+			<result type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+		</action>
+		<action name="prepareRoleTableForUserList" method="prepareRoleTableForUserList">
+			<result  name="success" type="json">
+				<param name="root">gridPage</param>
+				<param name="ignoreHierarchy">false</param>
+			</result>
+			<result  name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>		
+		<action name="resetAllUserPassword" 
+			method="resetAllUserPassword">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="goModifyRoleDailog" method="goModifyRoleDailog">
+			<result  name="success" >
+				/modifyRoleDlg.jsp
+			</result>
+		</action>
+		<action name="reSetPatelConfig" 
+			method="reSetPatelConfig">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		<action name="reSetPatelConfigByUserId" 
+			method="reSetPatelConfigByUserId">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+		<action name="findUserHasPlatformMessageTypeByUserId" method="findUserHasPlatformMessageTypeByUserId">
+			<result  name="success" >
+				/interaction/platformMessage/userHasPlatformMessageTypeDlg.jsp
+			</result>
+		</action>
+		
+		<action name="updateUserHasPlatformMessageType" method="updateUserHasPlatformMessageType">
+			<result  name="success" type="json">
+				<param name="root">true</param>
+			</result>
+			<result name="error" type="json">
+				<param name="root">errorMessage</param>
+			</result>
+		</action>
+		
+	</package>
+</struts>

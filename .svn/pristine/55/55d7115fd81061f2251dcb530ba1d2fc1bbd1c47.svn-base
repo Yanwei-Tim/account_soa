@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+	<head>
+		<title>Sigma Widgets Test</title>
+		<script src="sigmabase.js"></script>
+		<script src="sigmareport.js"></script>
+		<link href="css/sigmawidgets.css" rel="stylesheet" type="text/css">
+		<script src="json.js"></script>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	</head>
+	<script>
+		var grid = null;
+		var data = [
+			{org:{id:1,name:"海曙区"},amount:222,types:[
+				{name:"刑释人员",amount:100,helped:82,noHelp:18,resited:84,noResite:16},
+				{name:"解教人员",amount:122,helped:101,noHelp:21,resited:105,noResite:17},
+				{name:"合计",amount:222,helped:183,noHelp:39,resited:189,noResite:33}]},
+			{org:{id:1,name:"北仑区"},amount:222,types:[
+				{name:"刑释人员",amount:100,helped:82,noHelp:18,resited:84,noResite:16},
+				{name:"解教人员",amount:122,helped:101,noHelp:21,resited:105,noResite:17},
+				{name:"合计",amount:222,helped:183,noHelp:39,resited:189,noResite:33}]},
+			{org:{id:1,name:"江东区"},amount:222,types:[
+				{name:"刑释人员",amount:100,helped:82,noHelp:18,resited:84,noResite:16},
+				{name:"解教人员",amount:122,helped:101,noHelp:21,resited:105,noResite:17},
+				{name:"合计",amount:222,helped:183,noHelp:39,resited:189,noResite:33}]}
+			
+		];
+		
+		
+		window.onload = function(){
+			var context = {};
+			var columns = [		
+					{name:"org.name",caption:"区域",width:120,mode:"string"},	
+					{name:"amount",caption:"人数",width:80,mode:"link",format:"#",href:"alert(row.data.org.id);"},
+					{name:"general",caption:"总况",children:[
+						{name:"types[index].name",caption:"类型",width:100,mode:"string"},
+						{name:"types[index].amount",caption:"数量",width:80,mode:"number",format:"#"}
+					]},
+					{name:"helpInfo",caption:"帮教情况",children:[
+						{name:"types[index].helped",caption:"已帮教",width:80,mode:"number",format:"#"},
+						{name:"types[index].noHelp",caption:"未帮教",width:80,mode:"number",format:"#"},
+						{name:"types[index].helped/types[index].amount",caption:"帮教率",width:80,mode:"number",format:"#.00%"}
+					]},
+					{name:"resiteInfo",caption:"安置情况",children:[
+						{name:"types[index].resited",caption:"已安置",width:80,mode:"number",format:"#"},
+						{name:"types[index].noResite",caption:"未安置",width:80,mode:"number",format:"#"},
+						{name:"types[index].resited/types[index].amount",caption:"安置率",width:80,mode:"number",format:"#.00%"}
+					]}
+					
+				];
+			grid = new SigmaReport("gridbox",context,columns);
+			grid.bindData(data);
+		}
+
+
+	</script>
+	<body >
+		<div style="width:988px;">
+			<div id="gridbox" class="SigmaReport" style="height:310px;width:900px;float:left;">
+			</div>
+			
+		</div>
+	</body>
+</html>

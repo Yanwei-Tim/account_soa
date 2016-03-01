@@ -1,0 +1,259 @@
+package com.tianque.plugin.account.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.plugin.account.constants.CompleteType;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueViewType;
+import com.tianque.plugin.account.dao.LedgerSteadyWorkComprehensiveDao;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.service.LedgerSteadyWorkComprehensiveService;
+import com.tianque.plugin.account.service.ThreeRecordsIssueLogService;
+import com.tianque.plugin.account.util.ComparisonAttribute;
+import com.tianque.plugin.account.util.ThreeRecordsIssueOperationUtil;
+import com.tianque.plugin.account.vo.LedgerSteadyWorkVo;
+import com.tianque.plugin.account.vo.SearchComprehensiveVo;
+import com.tianque.userAuth.api.OrganizationDubboRemoteService;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+
+@Service("ledgerSteadyWorkComprehensiveService")
+@Transactional
+public class LedgerSteadyWorkComprehensiveServiceImpl implements
+		LedgerSteadyWorkComprehensiveService {
+	
+	@Autowired
+	private OrganizationDubboRemoteService organizationDubboService;
+	@Autowired
+	private LedgerSteadyWorkComprehensiveDao comprehensiveDao;
+	@Autowired
+	private ThreeRecordsIssueLogService issueLogService;
+	@Autowired
+	private PropertyDictDubboService propertyDictDubboService;
+	
+	private List<Organization> getOrgs(List<Long> orgIds){
+		List<Organization> orgs = new ArrayList<Organization>();
+		for(Long orgId : orgIds){
+			Organization org = organizationDubboService.getFullOrgById(orgId);
+			orgs.add(org);
+		}
+		return orgs;
+	}
+	
+	private List<Long> getChildIds(List<Organization> orgs){
+		List<Long> childOrg = new ArrayList<Long>();
+		for(Organization org : orgs){
+			List<Long> childIds = ComparisonAttribute.getOrgIds(organizationDubboService.findOrganizationsByParentId(org.getId()));
+			if(childIds != null && !childIds.isEmpty()){
+				childOrg.addAll(childIds);
+			}
+		}
+		return childOrg;
+	}
+	
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsNeedDo(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Long functionalorgType,
+			Integer viewProcess, int supportType) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsNeedDo(searchVo, orgs, childOrg, page, rows, functionalorgType, viewProcess, supportType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+	
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsDone(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsDone(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if(StringUtil.isStringAvaliable(searchVo.getDetailDoneType()) && !searchVo.getDetailDoneType().equals(CompleteType.ALL_QUERY)){
+			pageInfo = getDeatilIssues(searchVo, page, rows, pageInfo);
+		}
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsAssgin(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsAssgin(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsFeedBack(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo =comprehensiveDao.findJurisdictionsFeedBack(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsPeriodDone(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsPeriodDone(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if(StringUtil.isStringAvaliable(searchVo.getDetailDoneType()) && !searchVo.getDetailDoneType().equals(CompleteType.ALL_QUERY)){
+			pageInfo = getDeatilIssues(searchVo, page, rows, pageInfo);
+		}
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSubstanceDone(SearchComprehensiveVo searchVo, 
+			List<Long> orgIds, Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsSubStanceDone(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if(StringUtil.isStringAvaliable(searchVo.getDetailDoneType()) && !searchVo.getDetailDoneType().equals(CompleteType.ALL_QUERY)){
+			pageInfo = getDeatilIssues(searchVo, page, rows, pageInfo);
+		}
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSubmit(SearchComprehensiveVo searchVo, List<Long> orgIds,
+			Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsSubmit(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsCreateAndDone(SearchComprehensiveVo searchVo, 
+			List<Long> orgIds, Integer page, Integer rows, Long functionalOrgType,
+			Integer viewProcess) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<LedgerSteadyWorkVo> pageInfo = comprehensiveDao.findJurisdictionsCreateAndDone(searchVo, orgs, childOrg, page, rows, functionalOrgType, viewProcess);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+	
+	private void orgIsFun(List<Organization> orgs, SearchComprehensiveVo searchVo){
+		for(Organization org : orgs){
+			org.setOrgType(propertyDictDubboService.getPropertyDictById(org.getOrgType().getId()));
+			if(ThreeRecordsIssueOperationUtil.orgIsFunctional(org)){
+				searchVo.setSearchValue("present");
+				break;
+			}
+		}
+	}
+	
+	private PageInfo<LedgerSteadyWorkVo> getDeatilIssues(SearchComprehensiveVo searchVo, Integer page, Integer rows, 
+			PageInfo<LedgerSteadyWorkVo> result){
+		List<LedgerSteadyWorkVo> list = new ArrayList<LedgerSteadyWorkVo>();
+		for(LedgerSteadyWorkVo issue : result.getResult()){
+			List<ThreeRecordsIssueLogNew> logs = issueLogService.getLogsByStepId(issue.getStepId());
+			for(ThreeRecordsIssueLogNew log : logs){
+				if(log.getDealDescription().contains(searchVo.getDetailDoneType())){
+					list.add(issue);
+					break;
+				}
+			}
+		}
+		PageInfo<LedgerSteadyWorkVo> results = createIssueVoPageInfoInstance(list.size(), rows, page);
+		results.setResult(list);
+		return results;
+	}
+	
+	private PageInfo<LedgerSteadyWorkVo> createIssueVoPageInfoInstance(
+			int totalRecord, int pageSize, int pageIndex) {
+		PageInfo<LedgerSteadyWorkVo> result = new PageInfo<LedgerSteadyWorkVo>();
+		result.setTotalRowSize(totalRecord);
+		result.setCurrentPage(pageIndex);
+		result.setPerPageSize(pageSize);
+		return result;
+	}
+	
+	private void loadIssueOccurOrgAndCurrentOrgAndIssueTypes(
+			PageInfo<LedgerSteadyWorkVo> pageInfo) {
+		if (null != pageInfo.getResult() && pageInfo.getResult().size() > 0) {
+			for (LedgerSteadyWorkVo ivo : pageInfo.getResult()) {
+				ivo.setOccurOrg(organizationDubboService.getSimpleOrgById(ivo
+						.getOccurOrg() == null ? null : ivo.getOccurOrg()
+						.getId()));
+				ivo.setCurrentOrg(organizationDubboService.getSimpleOrgById(ivo
+						.getCurrentOrg() == null ? null : ivo.getCurrentOrg()
+						.getId()));
+				ivo.setCreateOrg(organizationDubboService.getSimpleOrgById(ivo
+						.getCreateOrg() == null ? null : ivo.getCreateOrg()
+						.getId()));
+			}
+		}
+	}
+
+}

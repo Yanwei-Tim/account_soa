@@ -1,0 +1,56 @@
+package com.tianque.plugin.account.dao.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.plugin.account.dao.LedgerReportDao;
+import com.tianque.plugin.account.domain.LedgerReportGroupCount;
+import com.tianque.plugin.account.vo.ThreeRecordsReportStatisticalVo;
+import com.tianque.plugin.account.vo.ThreeRecordsReportVo;
+
+@Repository("ledgerReportDao")
+public class LedgerReportDaoImpl extends AbstractBaseDao implements
+		LedgerReportDao {
+
+	@Override
+	public List<LedgerReportGroupCount> getReportAccountStepsCount(Map searchMap) {
+		List<LedgerReportGroupCount> resultList = getSqlMapClientTemplate()
+				.queryForList("ledgerReport.getReportAccountStepsCount",
+						searchMap);
+		return resultList;
+	}
+
+	@Override
+	public List<LedgerReportGroupCount> getReportGroupCount(Map searchMap) {
+		List<LedgerReportGroupCount> resultList = getSqlMapClientTemplate()
+				.queryForList("ledgerReport.getReportGroupCount", searchMap);
+		return resultList;
+	}
+
+	@Override
+	public List<LedgerReportGroupCount> getReportStateCodeCount(Map searchMap) {
+		List<LedgerReportGroupCount> resultList = getSqlMapClientTemplate()
+				.queryForList("ledgerReport.getStateCodeCount", searchMap);
+		return resultList;
+	}
+
+	@Override
+	public ThreeRecordsReportStatisticalVo getThreeAccountReportForVillage(
+			Map<String, Object> map) {
+		return (ThreeRecordsReportStatisticalVo) getSqlMapClientTemplate().queryForObject("ledgerReport.getThreeAccountReportForVillage",map);
+	}
+
+	@Override
+	public List<ThreeRecordsReportStatisticalVo> getJurisdictionAccout(
+			Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("ledgerReport.getJurisdictionAccout",map);
+	}
+	
+	@Override
+	public  List<ThreeRecordsReportVo> getAllDistrictCount(Map<String,Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerReport.getAllDistrictCount",map);
+	}
+}

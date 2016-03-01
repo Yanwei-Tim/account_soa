@@ -1,0 +1,128 @@
+package com.tianque.domain.property;
+
+public class PropertyTypes {
+	public final static String ORGANIZATION_LEVEL = "网格分级";
+	public final static String ORGANIZATION_TYPE = "网格类型";
+	public final static String WORKBENCH_TYPE = "工作台类型";
+
+	/** 困难台账 */
+	public final static String DIFFICULT_PEOPLE_RECORD_LEDGER_POOR_PEOPLE = "中江困难台账";
+	public final static String LEDGER_POOR_PEOPLE_SECURITY_TYPE = "中江困难台账保障类型";
+	public final static String LEDGER_POOR_PEOPLE_DIFFICULT_TYPE = "中江困难台账困难类型（大类）";
+	public final static String LEDGER_POOR_PEOPLE_DIFFICULT_CAUSE = "中江困难台账困难原因（子类）";
+	public final static String LEDGER_POOR_PEOPLE_SPECIFIC_NEED = "中江困难台账具体需求";
+
+	/** 稳定台账 */
+	public final static String STEADY_RECORD_WORK = "中江稳定台账";
+	public final static String STEADY_RECORD_WORK_INVOLVING_STEADY_TYPE = "中江稳定台账涉稳人群类别";
+	public final static String STEADY_RECORD_WORK_TYPE = "中江稳定台账涉稳类别";
+	public final static String STEADY_RECORD_WORK_PROBLEM_TYPE = "中江稳定台账涉稳问题类别";
+	public final static String STEADY_RECORD_WORK_WARN_LEVEL = "稳定预警级别";
+	
+	public final static String LEDGER_WATEER_PROJECT = "水利项目类别";// 水利
+	public final static String LEDGER_WATEER_BUILD_TYPE = "水利建设性质"; // 水利
+	public final static String LEDGER_WATEER_PROJECT_SUB_TYPE = "水利工程类别"; // 水利
+
+	public final static String TRAFFIC_PROJECT = "交通项目类别";
+	public final static String TRAFFIC_BUILD_TYPE = "交通建设性质";
+	public final static String TRAFFIC_ROAD = "交通道路类别";
+	public final static String TRAFFIC_ROADSURFACE = "交通路面类型";
+	public final static String TRAFFIC_SECURITY = "交通安保设施类型";
+	public final static String TRAFFIC_PASSENGER = "交通班线客运";
+	public final static String TRAFFIC_PUBLIC_TRANSPORT = "交通城市公共交通";
+	public final static String TRAFFIC_PASSENGER_MANAGE = "交通客运站管理";
+	public final static String TRAFFIC_PASSENGER_BUILD = "交通客运站建设";
+
+	public final static String ENERGY_PROJECT = "能源项目类型";
+	public final static String ENERGY_BUILD_TYPE = "能源建设性质";
+	public final static String ENERGY_PROJECT_SUB_TYPE = "能源工程类型";
+	public final static String ENERGY_LINE_CATEGORY = "能源线路类型";
+	public final static String ENERGY_PIPELINE_CATEGORY = "能源管道类型";
+	public final static String ENERGY_PIPE_MATERIAL_CATEGORY = "能源管道材质类型";
+	public final static String ENERGY_SECURITY_CATEGORY = "能源安全设施";
+	public final static String ENERGY_UNIT = "能源数量单位";
+
+	public final static String EDUCATION_PROJECT = "教育项目类型";
+	public final static String EDUCATION_PROJECT_SUB = "教育项目子类型";
+	public final static String EDUCATION_BUILD_TYPE = "教育建设性质";
+
+	public final static String SCIENCE_PROJECT = "科技文体项目类型";
+	public final static String SCIENCE_BUILD_TYPE = "科技文体建设性质";
+	public final static String SCIENCE_PROJECT_LEVEL = "科技文体项目级别";
+	public final static String SCIENCE_PROJECT_SUB = "科技文体项目子类型";
+
+	public final static String MEDICAL_PROJECT = "医疗卫生项目类型";
+	public final static String MEDICAL_BUILD_TYPE = "医疗卫生建设性质";
+	public final static String MEDICAL_PROJECT_SUB = "医疗卫生项目子类型";
+
+	public final static String ENVIRONMENT_PROJECT = "环境保护项目类型";
+	public final static String ENVIRONMENT_PROJECT_SUB = "环境保护治理类型";
+	public final static String ENVIRONMENT_UNIT = "环境保护单位";
+	public final static String ENVIRONMENT_BUILD_TYPE = "环境保护建设性质";
+
+	public final static String LABOR_PROJECT = "劳动和社会保障项目类型";
+	public final static String LABOR_PROJECT_SUB = "劳动和社会保障类别";
+	public final static String LABOR_PROJECT_CONTENT = "劳动和社会项目内容";
+
+	public final static String TOWN_PROJECT = "城乡规划建设项目类型";
+	public final static String TOWN_PROJECT_SUB = "城乡规划建设建设类型";
+	public final static String TOWN_PROJECT_BUILD_TYPE = "城乡规划建设建设性质";
+	public final static String TOWN_SECURITY_TYPE = "城乡规划安保设施类型";
+
+	public final static String AGRICULTURE_PROJECT = "农业项目项目类别";
+	public final static String AGRICULTURE_PROJECT_SUB = "农业项目类型";
+	public final static String AGRICULTURE_PROJECT_BUILD_TYPE = "农业建设性质";
+	public final static String AGRICULTURE_MACHINERY_TRAIN = "农机培训";
+	public final static String AGRICULTURE_FARMING_TRAIN = "农业培训";
+
+	public final static String LEDGER_OTHER_BUILD_TYPE = "其它建设性质";
+
+	public final static String OTHER_PROJECT = "其它项目类型";
+
+	public final static String LEDGER_PEOPLEASPIRATION_CREATE_TABLE_TYPE = "民生建表类型";
+
+	public final static String LEDGER_APPEAL_HUMAN_TYPE = "民生诉求人类别";
+
+	public final static String LEDGER_DEGREE = "本人学历";
+
+	public final static String LABOR_AGE = "劳动和社会年龄段";
+
+	public final static String LABOR_CRIPPLE = "劳动和社会残疾等级";
+
+	public final static String LABOR_DIGNITY = "劳动和社会身份性质";
+
+	public final static String SCIENCE_BROADCAST = "广播电视播放方式";
+
+	public final static String TRAFFIC_SECURITY_SERVICE = "客运安全服务";
+	public final static String TRAFFIC_LEVEL = "客运等级";
+	public final static String TRAFFIC_PASSTYPE = "客运类型";
+
+	public final static String EDUCATION_SCOPE_TYPE = "教育规模";
+	public final static String EDUCATION_MODE_TYPE = "教育方式";
+	public final static String EDUCATION_ITEM_TYPE = "教育项目名称";
+	public final static String EDUCATION_ROAD_TYPE = "教育上学路途难类型";
+	public final static String EDUCATION_DISTANCE_TYPE = "教育路程";
+	public final static String EDUCATION_ROAD_CONDITION_TYPE = "教育路况";
+	public final static String EDUCATION_DEGREE_TYPE = "教育就学类型";
+	public final static String EDUCATION_ADDRESS_TYPE = "教育建设地类型";
+	public final static String SOURCE_KIND = "来源方式";
+	public final static String ASSGIN_MEETING_TYPE = "交办单会议类型";
+	
+	public final static String INVOLVE_LAW = "涉法涉诉";
+	public final static String CIVIL = "林水土";
+	public final static String DISCOUNT_AGRICULTURE = "惠农政策及村（社区）政务、财务";
+	public final static String CIVIL_ADMINISTRATION  = "民政问题";
+	public final static String PEOPLE_MEDICAL  = "人口与医疗卫生";
+	public final static String LABOUR = "劳动保障";
+	public final static String TRAFFIC = "交通运输";
+	public final static String CITY_BUILDING = "城建及综合执法";
+	public final static String PARTY_DISCIPLINE = "党纪政纪";
+	public final static String EDUCATION = "教育";
+	public final static String ENTERPRISE = "企业改制";
+	public final static String ENVIRONMENT = "环境保护";
+	public final static String HUMAN_AFFAIRS = "组织人事";
+	public final static String OTHER_WORK = "其他稳定工作";
+	public final static String KEY_PERSONNEL = "重点人员";
+
+	public final static String FORM_TYPE = "来件类型";
+}

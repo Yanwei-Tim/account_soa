@@ -1,0 +1,353 @@
+package com.tianque.plugin.account.dao.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.util.DateUtil;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueTag;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueViewType;
+import com.tianque.plugin.account.dao.LedgerSteadyWorkComprehensiveDao;
+import com.tianque.plugin.account.state.ThreeRecordsIssueOperate;
+import com.tianque.plugin.account.state.ThreeRecordsIssueSourceState;
+import com.tianque.plugin.account.state.ThreeRecordsIssueState;
+import com.tianque.plugin.account.vo.LedgerPeopleSubstanceDesc;
+import com.tianque.plugin.account.vo.LedgerSteadyWorkVo;
+import com.tianque.plugin.account.vo.LedgerStedayWorkDetail;
+import com.tianque.plugin.account.vo.SearchComprehensiveVo;
+import com.tianque.plugin.account.vo.ThreeRecordsCatalogVo;
+import com.tianque.plugin.account.vo.ThreeRecordsViewObject;
+
+@Repository("ledgerSteadyWorkComprehensiveDao")
+public class LedgerSteadyWorkComprehensiveDaoImpl extends AbstractBaseDao<Object> implements
+		LedgerSteadyWorkComprehensiveDao {
+	
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsNeedDo(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows,
+			Long functionalOrgType, Integer viewProcess, Integer isSupported) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("isSupported", isSupported);
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		map.put("tag", ThreeRecordsIssueTag.NEEDDO_ISSUE);
+		initMap(searchVo, map, childOrg, orgs, functionalOrgType);
+		PageInfo<LedgerSteadyWorkVo> result = createIssueVoPageInfoInstance(
+				getJurisdictionsNeedDoCount(map), rows, page);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {// 用于查询大屏滚动数据
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsNeedDo", map));
+		} else {
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsNeedDo", map,(page - 1) * rows, rows));
+		}
+		return result;
+	}
+	
+	@Override
+	public Integer getJurisdictionsNeedDoCount(Map<String, Object> map){
+		return (Integer) getSqlMapClientTemplate().queryForObject("ledgerSteadyWorkComprehensive.countfindJurisdictionsNeedDo", map);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows,
+			Long functionalOrgType, Integer viewProcess) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		map.put("substanceCode", ThreeRecordsIssueState.SUBSTANCE_CODE);
+		map.put("issueTag", ThreeRecordsIssueTag.DONE_ISSUE);
+		map.put("complete", ThreeRecordsIssueOperate.COMPLETE_CODE);
+		map.put("completeStatus", ThreeRecordsIssueState.COMPLETE);
+		initMap(searchVo, map, childOrg, orgs, functionalOrgType);
+		PageInfo<LedgerSteadyWorkVo> result = createIssueVoPageInfoInstance(getJurisdictionsDone(map), rows, page);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {// 用于查询大屏滚动数据
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsDone", map));
+		} else {
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsDone", map, (page - 1) * rows, rows));
+		}
+		return result;
+	}
+	
+	@Override
+	public Integer getJurisdictionsDone(Map<String, Object> map){
+		return (Integer) getSqlMapClientTemplate().queryForObject("ledgerSteadyWorkComprehensive.countfindJurisdictionsDone", map);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSubmit(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows,
+			Long functionalOrgType, Integer viewProcess) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		map.put("submit", ThreeRecordsIssueSourceState.submit);
+		map.put("issueTag", ThreeRecordsIssueTag.SUBMIT_ISSUE);
+		initMap(searchVo, map, childOrg, orgs, functionalOrgType);
+		PageInfo<LedgerSteadyWorkVo> result = createIssueVoPageInfoInstance(getJurisdictionsSubmit(map), rows, page);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {// 用于查询大屏滚动数据
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsSubmit", map));
+		} else {
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsSubmit", map, (page - 1) * rows, rows));
+		}
+		return result;
+	}
+	
+	public int getJurisdictionsSubmit(Map<String, Object> map) {
+		return (Integer) getSqlMapClientTemplate().queryForObject("ledgerSteadyWorkComprehensive.countfindJurisdictionsSubmit", map);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSubStanceDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows,
+			Long functionalOrgType, Integer viewProcess) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.SUBSTANCE_CODE);
+		initMap(searchVo, map, childOrg, orgs, functionalOrgType);
+		PageInfo<LedgerSteadyWorkVo> result = createIssueVoPageInfoInstance(getJurisdictionsSubstanceDone(map), rows, page);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {// 用于查询大屏滚动数据
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsSubstanceDone", map));
+		} else {
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsSubstanceDone", map, (page - 1) * rows, rows));
+		}
+		return result;
+	}
+	
+	public int getJurisdictionsSubstanceDone(Map<String, Object> map) {
+		return (Integer) getSqlMapClientTemplate().queryForObject("ledgerSteadyWorkComprehensive.countfindJurisdictionsSubstanceDone", map);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsPeriodDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows,
+			Long functionalOrgType, Integer viewProcess) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.PERIOD_CODE);
+		initMap(searchVo, map, childOrg, orgs, functionalOrgType);
+		PageInfo<LedgerSteadyWorkVo> result = createIssueVoPageInfoInstance(getJurisdictionsPeriodDone(map), rows, page);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {// 用于查询大屏滚动数据
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsPeriodDone", map));
+		} else {
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsPeriodDone", map, (page - 1) * rows, rows));
+		}
+		return result;
+	}
+	
+	public int getJurisdictionsPeriodDone(Map<String, Object> map) {
+		return (Integer) getSqlMapClientTemplate().queryForObject("ledgerSteadyWorkComprehensive.countfindJurisdictionsPeriodDone", map);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsFeedBack(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows,
+			Long functionalOrgType, Integer viewProcess) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("verification", ThreeRecordsIssueState.VERIFICATION);// 事件表中已验证状态，值为300
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);// 事件流程表中办理中的状态，值为500
+		map.put("periodCode", ThreeRecordsIssueState.PERIOD_CODE);// 事件流程表中阶段办结的状态，值为600
+		map.put("issueCompleteCode", ThreeRecordsIssueState.SUBSTANCE_CODE);// 事件流程表中已实质办结的状态，值为700
+		map.put("issueTag", ThreeRecordsIssueTag.DONE_ISSUE);
+		initMap(searchVo, map, childOrg, orgs, functionalOrgType);
+		PageInfo<LedgerSteadyWorkVo> result = createIssueVoPageInfoInstance(getJurisdictionsFeedBack(map), rows, page);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {// 用于查询大屏滚动数据
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsFeedBack", map));
+		} else {
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsFeedBack", map, (page - 1) * rows, rows));
+		}
+		return result;
+	}
+	
+	public int getJurisdictionsFeedBack(Map<String, Object> map) {
+		return (Integer) getSqlMapClientTemplate().queryForObject("ledgerSteadyWorkComprehensive.countfindJurisdictionsFeedBack", map);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsAssgin(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows,
+			Long functionalOrgType, Integer viewProcess) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		map.put("assgin", ThreeRecordsIssueSourceState.assign);
+		map.put("issueTag", ThreeRecordsIssueTag.ASSIGN_ISSUE);
+		initMap(searchVo, map, childOrg, orgs, functionalOrgType);
+		PageInfo<LedgerSteadyWorkVo> result = createIssueVoPageInfoInstance(getJurisdictionsAssginCount(map), rows, page);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {// 用于查询大屏滚动数据
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsAssgin", map));
+		} else {
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsAssgin", map, (page - 1) * rows, rows));
+		}
+		return result;
+	}
+	
+	public int getJurisdictionsAssginCount(Map<String, Object> map) {
+		return (Integer) getSqlMapClientTemplate().queryForObject("ledgerSteadyWorkComprehensive.countfindJurisdictionsAssgin", map);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsCreateAndDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows,
+			Long functionalOrgType, Integer viewProcess) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("issueTag", ThreeRecordsIssueTag.DONE_ISSUE);
+		initMap(searchVo, map, childOrg, orgs, functionalOrgType);
+		PageInfo<LedgerSteadyWorkVo> result = createIssueVoPageInfoInstance(getJurisdictionsCreateAndDone(map), rows, page);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {// 用于查询大屏滚动数据
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsCreateAndDone", map));
+		} else {
+			result.setResult(getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.findJurisdictionsCreateAndDone", map, (page - 1) * rows, rows));
+		}
+		return result;
+	}
+	
+	public int getJurisdictionsCreateAndDone(Map<String, Object> map) {
+		return (Integer) getSqlMapClientTemplate().queryForObject("ledgerSteadyWorkComprehensive.countfindJurisdictionsCreateAndDone", map);
+	}
+	
+	@Override
+	public Integer countCataLog(SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows, Map<String, Object> map){
+		initMap(searchVo, map, childOrg, orgs, null);
+		return getCountCataLog(map, searchVo);
+	}
+	@Override
+	public PageInfo<ThreeRecordsCatalogVo> exportCataLog(SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows, Map<String, Object> map, String query){
+		initMap(searchVo, map, childOrg, orgs, null);
+		PageInfo<ThreeRecordsCatalogVo> result = new PageInfo<ThreeRecordsCatalogVo>();
+		result.setTotalRowSize(getCountCataLog(map, searchVo));
+		result.setCurrentPage(rows);
+		result.setPerPageSize(page);
+		List<ThreeRecordsCatalogVo> list = getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive." + query, map, (page - 1) * rows, rows);
+		result.setResult(list);
+		return result;
+	}
+	
+	private Integer getCountCataLog(Map<String, Object> map, SearchComprehensiveVo searchVo){
+		int count = 0;
+		if (ThreeRecordsIssueViewType.NEED.equalsIgnoreCase(searchVo.getDoneType())) {
+			count = getJurisdictionsNeedDoCount(map);
+		} else if (ThreeRecordsIssueViewType.DONE.equalsIgnoreCase(searchVo.getDoneType())) {
+			count = getJurisdictionsDone(map);
+		} else if (ThreeRecordsIssueViewType.PERIOD.equalsIgnoreCase(searchVo.getDoneType())) {
+			count = getJurisdictionsPeriodDone(map);
+		} else if (ThreeRecordsIssueViewType.COMPLETED.equalsIgnoreCase(searchVo.getDoneType())) {
+			count = getJurisdictionsSubstanceDone(map);
+		} else if (ThreeRecordsIssueViewType.FEEDBACK.equalsIgnoreCase(searchVo.getDoneType())) {
+			count = getJurisdictionsFeedBack(map);
+		} else if (ThreeRecordsIssueViewType.ASSIGN.equalsIgnoreCase(searchVo.getDoneType())) {
+			count = getJurisdictionsAssginCount(map);
+		} else if (ThreeRecordsIssueViewType.SUBMIT.equalsIgnoreCase(searchVo.getDoneType())) {
+			count = getJurisdictionsSubmit(map);
+		} else if (ThreeRecordsIssueViewType.SUPPORT.equalsIgnoreCase(searchVo.getDoneType())) {
+			count = getJurisdictionsNeedDoCount(map);
+		} else if (ThreeRecordsIssueViewType.NOTICE.equalsIgnoreCase(searchVo.getDoneType())) {
+			count = getJurisdictionsNeedDoCount(map);
+		} else if (ThreeRecordsIssueViewType.CREATE_DONE.equalsIgnoreCase(searchVo.getDoneType())) {
+			count = getJurisdictionsCreateAndDone(map);
+		} 
+		return count;
+	}
+	
+	@Override
+	public PageInfo<ThreeRecordsViewObject> exportCreateAndDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs, List<Long> childOrg,
+			Integer page, Integer rows){
+		Map<String, Object> map = new HashMap<String, Object>();
+		initMap(searchVo, map, childOrg, orgs, null);
+		PageInfo<ThreeRecordsViewObject> result = new PageInfo<ThreeRecordsViewObject>();
+		result.setTotalRowSize(getJurisdictionsCreateAndDone(map));
+		result.setCurrentPage(rows);
+		result.setPerPageSize(page);
+		List<ThreeRecordsViewObject> list = getSqlMapClientTemplate().queryForList(
+				"ledgerPeopleBaseSituation.getSteadyWorkBaseSituation" , map, (page - 1) * rows, rows);
+		result.setResult(list);
+		return result;
+	}
+	@Override
+	public Integer exportCountCreateAndDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs, List<Long> childOrg,
+			Integer page, Integer rows){
+		Map<String, Object> map = new HashMap<String, Object>();
+		initMap(searchVo, map, childOrg, orgs, null);
+		return getJurisdictionsCreateAndDone(map);
+	}
+	
+	private void initMap(SearchComprehensiveVo searchVo, Map<String, Object> map, List<Long> childOrg,  List<Organization> orgs, Long functionalOrgType){
+		List<String> codeList = new ArrayList<String>();
+		List<Long> idList = new ArrayList<Long>();
+		for(Organization org : orgs){
+			codeList.add(org.getOrgInternalCode());
+			idList.add(org.getId());
+		}
+		if (!codeList.isEmpty()) {
+			map.put("orgCode", codeList);
+		}
+		if (!idList.isEmpty()) {
+			map.put("orgId", idList);
+		}
+		if (childOrg != null && childOrg.size() > 0) {
+			map.put("targetOrgs", childOrg);
+		}
+		if(functionalOrgType != null){
+			map.put("functionalOrgType", functionalOrgType);
+		}
+		if(searchVo.getLedgerType() != null){
+			map.put("issueType", searchVo.getLedgerType());
+		}
+		if(StringUtil.isStringAvaliable(searchVo.getSearchValue())){
+			map.put("seachValue", searchVo.getSearchValue());
+		}
+		if (childOrg != null && childOrg.size() > 0) {
+			map.put("targetOrgs", childOrg);
+		}
+		if(searchVo.getBeginCreateDate() != null){
+			map.put("beginCreateDate", searchVo.getBeginCreateDate());
+		}
+		if(searchVo.getEndCreateDate() != null){
+			map.put("endCreateDate", DateUtil.getEndTime(searchVo.getEndCreateDate()));
+		}
+		if(searchVo.getSteadyWorkType() != null){
+			map.put("steadyWorkType", searchVo.getSteadyWorkType());
+		}
+		if(searchVo.getSteadyWorkWarnLevel() != null){
+			map.put("steadyWorkWarnLevel", searchVo.getSteadyWorkWarnLevel());
+		}
+		if(StringUtil.isStringAvaliable(searchVo.getInvolvingSteadyInfo())){
+			map.put("involvingSteadyInfo", searchVo.getInvolvingSteadyInfo());
+		}
+	}
+	
+	private PageInfo<LedgerSteadyWorkVo> createIssueVoPageInfoInstance(
+			int totalRecord, int pageSize, int pageIndex) {
+		PageInfo<LedgerSteadyWorkVo> result = new PageInfo<LedgerSteadyWorkVo>();
+		result.setTotalRowSize(totalRecord);
+		result.setCurrentPage(pageIndex);
+		result.setPerPageSize(pageSize);
+		return result;
+	}
+	
+	@Override
+	public List<LedgerStedayWorkDetail> getCountGroupBySteadyWorkType(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.getCountGroupBySteadyWorkType", map);
+	}
+	@Override
+	public List<LedgerStedayWorkDetail> getCountGroupBySteadyWorkWarnLevel(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.getCountGroupBySteadyWorkWarnLevel", map);
+	}
+	@Override
+	public List<LedgerPeopleSubstanceDesc> getCountGroupByDesc(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerSteadyWorkComprehensive.getCountGroupByDesc", map);
+	}
+
+}

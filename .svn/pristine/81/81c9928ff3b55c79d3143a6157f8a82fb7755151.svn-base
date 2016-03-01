@@ -1,0 +1,857 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+	
+<sqlMap namespace="ledgerReport">
+	<typeAlias alias="threeRecordsReportStatisticalVo"
+		type="com.tianque.plugin.account.vo.ThreeRecordsReportStatisticalVo" />
+		
+	<typeAlias alias="ThreeRecordsReportVo" type="com.tianque.plugin.account.vo.ThreeRecordsReportVo" />
+	<typeAlias alias="LedgerMonthReportStatisticalVo" type="com.tianque.plugin.account.vo.LedgerMonthReportStatisticalVo" />
+	<typeAlias alias="LedgerReportGroupCount" type="com.tianque.plugin.account.domain.LedgerReportGroupCount" />
+	
+	<resultMap id="monthLedgerPeopleDone" class="LedgerMonthReportStatisticalVo">
+		<result property="orgLevel" column="orgLevel" />
+		<result property="water" column="water" />
+		<result property="traffic" column="traffic" />
+		<result property="energy" column="energy" />
+		<result property="education" column="education" />
+		<result property="science" column="science" />
+		<result property="medical" column="medical" />
+		<result property="labor" column="labor" />
+		<result property="environment" column="environment" />
+		<result property="town" column="town" />
+		<result property="agriculture" column="agriculture" />
+		<result property="other" column="other" />
+		<result property="sums" column="sums" />
+	</resultMap>
+	<resultMap id="monthLedgerPoorPeopleDone" class="LedgerMonthReportStatisticalVo">
+		<result property="orgLevel" column="orgLevel" />
+		<result property="lifeCount" column="lifeCount" />
+		<result property="medicalCount" column="medicalCount" />
+		<result property="housingCount" column="housingCount" />
+		<result property="goSchoolCount" column="goSchoolCount" />
+		<result property="employmentCount" column="employmentCount" />
+		<result property="ledgerPoorPeopleOtherCount" column="ledgerPoorPeopleOtherCount" />
+		<result property="sums" column="sums" />
+	</resultMap>
+	<resultMap id="monthLedgerSteadyWorkDone" class="LedgerMonthReportStatisticalVo">
+		<result property="orgLevel" column="orgLevel" />
+		<result property="visitsCount" column="visitsCount" />
+		<result property="forestSoilCount" column="forestSoilCount" />
+		<result property="favorablePoliciesCount" column="favorablePoliciesCount" />
+		<result property="civilAdministrationIssuesCount" column="civilAdministrationIssuesCount" />
+		<result property="populationMedicalCount" column="populationMedicalCount" />
+		<result property="laborSocialSecurityCount" column="laborSocialSecurityCount" />
+		<result property="transportationCount" column="transportationCount" />
+		<result property="urbanConstructionAndCLECount" column="urbanConstructionAndCLECount" />
+		<result property="cpcPartyDisciplinesCount" column="cpcPartyDisciplinesCount" />
+		<result property="steadyRecordWorkEducationCount" column="steadyRecordWorkEducationCount" />
+		<result property="enterpriseRestructuringCount" column="enterpriseRestructuringCount" />
+		<result property="steadyEnvironmental" column="steadyEnvironmental" />
+		<result property="organizationPersonnelCount" column="organizationPersonnelCount" />
+		<result property="steadyRecordWorkOtherCount" column="steadyRecordWorkOtherCount" />
+		<result property="keyPersonnelCount" column="keyPersonnelCount" />
+		<result property="steadyWorkOther" column="steadyWorkOther" />
+		<result property="sums" column="sums" />
+	</resultMap>
+		
+	<resultMap id="allDistrictCountResult" class="ThreeRecordsReportVo">
+		<result property="orgLevel" column="orgLevel" />
+		<result property="ledgerType" column="ledgerType" />
+		<result property="count" column="count" />
+	</resultMap>
+		
+	<resultMap id="threeRecordsReportStatisticalVoResult" class="threeRecordsReportStatisticalVo">
+		<result property="waterResourceCount" column="waterResourceCount" />
+		<result property="trafficCount" column="trafficCount" />
+		<result property="educationCount" column="educationCount" />
+		<result property="healthMedicalCount" column="healthMedicalCount" />
+		<result property="resourcesAgriculturalCount" column="resourcesAgriculturalCount" />
+		<result property="energyCount" column="energyCount" />
+		<result property="socialLaborCount" column="socialLaborCount" />
+		<result property="environmentalProtectionCount" column="environmentalProtectionCount" />
+		<result property="planningAdviceManagementCount" column="planningAdviceManagementCount" />
+		<result property="scienceTechnologyCount" column="scienceTechnologyCount" />
+		<result property="otherResourcesCount" column="otherResourcesCount" />
+		<result property="ledgerPoorPeopleTotal" column="ledgerPoorPeopleTotal" />
+		<result property="steadyRecordWorkTotal" column="steadyRecordWorkTotal" />
+	</resultMap>	
+		
+	<resultMap id="reportGroupCountResult" class="LedgerReportGroupCount">
+		<result property="rowType.id" column="createtabletype" />
+		<result property="item.id" column="itemcategory" />
+		<result property="count" column="counts"/>
+		<result property="stateCode" column="stateCode"/>
+		<result property="ledgerType" column="ledgerType"/>
+	</resultMap>
+	
+	<sql id="sql_searchFuncOrgInfo">
+		<isEqual property="isSearchOrg" compareValue="1" prepend=" and ">
+			p.orgid in (select o.id from organizations o where 1=1
+			<isNotEmpty property="searchOrgCode" prepend=" and ">
+				o.orgInternalCode like #searchOrgCode# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="orgLevel" prepend=" and ">
+				o.orglevel =#orgLevel#
+			</isNotEmpty>
+			<isNotEmpty property="orgType" prepend=" and ">
+				o.orgtype=#orgType#
+			</isNotEmpty>
+			<isNotEmpty property="orgParentId" prepend=" and ">
+				o.parentId = #orgParentId#
+			</isNotEmpty>
+			)
+		</isEqual>
+	</sql>
+	
+	
+	
+	<sql id="sql_basesql">
+		<isPropertyAvailable property="orgId" prepend="and">
+		 	<![CDATA[ p.orgid = #orgId# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="startDate" prepend="and">
+		 	<![CDATA[ p.createdate >= #startDate# ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endDate" prepend="and">
+		 	<![CDATA[ p.createdate <= #endDate# ]]>
+		 </isPropertyAvailable>
+	</sql>
+	
+	<!-- 按照 建表类型 和 项目类型 统计数据 -->
+	<sql id="sql_getReportGroupCount">
+		 <!-- 下级 或下级职能部门-->
+		 <isPropertyAvailable property="orgIdList" prepend="and">
+		 	 <isNotNull property="orgIdList">  
+			       <iterate property="orgIdList" open="p.orgid in (" conjunction="," close=")">  
+                     #orgIdList[]#  
+                   </iterate>  
+			 </isNotNull>  
+		 </isPropertyAvailable>
+	</sql>
+	
+   <!-- 按照 建表类型 和 项目类型 统计数据 -->
+	<select id="getReportGroupCount"  parameterClass="java.util.Map" resultMap="reportGroupCountResult">
+		<isEqual property="ledgerType" compareValue="2">
+		 select createtabletype as createtabletype,
+			   <!--  poorType as itemcategory,-->
+			    null as itemcategory,
+			   count(id) as counts,
+			   2 as ledgerType,
+			   null as stateCode
+		       from ledgerPoorPeople p
+		       where 1=1 
+		 <include refid="sql_searchFuncOrgInfo" />      
+		 <include refid="sql_getReportGroupCount" />
+		 <include refid="sql_basesql" />
+		  group by createtabletype,poorType
+		</isEqual>
+		
+			
+		<isEqual property="ledgerType" compareValue="3">
+			select createtabletype as createtabletype,
+			   steadyWorkType as itemcategory,
+			   count(id) as counts,
+			   3 as ledgerType,
+			   null as stateCode
+		  from ledgerSteadyWork p
+		 where 1=1 
+		 <include refid="sql_searchFuncOrgInfo" />      
+		 <include refid="sql_getReportGroupCount" />
+		 <include refid="sql_basesql" />
+		 group by createtabletype, steadyWorkType
+		</isEqual>
+		
+		<isEqual property="ledgerType" compareValue="1">
+			 select createtabletype as createtabletype,
+			   ledgerType as itemcategory,
+			   count(id) as counts,
+			   1 as ledgerType,
+			   null as stateCode
+		  from ledgerPeopleAspirations p
+		 where  1=1 
+		 <include refid="sql_searchFuncOrgInfo" />      
+		 <include refid="sql_getReportGroupCount" />
+		 <include refid="sql_basesql" />
+		 group by createtabletype,ledgerType
+		</isEqual>
+	
+	</select>
+
+	<!-- 按呈报、交办后的数据 -->
+	<sql id="sql_getSubmitSuperiorCount">
+		<isPropertyAvailable property="submit" prepend="and">
+		 	<![CDATA[ ps.submit = #submit#  ]]>
+		 </isPropertyAvailable>
+         <isPropertyAvailable property="assign" prepend="and">
+		 	<![CDATA[ ps.assign = #assign#  ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="stateCode" prepend="and">
+		 	<![CDATA[ ps.statecode = #stateCode# ]]>
+		 </isPropertyAvailable>
+		 <!-- 下级 -->
+		 <isPropertyAvailable property="orgIdList" prepend="and">
+		 	 <isNotNull property="orgIdList">  
+			       <iterate property="orgIdList" open=" p.orgid in (" conjunction="," close=")">  
+                     #orgIdList[]#  
+                   </iterate>  
+			 </isNotNull>  
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="targetInternalCode" prepend="and">
+		 	<![CDATA[ ps.TARGETINTERNALCODE like #targetInternalCode#||'%']]>
+		 </isPropertyAvailable>
+		 <!-- 源部门 -->
+		  <isPropertyAvailable property="source" prepend="and">
+		 	<![CDATA[ ps.SOURCE = #source#]]>
+		 </isPropertyAvailable>
+		 <!-- 目标处理部门 -->
+		  <isPropertyAvailable property="target" prepend="and">
+		 	<![CDATA[ ps.target = #target#]]>
+		 </isPropertyAvailable>
+	</sql>
+	
+	<!-- 按照 建表类型 和 项目类型和事件处理状态 统计数据 -->
+	<select id="getReportAccountStepsCount"  parameterClass="java.util.Map" resultMap="reportGroupCountResult">
+		<isEqual property="ledgerType" compareValue="2">
+		 select count(pro.id) as counts, 
+		         pro.statecode as stateCode,
+		       <!--    pro.poorType as itemcategory,-->
+		          null as itemcategory,
+		         2 as ledgerType,
+		         pro.ledgertype as createtabletype from 
+          (select p.poorType,p.id,ps.ledgertype as ledgertype,ps.statecode from 
+          ledgerpoorpeople p left join platformAccountSteps ps on ps.ledgerType = p.ledgertype 
+          and ps.ledgerid = p.id where ps.id in (select MAX(id) from platformAccountSteps group by ledgerid,ledgerType)  
+		  <include refid="sql_searchFuncOrgInfo" />      
+		  <include refid="sql_getSubmitSuperiorCount" />
+		  <include refid="sql_basesql" />
+          ) pro 
+          group by pro.poorType,pro.ledgertype,pro.statecode
+		</isEqual>
+		
+			
+		<isEqual property="ledgerType" compareValue="3">
+		  select count(pro.id) as counts, 
+		         pro.statecode as stateCode,
+		         pro.steadyWorkType as itemcategory,
+		         3 as ledgerType,
+		         pro.ledgertype as createtabletype from 
+          (select p.steadyWorkType,p.id,ps.ledgertype,ps.statecode from 
+          ledgerSteadyWork p left join platformAccountSteps ps on ps.ledgerType = p.ledgertype 
+          and ps.ledgerid = p.id where ps.id in (select MAX(id) from platformAccountSteps group by ledgerid,ledgerType) 
+         <include refid="sql_searchFuncOrgInfo" />      
+         <include refid="sql_getSubmitSuperiorCount" />
+         <include refid="sql_basesql" />
+          ) pro 
+          group by pro.steadyWorkType,pro.ledgertype,pro.statecode
+		</isEqual>
+		
+		<isEqual property="ledgerType" compareValue="1">
+			 select count(pro.id) as counts, 
+		         pro.statecode as stateCode,
+		         pro.ledgertype as itemcategory,
+		         1 as ledgerType,
+		         pro.ledgertype as createtabletype from 
+          (select p.id,ps.ledgertype,ps.statecode from 
+          ledgerPeopleAspirations p left join platformAccountSteps ps on ps.ledgerType = p.ledgertype 
+          and ps.ledgerid = p.id where ps.id in (select MAX(id) from platformAccountSteps group by ledgerid,ledgerType)
+          <include refid="sql_searchFuncOrgInfo" />   
+          <include refid="sql_getSubmitSuperiorCount" />
+          <include refid="sql_basesql" />
+          ) pro 
+          group by pro.ledgertype,pro.statecode
+		</isEqual>
+	</select>
+	
+	<!-- 新的统计方法 -->
+	
+	<!-- 按呈报、交办后的数据 -->
+	<sql id="sql_getStateCodeCount">
+		 <!-- 下级 -->
+		  <isPropertyAvailable property="orgIdList" prepend="and">
+		 	 <isNotNull property="orgIdList">  
+			       <iterate property="orgIdList" open="p.orgid in (" conjunction="," close=")">  
+                     #orgIdList[]#  
+                   </iterate>  
+			 </isNotNull>  
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="levelReportedStateCode" prepend="and">
+		 	<![CDATA[ p.id in (select pal.ledgerid from platformAccountLogs pal where pal.ledgertype = p.ledgertype and pal.dealdescription like '%'||#levelReportedStateCode#||'%' ]]>
+		 	  <isPropertyAvailable property="levelReportedTarget" prepend="and">
+		 	      <![CDATA[ pal.targeorgid = #levelReportedTarget# ]]>
+		 	    </isPropertyAvailable>
+		 	    <isPropertyAvailable property="levelReportedDeal" prepend="and">
+		 	      <![CDATA[ pal.dealorgid = #levelReportedDeal# ]]>
+		 	    </isPropertyAvailable>
+		 	 <![CDATA[ group by pal.ledgerid) ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="acceptanceStateCode" prepend="and">
+		 	<![CDATA[ p.id in (select pal.ledgerid from platformAccountLogs pal where pal.ledgertype = p.ledgertype and  pal.dealdescription like '%'||#acceptanceStateCode#||'%'  ]]>
+		 	    <isPropertyAvailable property="acceptanceTarget" prepend="and">
+		 	      <![CDATA[ pal.targeorgid = #acceptanceTarget# ]]>
+		 	    </isPropertyAvailable>
+		 	    <isPropertyAvailable property="acceptanceDeal" prepend="and">
+		 	      <![CDATA[ pal.dealorgid = #acceptanceDeal# ]]>
+		 	    </isPropertyAvailable>
+		 	 <![CDATA[   group by pal.ledgerid) ]]>
+		 </isPropertyAvailable>
+		 <isPropertyAvailable property="endStateCode" prepend="and">
+		 	<![CDATA[ p.id in (select pal.ledgerid from platformAccountLogs pal where pal.ledgertype = p.ledgertype and  pal.dealdescription like '%'||#endStateCode#||'%' ]]>
+		 	  <isPropertyAvailable property="endTarget" prepend="and">
+		 	      <![CDATA[ pal.targeorgid = #endTarget# ]]>
+		 	    </isPropertyAvailable>
+		 	    <isPropertyAvailable property="endDeal" prepend="and">
+		 	      <![CDATA[ pal.dealorgid = #endDeal# ]]>
+		 	    </isPropertyAvailable>
+		 	 <![CDATA[ group by pal.ledgerid) ]]>
+		 </isPropertyAvailable>
+	</sql>
+	
+	<!-- 按照状态 统计数据 -->
+	<select id="getStateCodeCount"  parameterClass="java.util.Map" resultMap="reportGroupCountResult">
+		<isEqual property="ledgerType" compareValue="2">
+		 select createtabletype as createtabletype,
+			   <!-- poorType as itemcategory, -->
+			   null as itemcategory,
+			   count(id) as counts,
+			   2 as ledgerType,
+			   null as stateCode
+		       from ledgerPoorPeople p
+		       where 1=1 
+		       <include refid="sql_searchFuncOrgInfo" />   
+               <include refid="sql_getStateCodeCount" />
+               <include refid="sql_basesql" />
+		  group by createtabletype,poorType
+		</isEqual>
+			
+		<isEqual property="ledgerType" compareValue="3">
+			select createtabletype as createtabletype,
+			   steadyWorkType as itemcategory,
+			   count(id) as counts,
+			   3 as ledgerType,
+			   null as stateCode
+		  from ledgerSteadyWork p
+		 where 1=1 
+		 <include refid="sql_searchFuncOrgInfo" />   
+		 <include refid="sql_getStateCodeCount" />
+		 <include refid="sql_basesql" />
+		 group by createtabletype, steadyWorkType
+		</isEqual>
+		
+		<isEqual property="ledgerType" compareValue="1">
+			 select createtabletype as createtabletype,
+			   ledgerType as itemcategory,
+			   count(id) as counts,
+			   1 as ledgerType,
+			   null as stateCode
+		  from ledgerPeopleAspirations p
+		 where  1=1 
+		 <include refid="sql_searchFuncOrgInfo" />   
+		 <include refid="sql_getStateCodeCount" />
+		 <include refid="sql_basesql" />
+		 group by createtabletype,ledgerType
+		</isEqual>
+	</select>
+	
+	
+	<!--三本台账报表更改9-1 王超-->
+	<!--首页报表 ，不统计转接台账，转接和新建的只统计一次 10.14-->
+	<select id="getThreeAccountReportForVillage"  parameterClass="java.util.Map" resultMap="threeRecordsReportStatisticalVoResult">
+		select 
+		(
+		select count(1) from ledgerpeopleaspirations l  where l.ledgertype=#water#  and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)waterResourceCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#traffic# and l.createdate<![CDATA[<]]>#endDate#
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)trafficCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#education# and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)educationCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#medical# and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)healthMedicalCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#agriculture# and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)resourcesAgriculturalCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#energy# and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)energyCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#labor# and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)socialLaborCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#environment#  and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)environmentalProtectionCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#town# and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)planningAdviceManagementCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#science#  and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)scienceTechnologyCount,
+		
+		(
+		select count(l.id) from ledgerpeopleaspirations l  where l.ledgertype=#other#  and l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)otherResourcesCount,
+		
+		(
+		select count(l.id) from ledgerpoorpeople l where  l.createdate<![CDATA[<]]>#endDate#
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)ledgerPoorPeopleTotal,
+		
+		(
+		select count(l.id) from ledgersteadywork l where l.createdate<![CDATA[<]]>#endDate# 
+		<isEqual property="isCurrent" compareValue="yes" >
+			and l.orgId=#orgId#
+		</isEqual>
+		<isEqual property="isCurrent" compareValue="no" >
+			and l.ORGINTERNALCODE like #orgCode# || '%' and l.orgId!=#orgId#
+		</isEqual>
+		and l.createtabletype != #createTableTypePreTransfer#
+		)steadyRecordWorkTotal
+		from dual
+	</select>	
+	
+	<select id="getJurisdictionAccout" parameterClass="java.util.Map" resultMap="threeRecordsReportStatisticalVoResult">
+		select 
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#water# and l.createtabletype != #createTableTypePreTransfer# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)waterResourceCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#traffic#  and l.createtabletype != #createTableTypePreTransfer# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)trafficCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#education#  and l.createtabletype != #createTableTypePreTransfer# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)educationCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#medical#  and l.createtabletype != #createTableTypePreTransfer# and   l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)healthMedicalCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#agriculture#  and l.createtabletype != #createTableTypePreTransfer# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)resourcesAgriculturalCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#energy#   and l.createtabletype != #createTableTypePreTransfer# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)energyCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#labor#  and l.createtabletype != #createTableTypePreTransfer# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)socialLaborCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#environment#  and l.createtabletype != #createTableTypePreTransfer# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)environmentalProtectionCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#town#  and l.createtabletype != #createTableTypePreTransfer# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)planningAdviceManagementCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#science#  and l.createtabletype != #createTableTypePreTransfer#  and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)scienceTechnologyCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpeopleaspirations l  where l.ledgertype=#other#  and l.createtabletype != #createTableTypePreTransfer# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)otherResourcesCount,
+		
+		(
+		select sum(count(l.id)) from ledgerpoorpeople l where   l.createtabletype != #createTableTypePreTransfer# and  l.createdate<![CDATA[<]]>#endDate#  and l.orgId=org.id group by l.orgId
+		)ledgerPoorPeopleTotal,
+		
+		(
+		select sum(count(l.id)) from ledgersteadywork l where  l.createtabletype != #createTableTypePreTransfer# and l.createdate<![CDATA[<]]>#endDate# and l.orgId=org.id group by l.orgId
+		)steadyRecordWorkTotal
+		
+		from organizations org where  org.orglevel = #orgLevel# and org.ORGINTERNALCODE like #orgCode# || '%' 
+			<isNotEmpty property="currentUserOrgId">and org.id=#currentUserOrgId#</isNotEmpty>
+	</select>
+	
+	<!-- 新的首页报表显示 -->
+	<select id="getAllDistrictCount" parameterClass="map" resultMap="allDistrictCountResult">
+		<![CDATA[ select orgLevel,lpp.ledgerType,count(lpp.id) count from ledgerpeopleaspirations lpp,organizations org where lpp.ORGINTERNALCODE like #orgCode#|| '%' 
+		and lpp.createDate > #beginDate# and lpp.createdate <= #endDate# and lpp.orgId = org.id group by lpp.ledgerType,org.orgLevel
+		union all
+		select orgLevel,2 as ledgerType,count(lpp.id) count from ledgerpoorpeople lpp,organizations org where lpp.ORGINTERNALCODE like #orgCode#|| '%' 
+		and lpp.createDate > #beginDate# and lpp.createdate <= #endDate# and lpp.orgId = org.id group by org.orgLevel
+		union all
+		select orgLevel,3 as ledgerType,count(lpp.id) count from ledgersteadywork lpp,organizations org where lpp.ORGINTERNALCODE like #orgCode#|| '%' 
+		and lpp.createDate > #beginDate# and lpp.createdate <= #endDate# and lpp.orgId = org.id group by org.orgLevel]]>
+	</select>
+	<!-- 老的首页报表显示 -->
+	<select id="oldGetAllDistrictCount" parameterClass="map" resultMap="allDistrictCountResult">
+		<![CDATA[ select orgLevel,lpp.ledgerType,count(lpp.id) count from ledgerpeopleaspirations lpp,organizations org where lpp.ORGINTERNALCODE like #orgCode#|| '%' and lpp.createtabletype != #createTableTypePreTransfer# 
+		and lpp.createdate<#endDate# and lpp.orgId = org.id group by lpp.ledgerType,org.orgLevel
+		union all
+		select orgLevel,2 as ledgerType,count(lpp.id) count from ledgerpoorpeople lpp,organizations org where lpp.ORGINTERNALCODE like #orgCode#|| '%' and lpp.createtabletype != #createTableTypePreTransfer# 
+		and lpp.createdate<#endDate# and lpp.orgId = org.id group by org.orgLevel
+		union all
+		select orgLevel,3 as ledgerType,count(lpp.id) count from ledgersteadywork lpp,organizations org where lpp.ORGINTERNALCODE like #orgCode#|| '%' and lpp.createtabletype != #createTableTypePreTransfer# 
+		and lpp.createdate<#endDate# and lpp.orgId = org.id group by org.orgLevel]]>
+	</select>
+	
+	<select id="getYearCollectAnalysis" parameterClass="map" resultMap="allDistrictCountResult">
+		<![CDATA[ select org.orglevel,lpp.ledgerType,count(lpp.id) count from ledgerPeopleAspirations lpp,organizations org where lpp.ORGINTERNALCODE like #orgCode#||'%' and lpp.orgId = org.id and
+		lpp.createDate >= #beginDate# and lpp.createDate < #endDate# and lpp.createTableType <> #createTableTypePreTransfer#
+		group by lpp.ledgerType,org.orgLevel
+
+		union all
+
+		select orglevel,to_number(poorType) ledgerType,sum(count) count from (
+		select orglevel,count,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from 
+		(select orglevel,count,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from  
+
+		(select org.orglevel,lpp.poorType,count(lpp.id) count from ledgerpoorpeople lpp,organizations org where lpp.ORGINTERNALCODE like #orgCode#||'%' and lpp.orgId = org.id and
+		lpp.createDate >= #beginDate# and lpp.createDate < #endDate# and lpp.createTableType <> #createTableTypePreTransfer#
+		group by lpp.poorType,org.orglevel)
+
+		) t, (select level lv from dual connect by level <= 100) c
+				where c.lv <= t.cnt 
+		) group by poortype,orglevel
+
+		union all
+
+		select org.orglevel,lpp.steadyWorkType ledgerType,count(lpp.id) count from ledgersteadywork lpp,organizations org where lpp.ORGINTERNALCODE like #orgCode#||'%' and lpp.orgId = org.id and
+		lpp.createDate >= #beginDate# and lpp.createDate < #endDate# and lpp.createTableType <> #createTableTypePreTransfer# and lpp.steadyWorkType is not null
+		group by lpp.steadyWorkType,org.orglevel]]>
+	</select>
+	
+	
+	<sql id="ledgerPeopleMonthBegin">
+	<![CDATA[select 
+		       case when t is null then orgLevel||'%'  else ''||orgLevel end orgLevel,
+		       case when t is null then round(sum(sums)/sum(sums),4)*100||'%'  else sum(sums)||'' end sums,
+		       case when t is null then round(sum(water)/sum(sums),4)*100||'%'  else sum(water)||'' end water,
+		       case when t is null then round(sum(traffic)/sum(sums),4)*100||'%'  else sum(traffic)||'' end traffic,
+		       case when t is null then round(sum(energy)/sum(sums),4)*100||'%'  else sum(energy)||'' end energy,
+		       case when t is null then round(sum(education)/sum(sums),4)*100||'%'  else sum(education)||'' end education,
+		       case when t is null then round(sum(science)/sum(sums),4)*100||'%'  else sum(science)||'' end science,
+		       case when t is null then round(sum(medical)/sum(sums),4)*100||'%'  else sum(medical)||'' end medical,
+		       case when t is null then round(sum(labor)/sum(sums),4)*100||'%'  else sum(labor)||'' end labor,
+		       case when t is null then round(sum(environment)/sum(sums),4)*100||'%'  else sum(environment)||'' end environment,
+		       case when t is null then round(sum(town)/sum(sums),4)*100||'%'  else sum(town)||'' end town,
+		       case when t is null then round(sum(agriculture)/sum(sums),4)*100||'%'  else sum(agriculture)||'' end agriculture,
+		       case when t is null then round(sum(other)/sum(sums),4)*100||'%'  else sum(other)||'' end other
+		from (
+		
+		select case when orgLevel is null then '合计' else ''||orgLevel end orgLevel,
+		       sum(water) water,
+		       sum(traffic) traffic,
+		       sum(energy) energy,
+		       sum(education) education,
+		       sum(science) science,
+		       sum(medical) medical,
+		       sum(labor) labor,
+		       sum(environment) environment,
+		       sum(town) town,
+		       sum(agriculture) agriculture,
+		       sum(other) other,
+		       sum(sums) sums,
+		       1 t from(
+		select o.orgLevel,
+		          decode(o.ledgerType,#water#,sum(o.count),0) water,
+		          decode(o.ledgerType,#traffic#,sum(o.count),0) traffic,
+		          decode(o.ledgerType,#energy#,sum(o.count),0) energy,
+		          decode(o.ledgerType,#education#,sum(o.count),0) education,
+		          decode(o.ledgerType,#science#,sum(o.count),0) science,
+		          decode(o.ledgerType,#medical#,sum(o.count),0) medical,
+		          decode(o.ledgerType,#labor#,sum(o.count),0) labor,
+		          decode(o.ledgerType,#environment#,sum(o.count),0) environment,
+		          decode(o.ledgerType,#town#,sum(o.count),0) town,
+		          decode(o.ledgerType,#agriculture#,sum(o.count),0) agriculture,
+		          decode(o.ledgerType,#other#,sum(o.count),0) other,
+		          sum(o.count) sums
+		     from (]]>
+	</sql>
+	
+	<select id="getMonthLedgerPeopleDone" parameterClass="map" resultMap="monthLedgerPeopleDone">
+		<include refid="ledgerPeopleMonthBegin" />
+		         <![CDATA[ select o.orglevel,csp.ledgerType,count(csp.ledgerId) count from (
+		          select ledgerType,cstep.ledgerId,source,entrydate,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id asc) as rnk 
+		          from platformAccountSteps cstep where ledgerType not in(#poorPeople#,#steadyWork#) and sourceInternalCode like #orgCode#||'%'
+		          ) csp,organizations o where rnk = 2 and csp.entrydate >= #beginDate# and csp.entrydate < #endDate#
+		          and csp.source = o.id
+		          group by csp.ledgerType,o.orglevel
+		      ) o group by o.orgLevel,o.ledgerType 
+		      
+		  ) group by grouping sets((orgLevel),())
+		  
+		) group by grouping sets((orgLevel),(orgLevel,t))]]>
+	</select>
+	
+	<select id="getMonthLedgerPeopleCollect" parameterClass="map" resultMap="monthLedgerPeopleDone">
+		<include refid="ledgerPeopleMonthBegin" />
+		         <![CDATA[ select org.orglevel,lpp.ledgerType,count(lpp.id) count from ledgerPeopleAspirations lpp,organizations org where 
+		         lpp.ORGINTERNALCODE like #orgCode#||'%' and lpp.orgId = org.id and
+			lpp.createDate >= #beginDate# and lpp.createDate < #endDate# and lpp.createTableType <> #createTableTypePreTransfer#
+			group by lpp.ledgerType,org.orgLevel
+			
+			) o group by o.orgLevel,o.ledgerType
+			
+		  ) group by grouping sets((orgLevel),())
+		  
+		) group by grouping sets((orgLevel),(orgLevel,t))]]>
+	</select>
+	
+	<sql id="ledgerPoorPeopleMonthBegin">
+	<![CDATA[select 
+		       case when t is null then orgLevel||'%'  else ''||orgLevel end orgLevel,
+		       case when t is null then round(sum(sums)/sum(sums),4)*100||'%'  else sum(sums)||'' end sums,
+		       case when t is null then round(sum(lifeCount)/sum(sums),4)*100||'%'  else sum(lifeCount)||'' end lifeCount,
+		       case when t is null then round(sum(medicalCount)/sum(sums),4)*100||'%'  else sum(medicalCount)||'' end medicalCount,
+		       case when t is null then round(sum(housingCount)/sum(sums),4)*100||'%'  else sum(housingCount)||'' end housingCount,
+		       case when t is null then round(sum(goSchoolCount)/sum(sums),4)*100||'%'  else sum(goSchoolCount)||'' end goSchoolCount,
+		       case when t is null then round(sum(employmentCount)/sum(sums),4)*100||'%'  else sum(employmentCount)||'' end employmentCount,
+		       case when t is null then round(sum(ledgerPoorPeopleOtherCount)/sum(sums),4)*100||'%'  else sum(ledgerPoorPeopleOtherCount)||'' end ledgerPoorPeopleOtherCount
+		from (
+		
+		select case when orgLevel is null then '合计' else ''||orgLevel end orgLevel,
+		       sum(lifeCount) lifeCount,
+		       sum(medicalCount) medicalCount,
+		       sum(housingCount) housingCount,
+		       sum(goSchoolCount) goSchoolCount,
+		       sum(employmentCount) employmentCount,
+		       sum(ledgerPoorPeopleOtherCount) ledgerPoorPeopleOtherCount,
+		       sum(sums) sums,
+		       1 t from(
+		select o.orgLevel,
+		          decode(o.ledgerType,#lifeCount#,sum(o.count),0) lifeCount,
+		          decode(o.ledgerType,#medicalCount#,sum(o.count),0) medicalCount,
+		          decode(o.ledgerType,#housingCount#,sum(o.count),0) housingCount,
+		          decode(o.ledgerType,#goSchoolCount#,sum(o.count),0) goSchoolCount,
+		          decode(o.ledgerType,#employmentCount#,sum(o.count),0) employmentCount,
+		          decode(o.ledgerType,#ledgerPoorPeopleOtherCount#,sum(o.count),0) ledgerPoorPeopleOtherCount,
+		          sum(o.count) sums
+		     from (]]>
+	</sql>
+	
+	<select id="getMonthLedgerPoorPeopleDone" parameterClass="map" resultMap="monthLedgerPoorPeopleDone">
+			<include refid="ledgerPoorPeopleMonthBegin" />
+		          <![CDATA[select orglevel,to_number(poorType) ledgerType,sum(count) count from (
+				      select orglevel,count,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from 
+				      (select orglevel,count,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from 
+		
+		          (select orglevel,poorType,sum(count) count from (
+		          select csp.source,lpp.poorType,count(csp.ledgerId) count from (
+		          select cstep.ledgerId,source,entrydate,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id asc) as rnk 
+		          from platformAccountSteps cstep where ledgerType = #poorPeople# and sourceInternalCode like #orgCode#||'%'
+		          ) csp,ledgerpoorpeople lpp where rnk = 2 and csp.entrydate >= #beginDate# and csp.entrydate < #endDate#
+		          and csp.ledgerId = lpp.id group by lpp.poortype,csp.source
+		          )t,organizations o where t.source = o.id group by o.orglevel,t.poorType)
+		                
+		          ) t, (select level lv from dual connect by level <= 100) c
+		                  where c.lv <= t.cnt 
+		              ) group by poortype,orglevel 
+		          
+		      ) o group by o.orgLevel,o.ledgerType 
+		  ) group by grouping sets((orgLevel),())
+		  
+		) group by grouping sets((orgLevel),(orgLevel,t))]]>
+	</select>
+	
+	<select id="getMonthLedgerPoorPeopleCollect" parameterClass="map" resultMap="monthLedgerPoorPeopleDone">
+			<include refid="ledgerPoorPeopleMonthBegin" />
+		          <![CDATA[select orglevel,poorType ledgerType,sum(count) count from (
+			select orglevel,count,substr(t.poorType,instr(t.poorType, ',', 1, c.lv) + 1, instr(t.poorType, ',', 1, c.lv + 1) - (instr(t.poorType, ',', 1, c.lv) + 1)) AS poortype from 
+			(select orglevel,count,','|| poortype AS poortype, nvl(lengthb(poortype),0)-nvl(lengthb(replace(poortype,',',null)),0) as cnt from  
+
+			(select org.orglevel,lpp.poorType,count(lpp.id) count from ledgerpoorpeople lpp,organizations org where lpp.ORGINTERNALCODE like #orgCode#||'%' and lpp.orgId = org.id and
+			lpp.createDate >= #beginDate# and lpp.createDate < #endDate# and lpp.createTableType <> #createTableTypePreTransfer#
+			group by lpp.poorType,org.orglevel)
+
+			) t, (select level lv from dual connect by level <= 100) c
+				where c.lv <= t.cnt 
+			) group by poortype,orglevel
+			
+			) o group by o.orgLevel,o.ledgerType
+		  ) group by grouping sets((orgLevel),())
+		  
+			) group by grouping sets((orgLevel),(orgLevel,t))]]>
+	</select>
+	
+	<sql id="ledgerSteadyWorkMonthBegin">
+	<![CDATA[select 
+		       case when t is null then orgLevel||'%'  else ''||orgLevel end orgLevel,
+		       case when t is null then round(sum(sums)/sum(sums),4)*100||'%'  else sum(sums)||'' end sums,
+		       case when t is null then round(sum(visitsCount)/sum(sums),4)*100||'%'  else sum(visitsCount)||'' end visitsCount,
+		       case when t is null then round(sum(forestSoilCount)/sum(sums),4)*100||'%'  else sum(forestSoilCount)||'' end forestSoilCount,
+		       case when t is null then round(sum(favorablePoliciesCount)/sum(sums),4)*100||'%'  else sum(favorablePoliciesCount)||'' end favorablePoliciesCount,
+		       case when t is null then round(sum(civilAdministrationIssuesCount)/sum(sums),4)*100||'%'  else sum(civilAdministrationIssuesCount)||'' end civilAdministrationIssuesCount,
+		       case when t is null then round(sum(populationMedicalCount)/sum(sums),4)*100||'%'  else sum(populationMedicalCount)||'' end populationMedicalCount,
+		       case when t is null then round(sum(laborSocialSecurityCount)/sum(sums),4)*100||'%'  else sum(laborSocialSecurityCount)||'' end laborSocialSecurityCount,
+		       case when t is null then round(sum(transportationCount)/sum(sums),4)*100||'%'  else sum(transportationCount)||'' end transportationCount,
+		       case when t is null then round(sum(urbanConstructionAndCLECount)/sum(sums),4)*100||'%'  else sum(urbanConstructionAndCLECount)||'' end urbanConstructionAndCLECount,
+		       case when t is null then round(sum(cpcPartyDisciplinesCount)/sum(sums),4)*100||'%'  else sum(cpcPartyDisciplinesCount)||'' end cpcPartyDisciplinesCount,
+		       case when t is null then round(sum(steadyRecordWorkEducationCount)/sum(sums),4)*100||'%'  else sum(steadyRecordWorkEducationCount)||'' end steadyRecordWorkEducationCount,
+		       case when t is null then round(sum(enterpriseRestructuringCount)/sum(sums),4)*100||'%'  else sum(enterpriseRestructuringCount)||'' end enterpriseRestructuringCount,
+		       case when t is null then round(sum(steadyEnvironmental)/sum(sums),4)*100||'%'  else sum(steadyEnvironmental)||'' end steadyEnvironmental,
+		       case when t is null then round(sum(organizationPersonnelCount)/sum(sums),4)*100||'%'  else sum(organizationPersonnelCount)||'' end organizationPersonnelCount,
+		       case when t is null then round(sum(steadyRecordWorkOtherCount)/sum(sums),4)*100||'%'  else sum(steadyRecordWorkOtherCount)||'' end steadyRecordWorkOtherCount,
+		       case when t is null then round(sum(keyPersonnelCount)/sum(sums),4)*100||'%'  else sum(keyPersonnelCount)||'' end keyPersonnelCount,
+		       case when t is null then round(sum(steadyWorkOther)/sum(sums),4)*100||'%'  else sum(steadyWorkOther)||'' end steadyWorkOther
+		from (
+		
+		select case when orgLevel is null then '合计' else ''||orgLevel end orgLevel,
+		       sum(visitsCount) visitsCount,
+		       sum(forestSoilCount) forestSoilCount,
+		       sum(favorablePoliciesCount) favorablePoliciesCount,
+		       sum(civilAdministrationIssuesCount) civilAdministrationIssuesCount,
+		       sum(populationMedicalCount) populationMedicalCount,
+		       sum(laborSocialSecurityCount) laborSocialSecurityCount,
+		       sum(transportationCount) transportationCount,
+		       sum(urbanConstructionAndCLECount) urbanConstructionAndCLECount,
+		       sum(cpcPartyDisciplinesCount) cpcPartyDisciplinesCount,
+		       sum(steadyRecordWorkEducationCount) steadyRecordWorkEducationCount,
+		       sum(enterpriseRestructuringCount) enterpriseRestructuringCount,
+		       sum(steadyEnvironmental) steadyEnvironmental,
+		       sum(organizationPersonnelCount) organizationPersonnelCount,
+		       sum(steadyRecordWorkOtherCount) steadyRecordWorkOtherCount,
+		       sum(keyPersonnelCount) keyPersonnelCount,
+		       sum(steadyWorkOther) steadyWorkOther,
+		       sum(sums) sums,
+		       1 t from(
+		select o.orgLevel,
+		          decode(o.ledgerType,#visitsCount#,sum(o.count),0) visitsCount,
+		          decode(o.ledgerType,#forestSoilCount#,sum(o.count),0) forestSoilCount,
+		          decode(o.ledgerType,#favorablePoliciesCount#,sum(o.count),0) favorablePoliciesCount,
+		          decode(o.ledgerType,#civilAdministrationIssuesCount#,sum(o.count),0) civilAdministrationIssuesCount,
+		          decode(o.ledgerType,#populationMedicalCount#,sum(o.count),0) populationMedicalCount,
+		          decode(o.ledgerType,#laborSocialSecurityCount#,sum(o.count),0) laborSocialSecurityCount,
+		          decode(o.ledgerType,#transportationCount#,sum(o.count),0) transportationCount,
+		          decode(o.ledgerType,#urbanConstructionAndCLECount#,sum(o.count),0) urbanConstructionAndCLECount,
+		          decode(o.ledgerType,#cpcPartyDisciplinesCount#,sum(o.count),0) cpcPartyDisciplinesCount,
+		          decode(o.ledgerType,#steadyRecordWorkEducationCount#,sum(o.count),0) steadyRecordWorkEducationCount,
+		          decode(o.ledgerType,#enterpriseRestructuringCount#,sum(o.count),0) enterpriseRestructuringCount,
+		          decode(o.ledgerType,#steadyEnvironmental#,sum(o.count),0) steadyEnvironmental,
+		          decode(o.ledgerType,#organizationPersonnelCount#,sum(o.count),0) organizationPersonnelCount,
+		          decode(o.ledgerType,#steadyRecordWorkOtherCount#,sum(o.count),0) steadyRecordWorkOtherCount,
+		          decode(o.ledgerType,#keyPersonnelCount#,sum(o.count),0) keyPersonnelCount,
+		          decode(o.ledgerType,#steadyWorkOther#,sum(o.count),0) steadyWorkOther,
+		          sum(o.count) sums
+		     from (]]>
+	</sql>
+	
+	<select id="getMonthLedgerSteadyWorkDone" parameterClass="map" resultMap="monthLedgerSteadyWorkDone">
+		<include refid="ledgerSteadyWorkMonthBegin" />
+		   <![CDATA[select o.orgLevel,t.steadyWorkType ledgerType,sum(count) count from (   
+		          select csp.source,lpp.steadyworkType,count(csp.ledgerId) count from (
+		          select cstep.ledgerId,source,entrydate,row_number()over(partition by cstep.ledgerId,cstep.ledgerType order by cstep.id asc) as rnk 
+		          from platformAccountSteps cstep where ledgerType = #steadyWork# and sourceInternalCode like #orgCode#||'%'
+		          ) csp,ledgersteadywork lpp where rnk = 2 and csp.entrydate >= #beginDate# and csp.entrydate < #endDate#
+		          and csp.ledgerId = lpp.id group by lpp.steadyWorkType,csp.source
+		          )t,organizations o where t.source = o.id group by o.orglevel,t.steadyWorkType
+		          
+		      ) o group by o.orgLevel,o.ledgerType 
+		  ) group by grouping sets((orgLevel),())
+		  
+		) group by grouping sets((orgLevel),(orgLevel,t))]]>
+	</select>
+	
+	<select id="getMonthLedgerSteadyWorkCollect" parameterClass="map" resultMap="monthLedgerSteadyWorkDone">
+		<include refid="ledgerSteadyWorkMonthBegin" />
+		   <![CDATA[select org.orglevel,lpp.steadyWorkType ledgerType,count(lpp.id) count from ledgersteadywork lpp,organizations org where 
+		   lpp.ORGINTERNALCODE like #orgCode#||'%' and lpp.orgId = org.id and
+		lpp.createDate >= #beginDate# and lpp.createDate < #endDate# and lpp.createTableType <> #createTableTypePreTransfer# and lpp.steadyWorkType is not null
+		group by lpp.steadyWorkType,org.orglevel
+		
+		) o group by o.orgLevel,o.ledgerType
+		  ) group by grouping sets((orgLevel),())
+		  
+		) group by grouping sets((orgLevel),(orgLevel,t))]]>
+	</select>
+	
+</sqlMap>

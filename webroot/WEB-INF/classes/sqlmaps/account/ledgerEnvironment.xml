@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="ledgerPeopleAspirations">
+
+	<typeAlias alias="environment"
+		type="com.tianque.plugin.account.domain.Environment" />
+
+	<resultMap id="environmentResult" class="environment">
+		<result property="id" column="id" />
+		<result property="beneficiaryNumber" column="beneficiaryNumber" />
+		<result property="buildType.id" column="buildType" />
+		<result property="projectName" column="projectName" />
+		<result property="projectCategory.id" column="projectCategory" />
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="unitCategory.id" column="unitCategory" />
+		<result property="plannedInvestment" column="plannedInvestment" />
+		<result property="selfFund" column="selfFund" />
+		<result property="gapFund" column="gapFund" />
+		<result property="fromAddress" column="fromAddress" />
+		<result property="toAddress" column="toAddress" />
+		<result property="peopleAspiration.id" column="ledgerPeopleAspirationsId" />
+		<result property="governNumber" column="governNumber" />
+		<result property="otherContent" column="otherContent" />
+		<result property="content" column="content" />
+		
+		
+	</resultMap>
+
+
+	<select id="getEnvironmentByAspirationsId" parameterClass="java.lang.Long"
+		resultMap="environmentResult">
+		select * from ledgerEnvironment where ledgerPeopleAspirationsId=#value#
+	</select>
+
+	<select id="getEnvironmentById" parameterClass="java.lang.Long"
+		resultMap="environmentResult">
+		select * from ledgerEnvironment where id=#value#
+	</select>
+
+	<insert id="addEnvironment" parameterClass="environment">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_ledgerEnvironment.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerEnvironment (  ID,ledgerPeopleAspirationsId,beneficiaryNumber  ,buildType  ,projectName  ,projectCategory    ,plannedInvestment  ,selfFund     ,gapFund      ,fromAddress  ,toAddress    ,createUser   ,updateUser   ,createDate   ,updateDate ,governNumber,projectSubCategory,unitCategory,otherContent,content )
+		values( #id#,#peopleAspiration.id#,#beneficiaryNumber#,#buildType.id#,#projectName#,#projectCategory.id#,#plannedInvestment#,#selfFund#,#gapFund#,#fromAddress#,#toAddress#,#createUser#,#updateUser#,#createDate#,#updateDate# ,#governNumber#,#projectSubCategory.id#,#unitCategory.id#,#otherContent#,#content#)
+	</insert>
+
+	<update id="updateEnvironment" parameterClass="environment">
+		update ledgerEnvironment set 
+			beneficiaryNumber = #beneficiaryNumber#,
+			projectCategory = #projectCategory.id#,
+			buildType = #buildType.id#,
+			projectName = #projectName#,
+			projectSubCategory = #projectSubCategory.id#,
+			unitCategory = #unitCategory.id#,
+			plannedInvestment = #plannedInvestment#,
+			selfFund  = #selfFund#,
+			gapFund = #gapFund#,
+			fromAddress = #fromAddress#,
+			toAddress = #toAddress#,
+			updateDate = #updateDate#,
+			UPDATEUSER = #updateUser#,
+			governNumber = #governNumber#,
+			otherContent = #otherContent#,
+			content = #content#
+		where id = #id#
+	</update>
+
+	<delete id="deleteEnvironmentByAspirationId" parameterClass="java.lang.Long">
+		delete from ledgerEnvironment where ledgerPeopleAspirationsId = #value#	
+	</delete>
+
+
+</sqlMap>

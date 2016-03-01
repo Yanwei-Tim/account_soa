@@ -1,0 +1,114 @@
+/* header */
+@import "/resource/system/js/jqueryui/red/jquery-ui-1.9.2.custom.min.css";
+@import "main.css";
+/*ui*/
+.ui-tabs .ui-tabs-nav{border:1px solid #c00;background:#B71A1B url(../images/skin/red/icon_staticsTitle.png) repeat-x;}
+.ui-tabs .ui-tabs-nav li.ui-tabs-active{color:#930505;background:#fff url(../images/skin/red/tabCurrent.png) repeat-x center 0;}
+.ui-tabs .ui-tabs-nav li.ui-tabs-active a{color:#e93232;}
+.ui-dialog .ui-tabs .ui-tabs-nav{background:#eee url(../images/skin/red/dialog_tab_title.jpg) repeat-x;}
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-tabs-active a{color:#CB0000;}
+
+/*jqgrid*/
+.ui-jqgrid .ui-state-highlight,.ui-jqgrid tr.ui-state-hover{background:#FACEB7;}
+
+/*jrac_zoom_slider*/
+.jrac_zoom_slider .ui-state-active{border: 1px solid #930505;background: #ad0303;}
+
+/*tablelist*/
+.tablelist .title{background:#FEEEE5;}
+
+/* header */
+.systemHeader{background: url(../images/skin/red/header_bg.jpg) repeat-x;}
+.switchSkin_red_rightBg{
+    z-index: -1;
+    top: 0;
+    right: 0px;
+    position: absolute;
+    float:right;
+    width:840px; height:67px;
+    background: url(../images/skin/red/head-right-bg.jpg) no-repeat;
+    _background:none;
+}
+.systemHeader .logo-container{
+    background: url(../images/skin/red/head_left_bg.jpg) left bottom no-repeat;
+}
+.product-menu ul li.sysMenu{ background: url(../images/skin/red/menu_btn.png) top no-repeat;_background: url(../images/skin/red/menu_btn_ie6.png) top no-repeat;}
+.product-menu ul li.sysMenu:hover{background-position:bottom;}
+
+/*workbench*/
+.addworkmemos .okbtn{background:#e93232;border: 1px solid #930505;}
+.column .portlet-header{
+    background:#c30102 url(../images/skin/red/side-mod-title-bg.jpg) no-repeat;
+    border:1px solid #c00;
+}
+.portlet-content a{color:#e93232;}
+.portlet-header .portlet_tools{
+    background: url(../images/skin/red/icon_tools.png) no-repeat;
+}
+.calendar #today{
+	color:#e93232;
+}
+.workbench-ctt-left .btitle{background:url(../images/skin/red/left_title.jpg) no-repeat 23px center;}
+.ui-widget-content .ui-jqgrid-btable .ui-icon{
+	background-image: url(/resource/system/js/jqueryui/red/images/ui-icons_930505_256x240.png);
+}
+.workbench-ctt-left .ui-datepicker .ui-datepicker-calendar td .ui-state-active{
+    background-color:#e93232;
+}
+dl.sysMenuList dd a.select, dl.sysMenuList dd a:hover{
+    background: url(../images/skin/red/menu_bg_hover_red.png) repeat-x;
+}
+.workbench-ctt-left .ui-datepicker .ui-datepicker-calendar td{}
+
+/*orgSelectBox*/
+.orgBoxSearchBox .organizationlist a:hover{color:#930505;}
+.orgSelectBox .orgBoxResult a strong{color:#930505;border:1px solid #ccc;background:-moz-linear-gradient(top, #fafafa, #e7eef1); background:-webkit-gradient(linear, left top, left bottom, from(#fafafa), to(#e7eef1)); filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr='#fafafa',EndColorStr='#e7eef1');}
+.orgSelectBox .orgBoxResult a.cur strong,.orgSelectBox .orgBoxResult a:hover strong{background:#AD0303;}
+
+/*nav*/
+#nav a,.btnbanner a,.btnlist a{background:url(../images/skin/red/button-bg.png) left bottom no-repeat;}
+#nav a span, .btnbanner a span,.btnlist span{background:url(../images/skin/red/button-bg.png) right bottom no-repeat;}
+
+/*nav-sub-buttons*/
+#nav .nav-sub-buttons a:hover{background:#B71A1B;}
+
+/*bottom*/
+.workbench-footer span.service{}
+
+/*autocomplute*/
+ul.holder li.bit-box{border: 1px solid #EBB297;background: #FBDAC8;}
+
+/*issue*/
+.issueList li.current{border:1px solid #D55858;background:#F28D87;}
+.issueList li.current span.arrow{background:url(../images/skin/red/icon_issueSarrow.png) no-repeat;}
+div.issuePagination a:hover, div.issuePagination a:active{color:#fff; border:1px solid #ECCBBB; background-color:#DB2B2B;}
+.dealRecord h3.processRecord .processBtnList a.cur{
+	background: -moz-linear-gradient(top, white, #FDF1EB);
+	background: -webkit-gradient(linear, left top, left bottom, from(white), to(#FDF1EB));
+	filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr='#ffffff', EndColorStr='#FDF1EB');
+}
+.dealRecord h3.processRecord .processBtnList a span{background:url(../images/skin/red/icon_process_title.png) no-repeat;}
+div.issuePagination span.current{background:#DB2B2B;}
+.issueRight .recordList .recordContent{color:#027D7F;}
+.issueRight .recordList .recordData{border: 1px solid #ECCBBB;background:#FEEEE5;}
+.issueRight .smallText{border:1px solid #ECCBBB;border-top:0;}
+/*.issueRight .issueContentInfo{background:#FEF1E3;border-bottom:1px solid #D55858;}*/
+
+/*dlgBox*/
+.dlgBox{background-color:#FFF1EA; border:1px solid #F3D4C5;}
+.dlgRightAdd{border-left:1px solid #F3D4C5;}
+.dlgLeftMenu li.cur a{background:#E97070;}
+.dlgBtnList,
+.upTreatedAvatar{border-top:1px solid #F3D4C5;}
+.dlgBtnList input,
+.upTreatedAvatar input{border: 1px solid #930505;background: #ad0303;}
+.dlgBtnList input:hover,
+.upTreatedAvatar input:hover{color:#930505;}
+.personalCatagory{border-bottom:1px solid #B20000;}
+.personalCatagory a{background:url(/resource/system/js/jqueryui/red/images/ui-icons_930505_256x240.png) no-repeat -129px -192px;}
+
+/*incident*/
+.Structure dd.current,.processList_content .list a.current{background:#FCE4D5;}
+
+/*ul.holder*/
+ul.holder li.bit-box-focus {background: #F28D87 !important;}

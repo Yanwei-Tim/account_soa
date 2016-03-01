@@ -1,0 +1,598 @@
+package com.tianque.plugin.account.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.tianque.core.vo.AutoCompleteData;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.account.domain.BaseWorking;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueMap;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStep;
+import com.tianque.plugin.account.state.ThreeRecordsIssueOperate;
+import com.tianque.plugin.account.vo.LedgerAttachFileReturnVo;
+import com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject;
+
+/**
+ * @author Administrator
+ *
+ */
+public interface ThreeRecordsIssueService {
+
+	/**
+	 * 根据台账id,类型删除台账
+	 * 
+	 * @param ledgerId
+	 * @param ledgerType
+	 * @return
+	 */
+	public boolean deleteIssueByIssueId(Long ledgerId, int ledgerType);
+
+	/**
+	 * 结案
+	 * 
+	 * @param stepId
+	 *            步骤id
+	 * @param log
+	 *            处理记录
+	 * @param files
+	 *            附件
+	 * @return
+	 */
+	public ThreeRecordsIssueViewObject complete(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files);
+
+	/**
+	 * 上报
+	 * 
+	 * @param stepId
+	 *            步骤id
+	 * @param log
+	 *            处理记录
+	 * @param target
+	 *            上报目标部门id
+	 * @param tells
+	 *            协办部门id
+	 * @param files
+	 *            附件
+	 * @return
+	 */
+	public ThreeRecordsIssueViewObject submit(Long stepId,
+			ThreeRecordsIssueLogNew log, Long target, Long[] tells,
+			List<ThreeRecordsIssueAttachFile> files);
+
+	/**
+	 * 受理
+	 * 
+	 * @param stepId
+	 *            步骤id
+	 * @param log
+	 *            处理记录
+	 * @return
+	 */
+	public ThreeRecordsIssueViewObject concept(Long stepId,
+			ThreeRecordsIssueLogNew log);
+
+	/**
+	 * 办理中
+	 * 
+	 * @param stepId
+	 *            步骤id
+	 * @param log
+	 *            处理记录
+	 * @return
+	 */
+	public ThreeRecordsIssueViewObject comment(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files);
+
+	/**
+	 * 交办
+	 * 
+	 * @param stepId
+	 *            步骤id
+	 * @param log
+	 *            处理记录
+	 * @param target
+	 *            交办目标部门id
+	 * @param tellorgs
+	 *            协办部门id
+	 * @param files
+	 *            附件
+	 * @param notices
+	 *            抄告部门id
+	 * @return
+	 */
+	public ThreeRecordsIssueViewObject assign(Long stepId,
+			ThreeRecordsIssueLogNew log, Long target, Long[] tellorgs,
+			List<ThreeRecordsIssueAttachFile> files, Long[] notices);
+
+	/**
+	 * 回退
+	 * 
+	 * @param stepId
+	 *            步骤id
+	 * @param log
+	 *            处理记录
+	 * @param files
+	 *            附件
+	 * @return
+	 */
+	public ThreeRecordsIssueViewObject back(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files);
+
+	/**
+	 * 下辖部门待办台账列表如果isSupported为1查询协办台账0主办台账2为抄告
+	 * 
+	 * @param seachValue
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @param sidx
+	 * @param sord
+	 * @param issueType
+	 * @param isSupported
+	 * @return
+	 */
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsNeedDo(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Integer isSupported,
+			Integer year, Integer month);
+
+	/**
+	 * 下辖部门上级交办台账列表
+	 * 
+	 * @param seachValue
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @param sidx
+	 * @param sord
+	 * @param issueType
+	 * @return
+	 */
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsAssgin(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Integer year,
+			Integer month);
+
+	/**
+	 * 下辖部门待跟进台账列表
+	 * 
+	 * @param seachValue
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @param sidx
+	 * @param sord
+	 * @param issueType
+	 * @return
+	 */
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsFollow(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Integer year,
+			Integer month);
+
+	/**
+	 * 下辖部门已办台账列表
+	 * 
+	 * @param seachValue
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @param sidx
+	 * @param sord
+	 * @param issueType
+	 * @return
+	 */
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Integer year,
+			Integer month);
+
+	/**
+	 * 下辖部门上报台账列表
+	 * 
+	 * @param seachValue
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @param sidx
+	 * @param sord
+	 * @param issueType
+	 * @return
+	 */
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubmit(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Integer year,
+			Integer month);
+
+	/***
+	 * 根据处理步骤id 获取完整的台账对象
+	 * 
+	 * @param keyId
+	 *            处理步骤id
+	 * @return
+	 */
+	public BaseWorking getSimpleBaseWorkByStepId(Long keyId);
+
+	/**
+	 * 获取台账的所有附件（包括工作记录）
+	 * 
+	 * @param ledgerId
+	 * @param ledgerType
+	 * @return
+	 */
+	public List<ThreeRecordsIssueAttachFile> loadLedgerAndLogAttachFilesByLedgerIdAndType(
+			Long ledgerId, int ledgerType);
+
+	/**
+	 * 获取台账附件
+	 * 
+	 * @param ledgerId
+	 * @param type
+	 * @return
+	 */
+	public List<ThreeRecordsIssueAttachFile> loadLedgerAttachFilesByLedgerIdAndType(
+			Long ledgerId, int type);
+
+	/**
+	 * 获取台账的所有处理记录
+	 * 
+	 * @param issueId
+	 * @param ledgerType
+	 * @return
+	 */
+	public List<ThreeRecordsIssueLogNew> loadIssueOperationLogsByIssueId(
+			Long issueId, Long ledgerType);
+
+	/**
+	 * 根据id获取台账附件
+	 * 
+	 * @param id
+	 *            台账附件id
+	 * @return
+	 */
+	public ThreeRecordsIssueAttachFile getIssueAttachFileById(Long id);
+
+	/**
+	 * 获取台账可以操作的状态
+	 * 
+	 * @param stepId
+	 * @param operateOrg
+	 * @return
+	 */
+	public List<ThreeRecordsIssueOperate> getIssueCandoForOrg(Long stepId,
+			Organization operateOrg);
+
+	/***
+	 * 根据id获取台账处理步骤
+	 * 
+	 * @param stepId
+	 *            步骤id
+	 * @return
+	 */
+	public ThreeRecordsIssueStep getIssueStepById(Long stepId);
+
+	/**
+	 * 根据关键字查询台账的主办单位(行政单位)
+	 * 
+	 * @param stepid
+	 *            步骤id
+	 * @param tag
+	 *            用户输入的关键字
+	 * @param operate
+	 *            操作类型
+	 * @param exceptIds
+	 *            已选择部门id
+	 * @param pageIndex
+	 * @return
+	 */
+	public PageInfo<AutoCompleteData> findAdminTargetsByName(Long stepid,
+			String tag, ThreeRecordsIssueOperate operate, Long[] exceptIds,
+			boolean twice, int pageIndex, int rows);
+
+	/**
+	 * 根据关键字查询台账的主办单位(职能部门)
+	 * 
+	 * @param stepid
+	 *            步骤id
+	 * @param tag
+	 *            用户输入的关键字
+	 * @param operate
+	 *            操作类型
+	 * @param exceptIds
+	 *            已选择部门id
+	 * @param pageIndex
+	 * @return
+	 */
+	public PageInfo<AutoCompleteData> findFunctionTargetsByName(Long stepid,
+			String tag, ThreeRecordsIssueOperate operate, Long[] exceptIds,
+			int pageIndex, int rows);
+
+	/**
+	 * 根据用户输入的关键字查询协办单位(行政部门)
+	 * 
+	 * @param stepid
+	 *            步骤id
+	 * @param tag
+	 *            用户输入的关键字
+	 * @param operate
+	 *            操作类型
+	 * @param transferToAdmin
+	 *            主送目标是否是行政部门
+	 * @param exceptIds
+	 *            其中exceptIds[0]为主送目标
+	 * @param pageIndex
+	 * @return
+	 */
+	public PageInfo<AutoCompleteData> findTellTargetsByName(Long stepid,
+			String tag, ThreeRecordsIssueOperate operate,
+			boolean transferToAdmin, Long[] exceptIds, int page, int rows);
+
+	/***
+	 * 获取台账的处理记录图表视图数据
+	 * 
+	 * @param ledgerId
+	 *            台账id
+	 * @return
+	 */
+	public List<ThreeRecordsIssueMap> getIssueMap(Long ledgerId, int ledgerType);
+
+	/***
+	 * 获取台账在某个部门的处理记录
+	 * 
+	 * @param issueMap
+	 *            issueMap中包含issueId 和 orgId
+	 * @return
+	 */
+	public List<ThreeRecordsIssueLogNew> getIssueDealLog(
+			ThreeRecordsIssueMap issueMap);
+
+	/**
+	 * 统计已办的台账数量
+	 * 
+	 * @param map
+	 * @return
+	 */
+	public int getMyDoneCount(Organization organization);
+
+	/**
+	 * 查询待办的数量
+	 * 
+	 * @param map
+	 * @return
+	 */
+	public int getJurisdictionsNeedDoCount(Organization organization);
+
+	/**
+	 * 转办
+	 * 
+	 * @param stepId
+	 *            步骤id
+	 * @param log
+	 *            处理记录
+	 * @param target
+	 *            转办目标部门id
+	 * @param tellorgs
+	 *            协办部门id
+	 * @param files
+	 *            附件
+	 * @param notices
+	 *            抄告部门id
+	 * @return
+	 */
+	public ThreeRecordsIssueViewObject turn(Long stepId,
+			ThreeRecordsIssueLogNew log, Long target, Long[] tellorgs,
+			List<ThreeRecordsIssueAttachFile> files, Long[] notices);
+
+	/**
+	 * 申报
+	 * 
+	 * @param stepId
+	 *            步骤id
+	 * @param log
+	 *            处理记录
+	 * @param target
+	 *            转办目标部门id
+	 * @param tellorgs
+	 * @param files
+	 * @return
+	 */
+	public ThreeRecordsIssueViewObject declare(Long stepId,
+			ThreeRecordsIssueLogNew log, Long target, Long[] tellorgs,
+			List<ThreeRecordsIssueAttachFile> files);
+
+	/**
+	 * 辅办
+	 * 
+	 * @param stepId
+	 *            步骤id
+	 * @param log
+	 *            处理记录
+	 * @param files
+	 *            附件
+	 * @return
+	 */
+	public ThreeRecordsIssueViewObject support(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files);
+
+	/**
+	 * 查询程序结案
+	 * 
+	 * @param stepId
+	 *            步骤id
+	 * @param log
+	 *            处理记录
+	 * @param files
+	 *            附件
+	 * @return
+	 */
+	public ThreeRecordsIssueViewObject programComplete(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files);
+
+	/**
+	 * 查询阶段结案
+	 * 
+	 * @param stepId
+	 *            步骤id
+	 * @param log
+	 *            处理记录
+	 * @param files
+	 *            附件
+	 * @return
+	 */
+	public ThreeRecordsIssueViewObject periodComplete(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files);
+
+	/**
+	 * 新增台账附件
+	 * 
+	 * @param files
+	 * @return
+	 */
+	public LedgerAttachFileReturnVo addIssueAttachFiles(
+			List<ThreeRecordsIssueAttachFile> files);
+
+	/**
+	 * 查询下辖部门待反馈台账列表
+	 * 
+	 * @param seachValue
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @param sidx
+	 * @param sord
+	 * @param issueType
+	 * @return
+	 */
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsFeedBack(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Integer year,
+			Integer month);
+
+	/**
+	 * 查询阶段已办结
+	 * 
+	 * @param seachValue
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @param sidx
+	 * @param sord
+	 * @param issueType
+	 * @return
+	 */
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsPeriodDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Integer year,
+			Integer month);
+
+	/**
+	 * 查询实质办结
+	 * 
+	 * @param seachValue
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @param sidx
+	 * @param sord
+	 * @param issueType
+	 * @return
+	 */
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubstanceDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Integer year,
+			Integer month);
+
+	/**
+	 * @param stepId
+	 *            步骤id
+	 * @param log
+	 *            处理记录
+	 * @param files
+	 *            附件
+	 * @return
+	 */
+	public ThreeRecordsIssueViewObject tmpComment(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files);
+
+	/**
+	 * 附件编号，附件名组装的数组 台账附件格 式如【1,数据管理流动人口登记表.xls】
+	 * 
+	 * @param fileNameAndIdS
+	 * @return
+	 */
+	public List<ThreeRecordsIssueAttachFile> combineIssueAttachFile(
+			String[] fileNameAndIdS);
+
+	/**
+	 * 根据台账编号，类型查询回复单附件
+	 * 
+	 * @param ledgerId
+	 * @param type
+	 * @return
+	 */
+	public List<ThreeRecordsIssueAttachFile> findReplyFormFiles(Long ledgerId,
+			int type);
+
+	/**
+	 * 根据回复单编号查询回复单的附件
+	 * 
+	 * @param replyId
+	 * @return
+	 */
+	public List<ThreeRecordsIssueAttachFile> findReplyFormFilesByReplyId(
+			Long replyId);
+
+	/**
+	 * 根据用户输入的关键字查询协办单位(行政部门)
+	 * 
+	 * @param stepid
+	 *            步骤id
+	 * @param tag
+	 *            用户输入的关键字
+	 * @param operate
+	 *            操作类型
+	 * @param exceptIds
+	 *            其中exceptIds[0]为主送目标
+	 * @param pageIndex
+	 * @return
+	 */
+	public PageInfo<AutoCompleteData> findNoticeTargetsByName(Long stepid,
+			String tag, ThreeRecordsIssueOperate operate, Long[] exceptIds,
+			int page, int rows);
+
+	/**下辖部门已办和新建台账列表
+	 * @param seachValue
+	 * @param orgId
+	 * @param page
+	 * @param rows
+	 * @param sidx
+	 * @param sord
+	 * @param issueType
+	 * @return
+	 */
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsCreateAndDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Integer year,
+			Integer month);
+
+	/**
+	 * 根据台账id和台账类型获取台账最后的处理步骤
+	 * @param ledgerId
+	 * @param ledgerType
+	 * @return
+	 */
+	public ThreeRecordsIssueLogNew getLastStepByIssueIdAndIssueType(
+			Long ledgerId, int ledgerType);
+
+	/**
+	 * 统计处于各阶段台账的数目
+	 * @param orgId
+	 * @param issueType
+	 * @return
+	 */
+	public Map<String, Integer> getIssueCount(Long orgId, Long issueType);
+}

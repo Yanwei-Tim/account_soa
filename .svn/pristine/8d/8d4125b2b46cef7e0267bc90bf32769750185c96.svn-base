@@ -1,0 +1,288 @@
+package com.tianque.account.api.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.tianque.account.api.LedgerSteadyWorkDubboService;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.domain.LedgerSteadyWork;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.service.LedgerSteadyWorkService;
+import com.tianque.plugin.account.vo.LedgerSteadyWorkVo;
+import com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject;
+
+@Component
+public class LedgerSteadyWorkServiceDubboImpl implements
+		LedgerSteadyWorkDubboService {
+
+	@Autowired
+	private LedgerSteadyWorkService ledgerSteadyWorkService;
+
+	@Override
+	public LedgerSteadyWork addLedgerSteadyWork(
+			LedgerSteadyWork ledgerSteadyWork) {
+		return ledgerSteadyWorkService.addLedgerSteadyWork(ledgerSteadyWork);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject assign(Long stepId,
+			ThreeRecordsIssueLogNew log, Long targeOrg, Long[] tells,
+			List<ThreeRecordsIssueAttachFile> attachFiles, Long[] notices) {
+		return ledgerSteadyWorkService.assign(stepId, log, targeOrg, tells,
+				attachFiles, notices);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject back(Long stepId,
+			ThreeRecordsIssueLogNew log,
+			List<ThreeRecordsIssueAttachFile> attachFiles) {
+		return ledgerSteadyWorkService.back(stepId, log, attachFiles);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject comment(Long stepId,
+			ThreeRecordsIssueLogNew log,
+			List<ThreeRecordsIssueAttachFile> attachFiles) {
+		return ledgerSteadyWorkService.comment(stepId, log, attachFiles);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject complete(Long stepId,
+			ThreeRecordsIssueLogNew log,
+			List<ThreeRecordsIssueAttachFile> attachFiles) {
+		return ledgerSteadyWorkService.complete(stepId, log, attachFiles);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject concept(Long stepId,
+			ThreeRecordsIssueLogNew log) {
+		return ledgerSteadyWorkService.concept(stepId, log);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject declare(Long stepId,
+			ThreeRecordsIssueLogNew log, Long target, Long[] tellorgs,
+			List<ThreeRecordsIssueAttachFile> files) {
+		return ledgerSteadyWorkService.declare(stepId, log, target, tellorgs,
+				files);
+	}
+
+	@Override
+	public void deleteLedgerSteadyWorkById(Long id) {
+		ledgerSteadyWorkService.deleteLedgerSteadyWorkById(id);
+
+	}
+
+	@Override
+	public LedgerSteadyWork findByIdCardNo(String idCardNo) {
+		return ledgerSteadyWorkService.findByIdCardNo(idCardNo);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsAssgin(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		return ledgerSteadyWorkService.findJurisdictionsAssgin(seachValue,
+				orgId, page, rows, sidx, sord, issueType, orgLevel, leaderView,
+				functionalOrgType, viewProcess, sourceType);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsDone(Long orgId,
+			Integer page, Integer rows, String sidx, String sord,
+			Long issueType, Long orgLevel, String leaderView,
+			Long functionalOrgType, Integer viewProcess, Long sourceType) {
+		return ledgerSteadyWorkService.findJurisdictionsDone(orgId, page, rows,
+				sidx, sord, issueType, orgLevel, leaderView, functionalOrgType,
+				viewProcess, sourceType);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsFeedBack(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		return ledgerSteadyWorkService.findJurisdictionsFeedBack(seachValue,
+				orgId, page, rows, sidx, sord, issueType, orgLevel, leaderView,
+				functionalOrgType, viewProcess, sourceType);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsNeedDo(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalorgType, Integer viewProcess,
+			Long sourceType) {
+		return ledgerSteadyWorkService.findJurisdictionsNeedDo(seachValue,
+				orgId, page, rows, sidx, sord, issueType, orgLevel, leaderView,
+				functionalorgType, viewProcess, sourceType,
+				LedgerConstants.OPERATE_TYPE_SPONSOR);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsPeriodDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		return ledgerSteadyWorkService.findJurisdictionsPeriodDone(seachValue,
+				orgId, page, rows, sidx, sord, issueType, orgLevel, leaderView,
+				functionalOrgType, viewProcess, sourceType);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSubmit(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		return ledgerSteadyWorkService.findJurisdictionsSubmit(seachValue,
+				orgId, page, rows, sidx, sord, issueType, orgLevel, leaderView,
+				functionalOrgType, viewProcess, sourceType);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSubstanceDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		return ledgerSteadyWorkService.findJurisdictionsSubstanceDone(
+				seachValue, orgId, page, rows, sidx, sord, issueType, orgLevel,
+				leaderView, functionalOrgType, viewProcess, sourceType);
+	}
+
+	@Override
+	public LedgerSteadyWork getFullLedgerSteadyWorkById(Long id) {
+		return ledgerSteadyWorkService.getFullLedgerSteadyWorkById(id);
+	}
+
+	@Override
+	public LedgerSteadyWork getLedgerSteadyWorkById(Long id) {
+		return ledgerSteadyWorkService.getLedgerSteadyWorkById(id);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject peroidComplete(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		return ledgerSteadyWorkService.peroidComplete(stepId, log, files);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject programComplete(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		return ledgerSteadyWorkService.programComplete(stepId, log, files);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject submit(Long stepId,
+			ThreeRecordsIssueLogNew log, Long submitTarget, Long[] tells,
+			List<ThreeRecordsIssueAttachFile> attachFiles) {
+		return ledgerSteadyWorkService.submit(stepId, log, submitTarget, tells,
+				attachFiles);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject support(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		return ledgerSteadyWorkService.support(stepId, log, files);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject tmpComment(Long keyId,
+			ThreeRecordsIssueLogNew operation,
+			List<ThreeRecordsIssueAttachFile> files) {
+		return ledgerSteadyWorkService.tmpComment(keyId, operation, files);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject turn(Long stepId,
+			ThreeRecordsIssueLogNew log, Long target, Long[] tellorgs,
+			List<ThreeRecordsIssueAttachFile> files, Long[] notices) {
+		return ledgerSteadyWorkService.turn(stepId, log, target, tellorgs,
+				files, notices);
+	}
+
+	@Override
+	public void updateLedgerSteadyWork(LedgerSteadyWork ledgerSteadyWork) {
+		ledgerSteadyWorkService.updateLedgerSteadyWork(ledgerSteadyWork);
+
+	}
+
+	@Override
+	public LedgerSteadyWork createTemporaryLedgerSteadyWork(Long orgId) {
+		return ledgerSteadyWorkService.createTemporaryLedgerSteadyWork(orgId);
+	}
+
+	@Override
+	public LedgerSteadyWork saveLedgerSteadyWork(
+			LedgerSteadyWork ledgerSteadyWork) {
+		return ledgerSteadyWorkService.saveLedgerSteadyWork(ledgerSteadyWork);
+	}
+
+	@Override
+	public void updateLedgerSteadyWorkStatus(LedgerSteadyWork ledgerSteadyWork) {
+		ledgerSteadyWorkService.updateLedgerSteadyWorkStatus(ledgerSteadyWork);
+
+	}
+
+	@Override
+	public void registerProcess(LedgerSteadyWork ledgerSteadyWork) {
+		ledgerSteadyWorkService.registerProcess(ledgerSteadyWork);
+
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsSupportDo(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalorgType, Integer viewProcess,
+			Long sourceType) {
+		return ledgerSteadyWorkService.findJurisdictionsNeedDo(seachValue,
+				orgId, page, rows, sidx, sord, issueType, orgLevel, leaderView,
+				functionalorgType, viewProcess, sourceType,
+				LedgerConstants.OPERATE_TYPE_SUPPORT);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsNoticeDo(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalorgType, Integer viewProcess,
+			Long sourceType) {
+		return ledgerSteadyWorkService.findJurisdictionsNeedDo(seachValue,
+				orgId, page, rows, sidx, sord, issueType, orgLevel, leaderView,
+				functionalorgType, viewProcess, sourceType,
+				LedgerConstants.OPERATE_TYPE_NOTICE);
+	}
+
+	@Override
+	public PageInfo<LedgerSteadyWorkVo> findJurisdictionsCreateAndDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		return ledgerSteadyWorkService.findJurisdictionsCreateAndDone(
+				seachValue, orgId, page, rows, sidx, sord, issueType, orgLevel,
+				leaderView, functionalOrgType, viewProcess, sourceType);
+	}
+
+	@Override
+	public int countLedgerByOldHistoryId(String oldHistoryId, String orgCode) {
+		return ledgerSteadyWorkService.countLedgerByOldHistoryId(oldHistoryId, orgCode);
+	}
+	
+	@Override
+	public Map<String, Integer> getIssueCount(Long orgId, Long issueType, Long orgLevel, String leaderView, Long sourceType, Long functionalOrgType){
+		return ledgerSteadyWorkService.getIssueCount(orgId, issueType, orgLevel, leaderView, sourceType, functionalOrgType);
+	}
+
+}

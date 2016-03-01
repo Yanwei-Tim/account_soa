@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="replyForm">
+	<typeAlias alias="replyForm" type="com.tianque.plugin.account.domain.ReplyForm" />
+	<typeAlias alias="replyFormVo" type="com.tianque.plugin.account.vo.ReplyFormVo" />
+	<resultMap class="replyForm" id="replyFormMap">
+		<result property="id" column="id"/>
+		<result property="stepId" column="stepId"/>
+		<result property="ledgerId" column="ledgerId"/>
+		<result property="ledgerType" column="ledgerType"/>
+		<result property="sourceOrg.id" column="sourceOrg"/>
+		<result property="targetOrg.id" column="targetOrg"/>
+		<result property="reason" column="reason"/>
+		<result property="handleContent" column="handleContent"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="replyDate" column="replyDate"/>
+		<result property="name" column="name"/>
+		<result property="mobile" column="mobile"/>
+		<result property="ledgerSerialNumber" column="ledgerSerialNumber"/>
+		
+	</resultMap>
+	<insert id="addReplyForm" parameterClass="replyForm">
+		<selectKey keyProperty="id" resultClass="long">
+			<![CDATA[SELECT S_accountReplyForm.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into accountReplyForm(id ,stepId ,ledgerId ,ledgerType ,sourceOrg ,targetOrg ,reason ,handleContent ,serialNumber , CREATEUSER , UPDATEUSER ,CREATEDATE , UPDATEDATE,ledgerSerialNumber,replyDate,name,mobile )
+		values(#id# ,#stepId# ,#ledgerId# ,#ledgerType# ,#sourceOrg.id# ,#targetOrg.id# ,#reason# ,#handleContent# ,#serialNumber# , #createUser#, #updateUser#,  #createDate#, #updateDate#,#ledgerSerialNumber#,#replyDate#,#name#,#mobile# )
+	</insert>
+	<sql id="search_sql_where">
+		<dynamic>
+			<isNotNull property="id" prepend=" and ">
+			id = #id#
+			</isNotNull>
+			<isNotNull property="stepId" prepend=" and ">
+			stepId = #stepId#
+			</isNotNull>
+			<isNotNull property="ledgerId" prepend=" and ">
+			ledgerId = #ledgerId#
+			</isNotNull>
+			<isNotNull property="ledgerType" prepend=" and ">
+			ledgerType = #ledgerType#
+			</isNotNull>
+			<isNotNull property="sourceOrg" prepend=" and ">
+			sourceOrg = #sourceOrg#
+			</isNotNull>
+			<isNotNull property="targetOrg" prepend=" and ">
+			targetOrg = #targetOrg#
+			</isNotNull>
+			<isNotNull property="reason" prepend=" and ">
+			reason = #reason#
+			</isNotNull>
+			<isNotNull property="handleContent" prepend=" and ">
+			handleContent = #handleContent#
+			</isNotNull>
+			<isNotNull property="serialNumber" prepend=" and ">
+			serialNumber = #serialNumber#
+			</isNotNull>
+		</dynamic>
+	</sql>
+	<select id="countFindReplyForms" parameterClass="replyFormVo" resultClass="java.lang.Integer">
+		select count(id) from accountReplyForm where 1=1
+		<include refid="search_sql_where"/>
+	</select>
+	<select id="findReplyForms" parameterClass="replyFormVo" resultMap="replyFormMap">
+		select * from accountReplyForm where 1=1
+		<include refid="search_sql_where"/>
+		order by id desc
+	</select>
+	
+	<update id="updateReplyForm" parameterClass="replyForm">
+		update accountReplyForm set id=#id#
+		  <isNotNull property="stepId" prepend=",">
+			  stepId = #stepId#
+		  </isNotNull>
+		  <isNotNull property="ledgerId" prepend=",">
+			  ledgerId = #ledgerId#
+		  </isNotNull>
+		  <isNotNull property="ledgerType" prepend=",">
+			  ledgerType = #ledgerType#
+		  </isNotNull>
+		  <isNotNull property="sourceOrg" prepend=",">
+			  sourceOrg = #sourceOrg.id#
+		  </isNotNull>
+		  <isNotNull property="targetOrg" prepend=",">
+			  targetOrg = #targetOrg.id#
+		  </isNotNull>
+		  <isNotNull property="reason" prepend=",">
+			  reason = #reason#
+		  </isNotNull>
+		  <isNotNull property="handleContent" prepend=",">
+			  handleContent = #handleContent#
+		  </isNotNull>
+		  <isNotNull property="serialNumber" prepend=",">
+			  serialNumber = #serialNumber#
+		  </isNotNull>
+		  <isNotNull prepend="," property="updateUser">
+			 UPDATEUSER = #updateUser#
+		  </isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				UPDATEDATE = #updateDate#
+		  </isNotNull>
+		  <isNotNull prepend="," property="replyDate">
+				replyDate = #replyDate#
+		  </isNotNull>
+		  <isNotNull prepend="," property="name">
+				name = #name#
+		  </isNotNull>
+		  <isNotNull prepend="," property="mobile">
+				mobile = #mobile#
+		  </isNotNull>
+	   
+		where id=#id#
+	</update>
+	
+	<select id="getSimpleReplyFormById" parameterClass="java.lang.Long"
+		resultMap="replyFormMap">
+		<![CDATA[select * from accountReplyForm where id=#value#]]>
+	</select>
+	
+	<select id="getSimpleReplyFormByLedgerIdAndType" parameterClass="java.util.Map"
+		resultMap="replyFormMap">
+		<![CDATA[select * from accountReplyForm where ledgerId=#ledgerId# and ledgerType=#ledgerType#]]>
+	</select>
+	
+</sqlMap>

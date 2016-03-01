@@ -1,0 +1,115 @@
+
+.SigmaReport {
+	width:100%;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+    border-radius: 3px;
+	line-height:1.6em;
+	color:#333;
+
+}
+.SigmaReport table{
+	width:100%;  
+	border-collapse:collapse;
+}
+.SigmaReport td{
+	font-weight:normal;
+	color:#333;
+}
+.SigmaReport .head{
+	margin:0 5px;
+	background:#D4E8F9;
+	border-top:1px solid #ccc;
+	border-left:1px solid #ccc;
+}
+
+.SigmaReport a:link {
+	COLOR: #5177A8; TEXT-DECORATION: underline;
+}
+
+.SigmaReport a:visited {
+	COLOR: #5177A8; TEXT-DECORATION: underline;
+}
+
+.SigmaReport a:hover {
+	COLOR: #5177A8; TEXT-DECORATION: underline;
+}
+
+.SigmaReport .body{
+	margin:0 5px;
+	border-left:1px solid #ccc;
+}
+
+.SigmaReport .body tr.selected{
+	background-color:#CCE4F9;
+}
+.SigmaReport .body tr.disabled{
+	background:#F0EDED;
+	color:#CECECE;
+}
+
+.SigmaReport .body tr.hover{
+	background-color:rgb(255,255,151);
+}
+
+.SigmaReport .scroll{
+}
+
+.SigmaReport .body td{
+	border-right:1px solid #ccc;
+	border-bottom:1px solid #ccc;
+	font-size:12px;
+	height:20px;
+	padding:0px;
+	text-align:center;
+	color:#333;
+}
+
+.SigmaReport .body input{
+	font-size:12px;
+	border:0px solid red;
+}
+.SigmaReport  input{
+	font-size:12px;
+	border:0px solid red;
+}
+
+.SigmaReport .body div.focused{
+	background-color:rgb(255,250,255);
+}
+
+.SigmaReport .body div{
+	padding:3px;
+	display:block;
+	text-align:center;
+}
+.SigmaReport .body div.checked{
+	width:16px;
+	height:16px;
+	border:1px solid red;
+	background-image:url(right.gif);
+	background-repeat:no-repeat;
+}
+
+.SigmaReport .head td{
+	background:#e7edf5;
+	border-right:1px solid #ccc;
+	border-bottom:1px solid #ccc;
+	font-size:12px;
+	height:28px;
+	line-height:28px;(
+	overflow:hidden;
+	padding-top:2px;
+}
+
+
+.SigmaReport .head div.title{
+	padding-top:2px;
+	float:left;
+	height:18px;
+	overflow:hidden;
+	white-space:nowrap;
+}
+
+
+

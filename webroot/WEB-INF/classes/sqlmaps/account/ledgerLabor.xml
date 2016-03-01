@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="ledgerPeopleAspirations">
+
+	<typeAlias alias="labor"
+		type="com.tianque.plugin.account.domain.Labor" />
+
+	<resultMap id="laborResult" class="labor">
+		<result property="id" column="id" />
+		<result property="relationNumber" column="relationNumber" />
+		<result property="projectName" column="projectName" />
+		<result property="projectCategory.id" column="projectCategory" />
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="projectSubContentCategory.id" column="projectSubContentCategory" />
+		<result property="money" column="money" />
+		<result property="company" column="company" />
+		<result property="fromAddress" column="fromAddress" />
+		<result property="toAddress" column="toAddress" />
+		<result property="peopleAspiration.id" column="ledgerPeopleAspirationsId" />
+		<result property="otherContent" column="otherContent" />
+		<result property="yawnAddr" column="yawnAddr" />
+		<result property="yawnContactor" column="yawnContactor" />
+		<result property="yawnMobile" column="yawnMobile" />
+		<result property="skill" column="skill" />
+		<result property="dignity.id" column="dignity" />
+		<result property="crippleLevel.id" column="crippleLevel" />
+		<result property="ageLevel.id" column="ageLevel" />
+		<result property="degree.id" column="degree" />
+	
+	</resultMap>
+
+
+	<select id="getLaborByAspirationsId" parameterClass="java.lang.Long"
+		resultMap="laborResult">
+		select * from ledgerLabor where ledgerPeopleAspirationsId=#value#
+	</select>
+
+	<select id="getLaborById" parameterClass="java.lang.Long"
+		resultMap="laborResult">
+		select * from ledgerLabor where id=#value#
+	</select>
+
+	<insert id="addLabor" parameterClass="labor">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_ledgerLabor.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerLabor (  ID,ledgerPeopleAspirationsId,relationNumber   ,projectName  ,projectCategory   ,money  ,company        ,fromAddress  ,toAddress    ,createUser   ,updateUser   ,createDate   ,updateDate ,projectSubContentCategory ,projectSubCategory
+		,otherContent,yawnAddr,yawnContactor,yawnMobile,skill,degree,ageLevel,crippleLevel,dignity )
+		values( #id#,#peopleAspiration.id#,#relationNumber#,#projectName#,#projectCategory.id#,#money#,#company#,#fromAddress#,#toAddress#,#createUser#,#updateUser#,#createDate#,#updateDate# ,#projectSubContentCategory.id#,#projectSubCategory.id#
+		,#otherContent#,#yawnAddr#,#yawnContactor#,#yawnMobile#,#skill#,#degree.id#,#ageLevel.id#,#crippleLevel.id#,#dignity.id#)
+	</insert>
+
+	<update id="updateLabor" parameterClass="labor">
+		update ledgerLabor set 
+			relationNumber = #relationNumber#,
+			projectCategory = #projectCategory.id#,
+			projectName = #projectName#,
+			projectSubCategory = #projectSubCategory.id#,
+			projectSubContentCategory = #projectSubContentCategory.id#,
+			money = #money#,
+			company  = #company#,
+			fromAddress = #fromAddress#,
+			toAddress = #toAddress#,
+			updateDate = #updateDate#,
+			UPDATEUSER = #updateUser#,
+			otherContent = #otherContent#,
+			dignity = #dignity.id#,
+			crippleLevel = #crippleLevel.id#,
+			ageLevel = #ageLevel.id#,
+			degree = #degree.id#,
+			skill = #skill#,
+			yawnMobile = #yawnMobile#,
+			yawnContactor = #yawnContactor#,
+			yawnAddr = #yawnAddr#
+		where id = #id#
+	</update>
+
+	<delete id="deleteLaborByAspirationId" parameterClass="java.lang.Long">
+		delete from ledgerLabor where ledgerPeopleAspirationsId = #value#	
+	</delete>
+
+
+</sqlMap>

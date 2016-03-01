@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="ledgerPeopleAspirations">
+
+	<typeAlias alias="waterResources"
+		type="com.tianque.plugin.account.domain.WaterResources" />
+
+	<resultMap id="waterResourcesResult" class="waterResources">
+		<result property="id" column="id" />
+		<result property="beneficiaryNumber" column="beneficiaryNumber" />
+		<result property="buildType.id" column="buildType" />
+		<result property="projectName" column="projectName" />
+		<result property="projectCategory.id" column="projectCategory" />
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="plannedInvestment" column="plannedInvestment" />
+		<result property="selfFund" column="selfFund" />
+		<result property="gapFund" column="gapFund" />
+		<result property="fromAddress" column="fromAddress" />
+		<result property="toAddress" column="toAddress" />
+		<result property="peopleAspiration.id" column="ledgerPeopleAspirationsId" />
+		<result property="mileage" column="mileage" />
+		<result property="impoundage" column="impoundage" />
+		<result property="scatter" column="scatter" />
+		<result property="centralized" column="centralized" />
+		<result property="otherContent" column="otherContent" />
+		<result property="num" column="num" />
+		
+		
+		
+	</resultMap>
+
+
+	<select id="getWaterResourcesByAspirationsId" parameterClass="java.lang.Long"
+		resultMap="waterResourcesResult">
+		select * from ledgerWaterResource where ledgerPeopleAspirationsId=#value#
+	</select>
+
+	<select id="getWaterResourcesById" parameterClass="java.lang.Long"
+		resultMap="waterResourcesResult">
+		select * from ledgerWaterResource where id=#value#
+	</select>
+
+	<insert id="addWaterResources" parameterClass="waterResources">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_ledgerWaterResource.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerWaterResource (  ID,ledgerPeopleAspirationsId,beneficiaryNumber  ,buildType  ,projectName  ,projectCategory    ,projectSubCategory ,plannedInvestment  ,selfFund     ,gapFund      ,fromAddress  ,toAddress    ,createUser   ,updateUser   ,createDate   ,updateDate ,mileage,impoundage,scatter,centralized ,otherContent,num     )
+		values( #id#,#peopleAspiration.id#,#beneficiaryNumber#,#buildType.id#,#projectName#,#projectCategory.id#,#projectSubCategory.id#,#plannedInvestment#,#selfFund#,#gapFund#,#fromAddress#,#toAddress#,#createUser#,#updateUser#,#createDate#,#updateDate# ,#mileage#,#impoundage#,#scatter#,#centralized#,#otherContent#,#num#)
+	</insert>
+	
+	<update id="updateWaterResources" parameterClass="waterResources">
+		update ledgerWaterResource set 
+			beneficiaryNumber = #beneficiaryNumber#,
+			projectCategory = #projectCategory.id#,
+			buildType = #buildType.id#,
+			projectName = #projectName#,
+			projectSubCategory = #projectSubCategory.id#,
+			plannedInvestment = #plannedInvestment#,
+			selfFund  = #selfFund#,
+			gapFund = #gapFund#,
+			fromAddress = #fromAddress#,
+			toAddress = #toAddress#,
+			updateDate = #updateDate#,
+			UPDATEUSER = #updateUser#,
+			mileage = #mileage#,
+			impoundage = #impoundage#,
+			scatter = #scatter#,
+			centralized = #centralized#,
+			otherContent = #otherContent#,
+			num = #num#
+		where id = #id#
+	</update>
+
+
+	<delete id="deleteWaterResourcesByAspirationId" parameterClass="java.lang.Long">
+		delete from ledgerWaterResource where ledgerPeopleAspirationsId = #value#	
+	</delete>
+
+
+</sqlMap>

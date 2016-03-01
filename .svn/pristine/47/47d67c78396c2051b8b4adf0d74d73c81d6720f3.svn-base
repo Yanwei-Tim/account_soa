@@ -1,0 +1,44 @@
+package com.tianque.account.api;
+
+import java.util.Date;
+
+public interface ThreeRecordsKeyGeneratorDubboService {
+
+	/**
+	 * 根据台账类型，组织机构编号生成台账编号
+	 * 
+	 * @param prefix
+	 * @param orgId
+	 * @return
+	 */
+	public String getNextKey(String prefix, Long orgId);
+
+	/**
+	 * 数据导入时生成台账编号
+	 * 
+	 * @param prefix
+	 * @param orgId
+	 * @param createDate
+	 * @return
+	 */
+	public String getNextKey(String prefix, Long orgId, Date createDate);
+
+	/**
+	 * 根据台账类型，表单类型 生成呈报单,回复单，交办单等编号
+	 * 
+	 * @param prefix
+	 * @param formType
+	 * @return
+	 */
+	public String getNextFormKey(String prefix, String formType);
+
+	/**
+	 * 数据导入时根据台账类型，表单类型 生成呈报单,回复单，交办单等编号
+	 * 
+	 * @param prefix
+	 * @param formType
+	 * @return
+	 */
+	public String getNextFormKey(String prefix, String formType, Date createDate);
+
+}

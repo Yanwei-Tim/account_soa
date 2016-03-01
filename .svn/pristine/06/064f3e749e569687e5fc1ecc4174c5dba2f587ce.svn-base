@@ -1,0 +1,27 @@
+test.dir = src/test/java
+src.dir = src/java
+config.dir = src/config
+core.dir = src/core
+src.plugin.dir=src/plugin
+
+test.resource.dir = src/test/resource
+web.dir = webroot
+classes.dir = webroot/WEB-INF/classes
+build.lib.dir = lib
+runtime.lib.dir = webroot/WEB-INF/lib
+sql.dir = database/tables
+test.error = true
+
+coverage.report=target/report/coverage-report
+checkStyle.report=target/report/checkStyle-report
+junit.report=target/report/junit-report
+instr.classes.dir = target/report/temp
+coverage.dir = target/report/coverage
+
+
+
+
+
+
+
+

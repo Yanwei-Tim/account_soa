@@ -1,0 +1,19 @@
+package com.tianque.plugin.account.report.util;
+
+/**
+ * Created by daniel on 2015/10/28.
+ */
+public class AnalyseUtilNew {
+    public static final String ACCOUNT_REPORTDATA_TABLE_NAME = "account";
+
+    /** 三本台账月报表统计表-sql */
+    public static final String ACCOUNT_REPORTDATA_TABLE_NAME_SQL = "create table %s ("
+            + "  month                NUMBER(10)    not null,"
+            + "  orgId                NUMBER(10)    not null,"
+            + "  ledgerType           NUMBER(10)    not null,"
+            + "  countType            NUMBER(10),"
+            + "  count                NUMBER(10),"
+            + "  dataType             NUMBER(10)    not null)";
+
+
+}

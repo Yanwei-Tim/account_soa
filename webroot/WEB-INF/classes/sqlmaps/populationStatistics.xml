@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="populationStatistics">
+
+	<delete id="clearTable" parameterClass="java.lang.String">
+		delete from  $value$
+	</delete>
+
+	<insert id="addCarePopulation" parameterClass="java.lang.String">
+		INSERT INTO CARPOPTOTAL
+		  SELECT S_CARPOPTOTAL.NEXTVAL AS ID,
+		         TMP.ORGID,
+		         TMP.ORGCODE,
+		         TMP.ORGNAME,
+		         TMP.TOTAL,
+		         TMP.ELD_NUM,
+		         NVL(ROUND(TMP.ELD_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS ELDERPERCENT,
+		         TMP.HANDIC_NUM,
+		         NVL(ROUND(TMP.HANDIC_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS HANDICPERCENT,
+		         TMP.OPTOBJ_NUM,
+		         NVL(ROUND(TMP.OPTOBJ_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS OPTOBJPERCENT,
+		         TMP.AIDPOP_NUM,
+		         NVL(ROUND(TMP.AIDPOP_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS AIDPOPPERCENT,
+		         SYSDATE AS UPDATEDATE,
+		         'ADMIN' AS UPDATEUSER,
+		         SYSDATE AS CREATEDATE,
+		         'ADMIN' AS CREATEUSER
+		    FROM (SELECT A.ORGID,
+		                 A.ORGCODE,
+		                 A.ORGNAME,
+		                 A.AMOUNT AS ELD_NUM,
+		                 B.AMOUNT AS HANDIC_NUM,
+		                 C.AMOUNT AS OPTOBJ_NUM,
+		                 D.AMOUNT AS AIDPOP_NUM,
+		                 NVL(A.AMOUNT, 0) + NVL(B.AMOUNT, 0) + NVL(C.AMOUNT, 0) +
+		                 NVL(D.AMOUNT, 0) AS TOTAL
+		            FROM ELDER_RT A
+		            LEFT JOIN HANDIC_RT B
+		              ON A.ORGCODE = B.ORGCODE
+		            LEFT JOIN OPTOBJ_RT C
+		              ON A.ORGCODE = C.ORGCODE
+		            LEFT JOIN AIDPOP_RT D
+		              ON A.ORGCODE = D.ORGCODE) TMP
+	</insert>
+	
+	
+	<insert id="addKeyPersonnel" parameterClass="java.lang.String">
+	     INSERT INTO KEYPERSONNELTOTAL       
+	       SELECT S_KEYPERSONNELTOTAL.NEXTVAL AS ID,
+	              TMP.ORGID,
+	              TMP.ORGCODE,
+	              TMP.ORGNAME,
+	              TMP.TOTAL,
+	              TMP.PR_NUM,
+	              NVL(ROUND(TMP.PR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS PRPERCENT,
+	              TMP.RR_NUM,
+	              NVL(ROUND(TMP.RR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS RRPERCENT,
+	              TMP.MR_NUM,
+	              NVL(ROUND(TMP.MR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS MRPERCENT,
+	              TMP.DR_NUM,
+	              NVL(ROUND(TMP.DR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS DRPERCENT,
+	              TMP.YR_NUM,
+	              NVL(ROUND(TMP.YR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS YRPERCENT,
+	              TMP.VR_NUM,
+	              NVL(ROUND(TMP.VR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS VRPERCENT,
+	              TMP.DAR_NUM,
+	              NVL(ROUND(TMP.DAR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS DARPERCENT,
+	              TMP.OTR_NUM,
+	              NVL(ROUND(TMP.OTR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS OTRPERCENT,
+	              SYSDATE AS UPDATEDATE,
+	              'ADMIN' AS UPDATEUSER,
+	              SYSDATE AS CREATEDATE,
+	              'ADMIN' AS CREATEUSER
+	         FROM (SELECT PR.ORGID,
+	                      PR.ORGCODE,
+	                      PR.ORGNAME,
+	                      NVL(PR.AMOUNT, 0) AS PR_NUM,
+	                      NVL(RR.AMOUNT, 0) AS RR_NUM,
+	                      NVL(MR.AMOUNT, 0) AS MR_NUM,
+	                      NVL(DR.AMOUNT, 0) AS DR_NUM,
+	                      NVL(YR.AMOUNT, 0) AS YR_NUM,
+	                      NVL(VR.AMOUNT, 0) AS VR_NUM,
+	                      NVL(DAR.AMOUNT, 0) AS DAR_NUM,
+	                      NVL(OTR.AMOUNT, 0) AS OTR_NUM,
+	                      NVL(PR.AMOUNT, 0) + NVL(RR.AMOUNT, 0) +
+	                      NVL(MR.AMOUNT, 0) + NVL(DR.AMOUNT, 0) +
+	                      NVL(YR.AMOUNT, 0) + NVL(VR.AMOUNT, 0) +
+	                      NVL(DAR.AMOUNT, 0) + NVL(OTR.AMOUNT, 0) AS TOTAL
+	                 FROM POSIT_RT     PR,
+	                      RECPOP_RT    RR,
+	                      MENTAL_RT    MR,
+	                      DRUGGY_RT    DR,
+	                      YOUTHS_RT YR,
+	                      VISIT_RT     VR,
+	                      DANGER_RT    DAR,
+	                      OTHER_RT     OTR
+	                WHERE PR.ORGCODE = RR.ORGCODE(+)
+	                  AND PR.ORGCODE = MR.ORGCODE(+)
+	                  AND PR.ORGCODE = DR.ORGCODE(+)
+	                  AND PR.ORGCODE = YR.ORGCODE(+)
+	                  AND PR.ORGCODE = VR.ORGCODE(+)
+	                  AND PR.ORGCODE = DAR.ORGCODE(+)
+	                  AND PR.ORGCODE = OTR.ORGCODE(+)) TMP
+	</insert>
+	
+	
+	<insert id="addPopulation" parameterClass="java.lang.String">
+	     INSERT INTO HOUSEHOLDSTAFFTOTAL       
+	       SELECT S_HOUSEHOLDSTAFFTOTAL.NEXTVAL AS ID,
+	              TMP.ORGID,
+	              TMP.ORGCODE,
+	              TMP.ORGNAME,
+	              TMP.TOTAL,
+	              TMP.HR_NUM,
+	              NVL(ROUND(TMP.HR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS HRPERCENT,
+	              TMP.FR_NUM,
+	              NVL(ROUND(TMP.FR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS FRPERCENT,
+	              TMP.UR_NUM,
+	              NVL(ROUND(TMP.UR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS URPERCENT,
+	              TMP.SR_NUM,
+	              NVL(ROUND(TMP.SR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS SRPERCENT,
+	              TMP.KP_NUM,
+	              NVL(ROUND(TMP.KP_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS KPPERCENT,
+	              TMP.CP_NUM,
+	              NVL(ROUND(TMP.CP_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS CPPERCENT,
+	              TMP.YR_NUM,
+	              NVL(ROUND(TMP.YR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS YRPERCENT,
+	              TMP.LR_NUM,
+	              NVL(ROUND(TMP.LR_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS LRPERCENT,
+	              TMP.FER_NUM,
+	              NVL(ROUND(TMP.FER_NUM / NULLIF(TMP.TOTAL, 0) * 100,10), 0) AS FERPERCENT,
+	              SYSDATE AS UPDATEDATE,
+	              'ADMIN' AS UPDATEUSER,
+	              SYSDATE AS CREATEDATE,
+	              'ADMIN' AS CREATEUSER
+	         FROM (SELECT FR.ORGID,
+	                FR.ORGCODE,
+	                FR.ORGNAME,
+	                HR.AMOUNT AS HR_NUM,
+	                FR.AMOUNT AS FR_NUM,
+	                UR.AMOUNT AS UR_NUM,
+	                SR.AMOUNT AS SR_NUM,
+	                KP.TOTAL AS KP_NUM,
+	                CP.TOTAL AS CP_NUM,
+	                YR.AMOUNT AS YR_NUM,
+	                LR.AMOUNT AS LR_NUM,
+	                FER.AMOUNT AS FER_NUM,
+	                NVL(HR.AMOUNT, 0) + NVL(FR.AMOUNT, 0) + NVL(UR.AMOUNT, 0) +
+	                NVL(SR.AMOUNT, 0) + NVL(KP.TOTAL, 0) + NVL(CP.TOTAL, 0) +
+	                NVL(YR.AMOUNT, 0) + NVL(LR.AMOUNT, 0) + NVL(FER.AMOUNT, 0) AS TOTAL
+	           FROM FLPOP_RT          FR,
+	                HSTAFF_RT         HR,
+	                UNPOP_RT          UR,
+	                SEAPOP_RT         SR,
+	                KEYPERSONNELTOTAL KP,
+	                CARPOPTOTAL       CP,
+	                YOUTHS_RT         YR,
+	                UNEMP_RT          LR,
+	                NURMAN_RT         FER
+	          WHERE HR.ORGCODE = FR.ORGCODE(+)
+	            AND HR.ORGCODE = UR.ORGCODE(+)
+	            AND HR.ORGCODE = SR.ORGCODE(+)
+	            AND HR.ORGCODE = KP.ORGCODE(+)
+	            AND HR.ORGCODE = CP.ORGCODE(+)
+	            AND HR.ORGCODE = YR.ORGCODE(+)
+	            AND HR.ORGCODE = LR.ORGCODE(+)
+	            AND HR.ORGCODE = FER.ORGCODE(+)) TMP
+	</insert>
+</sqlMap>

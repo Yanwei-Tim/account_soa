@@ -1,0 +1,931 @@
+package com.tianque.plugin.account.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.util.Chinese2pinyin;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.validate.DomainValidator;
+import com.tianque.core.validate.ValidateResult;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.exception.base.ServiceValidationException;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueViewType;
+import com.tianque.plugin.account.dao.LedgerPoorPeopleDao;
+import com.tianque.plugin.account.domain.BaseWorking;
+import com.tianque.plugin.account.domain.LedgerConvert;
+import com.tianque.plugin.account.domain.LedgerPoorPeople;
+import com.tianque.plugin.account.domain.LedgerPoorPeopleMember;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueAttachFile;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStep;
+import com.tianque.plugin.account.service.LedgerConvertService;
+import com.tianque.plugin.account.service.LedgerPoorPeopleMemberService;
+import com.tianque.plugin.account.service.LedgerPoorPeopleService;
+import com.tianque.plugin.account.service.ThreeRecordsIssueService;
+import com.tianque.plugin.account.service.ThreeRecordsIssueWorkFlowEngine;
+import com.tianque.plugin.account.service.ThreeRecordsKeyGeneratorService;
+import com.tianque.plugin.account.state.ThreeRecordsIssueOperate;
+import com.tianque.plugin.account.util.ComparisonAttribute;
+import com.tianque.plugin.account.util.ThreeRecordsIssueOperationUtil;
+import com.tianque.plugin.account.validate.ThreeRecordsIssueOperationLogValidator;
+import com.tianque.plugin.account.vo.LedgerPoorPeopleVo;
+import com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject;
+import com.tianque.service.impl.OrganizationServiceHelper;
+import com.tianque.userAuth.api.OrganizationDubboRemoteService;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+
+@SuppressWarnings("unchecked")
+@Service("ledgerPoorPeopleService")
+@Transactional
+public class LedgerPoorPeopleServiceImpl implements LedgerPoorPeopleService {
+
+	@Autowired
+	private LedgerPoorPeopleDao ledgerPoorPeopleDao;
+	@Autowired
+	@Qualifier("ledgerPoorPeopleValidatorImpl")
+	private DomainValidator ledgerPoorPeopleValidator;
+	@Autowired
+	@Qualifier("threeRecordsDefaultIssueLogValidator")
+	private ThreeRecordsIssueOperationLogValidator threeRecordsDefaultIssueLogValidator;
+	@Autowired
+	private LedgerPoorPeopleMemberService ledgerPoorPeopleMemberService;
+	@Autowired
+	private OrganizationDubboRemoteService organizationDubboService;
+	@Autowired
+	private PropertyDictDubboService propertyDictDubboService;
+	@Autowired
+	private ThreeRecordsIssueWorkFlowEngine threeRecordsIssueWorkFlowEngine;
+	@Autowired
+	@Qualifier("threeRecordsDefaultIssueWorkFlowEngine")
+	private ThreeRecordsIssueWorkFlowEngine threeRecordsDefaultIssueWorkFlowEngine;
+	@Autowired
+	private ThreeRecordsIssueService threeRecordsIssueService;
+
+	@Autowired
+	private ThreeRecordsKeyGeneratorService threeRecordsKeyGeneratorService;
+
+	@Autowired
+	private LedgerConvertService ledgerConvertService;
+
+	@Override
+	public LedgerPoorPeople getLedgerPoorPeopleById(Long id) {
+		if (null == id) {
+			throw new BusinessValidationException("查询参数未获得");
+		}
+		return ledgerPoorPeopleDao.getLedgerPoorPeopleById(id);
+	}
+
+	@Override
+	public LedgerPoorPeople addLedgerPoorPeople(
+			LedgerPoorPeople ledgerPoorPeople) {
+		ValidateResult result = ledgerPoorPeopleValidator
+				.validate(ledgerPoorPeople);
+		if (result.hasError()) {
+			throw new BusinessValidationException(result.getErrorMessages());
+		}
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(ledgerPoorPeople.getOrganization().getId());
+		if (organization == null) {
+			throw new BusinessValidationException("新增失败，组织机构信息为空");
+		}
+		ledgerPoorPeople.setOrganization(organization);
+		ledgerPoorPeople.setOrgInternalCode(organization.getOrgInternalCode());
+		ledgerPoorPeople.setLedgerType(LedgerConstants.POORPEOPLE);
+		ledgerPoorPeople
+				.setOccurOrgInternalCode(organizationDubboService
+						.getOrgInternalCodeById(ledgerPoorPeople.getOccurOrg()
+								.getId()));
+		setLedgerPoorPeopleNameChinesePinyin(ledgerPoorPeople);
+		Long convertId = ledgerPoorPeople.getConvertId();
+		try {
+			long id = ledgerPoorPeopleDao.addLedgerPoorPeople(ledgerPoorPeople);
+			if (null != ledgerPoorPeople.getLedgerPoorPeopleMembers()
+					&& ledgerPoorPeople.getLedgerPoorPeopleMembers().size() > 0) {
+				ledgerPoorPeople.setId(id);
+				ledgerPoorPeopleMemberService
+						.addPoorPeopleMembers(ledgerPoorPeople);
+			}
+			ledgerPoorPeople.setConvertId(convertId);
+			updateLedgerConvertStatus(ledgerPoorPeople);
+			threeRecordsIssueWorkFlowEngine.register(ledgerPoorPeople);
+			return getFullLedgerPoorPeopleById(id);
+		} catch (Exception e) {
+			throw new ServiceValidationException("困难群众新增失败!", e);
+		}
+	}
+
+	@Override
+	public void updateLedgerPoorPeople(LedgerPoorPeople ledgerPoorPeople) {
+		ValidateResult result = ledgerPoorPeopleValidator
+				.validate(ledgerPoorPeople);
+		if (result.hasError()) {
+			throw new BusinessValidationException(result.getErrorMessages());
+		}
+		try {
+			ledgerPoorPeople.setLedgerType(LedgerConstants.POORPEOPLE);
+			setLedgerPoorPeopleNameChinesePinyin(ledgerPoorPeople);
+			ledgerPoorPeopleDao.updateLedgerPoorPeople(ledgerPoorPeople);
+			if (null != ledgerPoorPeople.getLedgerPoorPeopleMembers()
+					&& ledgerPoorPeople.getLedgerPoorPeopleMembers().size() > 0) {
+				ledgerPoorPeopleMemberService
+						.addPoorPeopleMembers(ledgerPoorPeople);
+			} else {
+				List<LedgerPoorPeopleMember> list = ledgerPoorPeopleMemberService
+						.findByLedgerPoorPeople(ledgerPoorPeople);
+				if (null != list && list.size() > 0) {
+					ledgerPoorPeopleMemberService
+							.deleteLedgerPoorPeopleMemberByLedgerPoorPeopleId(ledgerPoorPeople
+									.getId());
+				}
+			}
+		} catch (Exception e) {
+			throw new ServiceValidationException("困难群众修改失败!", e);
+		}
+	}
+
+	@Override
+	public void deleteLedgerPoorPeopleById(Long id) {
+		if (null == id) {
+			throw new BusinessValidationException("参数未获得");
+		}
+		try {
+			ledgerPoorPeopleDao.deleteLedgerPoorPeopleById(id);
+			threeRecordsIssueService.deleteIssueByIssueId(id,
+					LedgerConstants.POORPEOPLE);
+			ledgerPoorPeopleMemberService
+					.deleteLedgerPoorPeopleMemberByLedgerPoorPeopleId(id);
+			threeRecordsIssueService.deleteIssueByIssueId(id,
+					LedgerConstants.POORPEOPLE);
+		} catch (Exception e) {
+			throw new ServiceValidationException("困难群众删除失败!", e);
+		}
+	}
+
+	@Override
+	public void updateLedgerPoorPeopleStatus(LedgerPoorPeople ledgerPoorPeople) {
+		if (null == ledgerPoorPeople || null == ledgerPoorPeople.getId()
+				|| null == ledgerPoorPeople.getStatus()) {
+			throw new BusinessValidationException("参数未获得");
+		}
+		try {
+			ledgerPoorPeopleDao.updateLedgerPoorPeopleStatus(ledgerPoorPeople);
+		} catch (Exception e) {
+			throw new ServiceValidationException("困难群众修改失败!", e);
+		}
+	}
+
+	@Override
+	public LedgerPoorPeople findByIdCardNo(String idCardNo) {
+		if (StringUtils.isEmpty(idCardNo)) {
+			throw new BusinessValidationException("参数未获得");
+		}
+		return ledgerPoorPeopleDao.findByIdCardNo(idCardNo);
+	}
+
+	@Override
+	public LedgerPoorPeople getFullLedgerPoorPeopleById(Long id) {
+		if (null == id) {
+			throw new BusinessValidationException("查询参数未获得");
+		}
+		LedgerPoorPeople ledgerPoorPeople = ledgerPoorPeopleDao
+				.getLedgerPoorPeopleById(id);
+		if (null != ledgerPoorPeople) {
+			ledgerPoorPeople
+					.setLedgerPoorPeopleMembers(ledgerPoorPeopleMemberService
+							.findByLedgerPoorPeople(ledgerPoorPeople));
+
+		}
+		loadPropertyDictValue(ledgerPoorPeople);
+		loadTypeAndSource(ledgerPoorPeople);
+		if (ledgerPoorPeople.getOccurOrg() != null) {
+			ledgerPoorPeople.setOccurOrg(organizationDubboService
+					.getSimpleOrgById(ledgerPoorPeople.getOccurOrg().getId()));
+		}
+		return ledgerPoorPeople;
+	}
+
+	/**
+	 * 加载该对象的所有字典项属性
+	 * 
+	 * @param ledgerPoorPeople
+	 */
+	private void loadPropertyDictValue(LedgerPoorPeople ledgerPoorPeople) {
+		if (null == ledgerPoorPeople) {
+			return;
+		}
+		Class poorPeopleClass = ledgerPoorPeople.getClass();
+		Class superPeopleClass = poorPeopleClass.getSuperclass();
+		try {
+			ComparisonAttribute.loadPropertyDictValue(ledgerPoorPeople,
+					poorPeopleClass, propertyDictDubboService);
+			ComparisonAttribute.loadPropertyDictValue(ledgerPoorPeople,
+					superPeopleClass, propertyDictDubboService);
+		} catch (Exception e) {
+			throw new ServiceValidationException("参数错误，查询失败!", e);
+		}
+	}
+
+	/**
+	 * 加载该对象的困难属性和原因
+	 * 
+	 * @param ledgerPoorPeople
+	 */
+	private void loadTypeAndSource(LedgerPoorPeople ledgerPoorPeople) {
+		if (null == ledgerPoorPeople) {
+			return;
+		}
+		String poorSource = ledgerPoorPeople.getPoorSource();
+		String poorType = ledgerPoorPeople.getPoorType();
+		String requiredType = ledgerPoorPeople.getRequiredType();
+		PropertyDict dict = null;
+		StringBuilder name = null;
+		if (StringUtil.isStringAvaliable(poorSource)) {
+			name = new StringBuilder();
+			for (String id : poorSource.split(",")) {
+				if (StringUtil.isStringAvaliable(id)) {
+					dict = propertyDictDubboService.getPropertyDictById(Long
+							.valueOf(id));
+					if (dict != null) {
+						name.append(dict.getDisplayName()).append(",");
+					}
+				}
+			}
+			ledgerPoorPeople.setPoorSourceName(name.toString());
+		}
+		if (StringUtil.isStringAvaliable(poorType)) {
+			name = new StringBuilder();
+			for (String id : poorType.split(",")) {
+				if (StringUtil.isStringAvaliable(id)) {
+					dict = propertyDictDubboService.getPropertyDictById(Long
+							.valueOf(id));
+					if (dict != null) {
+						name.append(dict.getDisplayName()).append(",");
+					}
+				}
+			}
+			ledgerPoorPeople.setPoorTypeName(name.toString());
+		}
+		if (StringUtil.isStringAvaliable(requiredType)) {
+			name = new StringBuilder();
+			for (String id : requiredType.split(",")) {
+				if (StringUtil.isStringAvaliable(id)) {
+					dict = propertyDictDubboService.getPropertyDictById(Long
+							.valueOf(id));
+					if (dict != null) {
+						name.append(dict.getDisplayName()).append(",");
+					}
+				}
+			}
+			ledgerPoorPeople.setRequiredTypeName(name.toString());
+		}
+
+	}
+
+	private void loadIssueOccurOrgAndCurrentOrgAndIssueTypes(
+			PageInfo<LedgerPoorPeopleVo> pageInfo) {
+		if (null != pageInfo.getResult() && pageInfo.getResult().size() > 0) {
+			for (LedgerPoorPeopleVo poorPeopleVo : pageInfo.getResult()) {
+				poorPeopleVo
+						.setOccurOrg(organizationDubboService
+								.getSimpleOrgById(poorPeopleVo.getOccurOrg() == null ? null
+										: poorPeopleVo.getOccurOrg().getId()));
+				poorPeopleVo
+						.setCurrentOrg(organizationDubboService
+								.getSimpleOrgById(poorPeopleVo.getCurrentOrg() == null ? null
+										: poorPeopleVo.getCurrentOrg().getId()));
+				poorPeopleVo
+						.setCreateOrg(organizationDubboService
+								.getSimpleOrgById(poorPeopleVo.getCreateOrg() == null ? null
+										: poorPeopleVo.getCreateOrg().getId()));
+			}
+		}
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsNeedDo(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalorgType, Integer viewProcess,
+			Long sourceType, int supportType) {
+		if (orgId == null) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		Organization org = organizationDubboService.getSimpleOrgById(orgId);
+		Organization currentOrg = ThreadVariable.getOrganization();
+		if (ThreeRecordsIssueOperationUtil.orgIsFunctional(currentOrg)) {
+			org = ThreadVariable.getOrganization();
+		}
+		List<Long> childOrg = ComparisonAttribute
+				.getOrgIds(organizationDubboService
+						.findOrganizationsByParentId(org.getId()));
+		PageInfo<LedgerPoorPeopleVo> pageInfo = ledgerPoorPeopleDao
+				.findJurisdictionsNeedDo(seachValue, org, childOrg, page, rows,
+						sidx, sord, issueType, orgLevel, leaderView,
+						functionalorgType, viewProcess, sourceType, supportType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsDone(Long orgId,
+			Integer page, Integer rows, String sidx, String sord,
+			Long issueType, Long orgLevel, String seachValue,
+			Long functionalOrgType, Integer viewProcess, Long sourceType) {
+		if (orgId == null) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		Organization org = organizationDubboService.getSimpleOrgById(orgId);
+		Organization currentOrg = ThreadVariable.getOrganization();
+		if (ThreeRecordsIssueOperationUtil.orgIsFunctional(currentOrg)) {
+			org = ThreadVariable.getOrganization();
+		}
+		List<Long> childOrg = ComparisonAttribute
+				.getOrgIds(organizationDubboService
+						.findOrganizationsByParentId(org.getId()));
+		PageInfo<LedgerPoorPeopleVo> pageInfo = ledgerPoorPeopleDao
+				.findJurisdictionsDone(org, childOrg, page, rows, sidx, sord,
+						issueType, orgLevel, seachValue, functionalOrgType,
+						viewProcess, sourceType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	private void validateOperationLog(ThreeRecordsIssueOperate operate,
+			ThreeRecordsIssueLogNew log,
+			List<ThreeRecordsIssueAttachFile> attachFiles) {
+		ValidateResult validateResult = threeRecordsDefaultIssueLogValidator
+				.validate(operate, log, attachFiles);
+		if (validateResult.hasError()) {
+			throw new BusinessValidationException(validateResult
+					.getErrorMessages());
+		}
+	}
+
+	private BaseWorking getFullIssueByStepId(Long stepId) {
+		if (null == stepId) {
+			return null;
+		}
+		return ledgerPoorPeopleDao.getSimpleBaseWorkByStepId(stepId);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject concept(Long stepId,
+			ThreeRecordsIssueLogNew log) {
+		autoFillIssueLogProperty(log, ThreeRecordsIssueOperate.CONCEPT);
+		validateOperationLog(ThreeRecordsIssueOperate.CONCEPT, log, null);
+		BaseWorking baseWork = getFullIssueByStepId(stepId);
+		ThreeRecordsIssueStep step = threeRecordsDefaultIssueWorkFlowEngine
+				.getFullIssueStepById(stepId);
+		ThreeRecordsIssueStep newStep = threeRecordsDefaultIssueWorkFlowEngine
+				.concept(baseWork, step, log);
+		baseWork = getFullIssueByStepId(stepId);
+		return createIssueViewObject(baseWork, newStep);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject support(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		autoFillIssueLogProperty(log, ThreeRecordsIssueOperate.SUPPORT);
+		validateOperationLog(ThreeRecordsIssueOperate.SUPPORT, log, files);
+		BaseWorking baseWork = getFullIssueByStepId(stepId);
+		ThreeRecordsIssueStep step = threeRecordsDefaultIssueWorkFlowEngine
+				.getFullIssueStepById(stepId);
+		ThreeRecordsIssueStep newStep = threeRecordsDefaultIssueWorkFlowEngine
+				.support(baseWork, step, log, files);
+		baseWork = getFullIssueByStepId(stepId);
+		return createIssueViewObject(baseWork, newStep);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject comment(Long stepId,
+			ThreeRecordsIssueLogNew log,
+			List<ThreeRecordsIssueAttachFile> attachFiles) {
+		autoFillIssueLogProperty(log, ThreeRecordsIssueOperate.COMMENT);
+		validateOperationLog(ThreeRecordsIssueOperate.COMMENT, log, attachFiles);
+		BaseWorking baseWork = getFullIssueByStepId(stepId);
+		ThreeRecordsIssueStep step = threeRecordsDefaultIssueWorkFlowEngine
+				.getFullIssueStepById(stepId);
+		ThreeRecordsIssueStep newStep = threeRecordsDefaultIssueWorkFlowEngine
+				.comment(baseWork, step, log, attachFiles);
+		baseWork = getFullIssueByStepId(stepId);
+		return createIssueViewObject(baseWork, newStep);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject complete(Long stepId,
+			ThreeRecordsIssueLogNew log,
+			List<ThreeRecordsIssueAttachFile> attachFiles) {
+		ThreeRecordsIssueStep step = threeRecordsDefaultIssueWorkFlowEngine
+				.getFullIssueStepById(stepId);
+		autoFillIssueLogProperty(log, ThreeRecordsIssueOperate.COMPLETE);
+		validateOperationLog(ThreeRecordsIssueOperate.COMPLETE, log,
+				attachFiles);
+		BaseWorking baseWork = getFullIssueByStepId(stepId);
+		ThreeRecordsIssueStep newStep = threeRecordsDefaultIssueWorkFlowEngine
+				.complete(baseWork, step, log, attachFiles);
+		baseWork = getFullIssueByStepId(stepId);
+		return createIssueViewObject(baseWork, newStep);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject declare(Long stepId,
+			ThreeRecordsIssueLogNew log, Long target, Long[] tellorgs,
+			List<ThreeRecordsIssueAttachFile> files) {
+		autoFillIssueLogProperty(log, ThreeRecordsIssueOperate.DECLARE);
+		validateOperationLog(ThreeRecordsIssueOperate.DECLARE, log, files);
+		BaseWorking baseWork = getFullIssueByStepId(stepId);
+		ThreeRecordsIssueStep step = threeRecordsDefaultIssueWorkFlowEngine
+				.getFullIssueStepById(stepId);
+		ThreeRecordsIssueStep newStep = threeRecordsDefaultIssueWorkFlowEngine
+				.declare(baseWork, step, log, target, tellorgs, files, null);
+		baseWork = getFullIssueByStepId(stepId);
+		return createIssueViewObject(baseWork, newStep);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject turn(Long stepId,
+			ThreeRecordsIssueLogNew log, Long target, Long[] tellorgs,
+			List<ThreeRecordsIssueAttachFile> files, Long[] notices) {
+		autoFillIssueLogProperty(log, ThreeRecordsIssueOperate.TURN);
+		validateOperationLog(ThreeRecordsIssueOperate.TURN, log, files);
+		BaseWorking baseWork = getFullIssueByStepId(stepId);
+		ThreeRecordsIssueStep step = threeRecordsDefaultIssueWorkFlowEngine
+				.getFullIssueStepById(stepId);
+		ThreeRecordsIssueStep newStep = threeRecordsDefaultIssueWorkFlowEngine
+				.turn(baseWork, step, log, target, tellorgs, files, notices);
+		baseWork = getFullIssueByStepId(stepId);
+		return createIssueViewObject(baseWork, newStep);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject assign(Long stepId,
+			ThreeRecordsIssueLogNew log, Long targeOrg, Long[] tells,
+			List<ThreeRecordsIssueAttachFile> attachFiles, Long[] notices) {
+		autoFillIssueLogProperty(log, ThreeRecordsIssueOperate.ASSIGN);
+		validateOperationLog(ThreeRecordsIssueOperate.ASSIGN, log, attachFiles);
+		BaseWorking baseWork = getFullIssueByStepId(stepId);
+		ThreeRecordsIssueStep step = threeRecordsDefaultIssueWorkFlowEngine
+				.getFullIssueStepById(stepId);
+		if (null != log.getIssueStep()) {
+			step.setItemTypeId(log.getIssueStep().getItemTypeId());
+		}
+		ThreeRecordsIssueStep newStep = threeRecordsDefaultIssueWorkFlowEngine
+				.assign(baseWork, step, log, targeOrg, tells, attachFiles,
+						notices);
+		baseWork = getFullIssueByStepId(stepId);
+		return createIssueViewObject(baseWork, newStep);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject submit(Long stepId,
+			ThreeRecordsIssueLogNew log, Long submitTarget, Long[] tells,
+			List<ThreeRecordsIssueAttachFile> attachFiles) {
+		autoFillIssueLogProperty(log, ThreeRecordsIssueOperate.SUBMIT);
+		validateOperationLog(ThreeRecordsIssueOperate.SUBMIT, log, attachFiles);
+		BaseWorking baseWork = getFullIssueByStepId(stepId);
+		ThreeRecordsIssueStep step = threeRecordsDefaultIssueWorkFlowEngine
+				.getFullIssueStepById(stepId);
+		ThreeRecordsIssueStep newStep = threeRecordsDefaultIssueWorkFlowEngine
+				.submit(baseWork, step, log, submitTarget, tells, attachFiles,
+						null);
+		baseWork = getFullIssueByStepId(stepId);
+		return createIssueViewObject(baseWork, newStep);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject back(Long stepId,
+			ThreeRecordsIssueLogNew log,
+			List<ThreeRecordsIssueAttachFile> attachFiles) {
+		Organization dealOrg = log.getDealOrg();
+		autoFillIssueLogProperty(log, ThreeRecordsIssueOperate.BACK);
+		validateOperationLog(ThreeRecordsIssueOperate.BACK, log, attachFiles);
+		BaseWorking baseWork = getFullIssueByStepId(stepId);
+		log.setDealOrg(dealOrg);
+		ThreeRecordsIssueStep step = threeRecordsDefaultIssueWorkFlowEngine
+				.getFullIssueStepById(stepId);
+		ThreeRecordsIssueStep newStep = threeRecordsDefaultIssueWorkFlowEngine
+				.back(baseWork, step, log, attachFiles);
+		baseWork = getFullIssueByStepId(stepId);
+		return createIssueViewObject(baseWork, newStep);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject peroidComplete(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		ThreeRecordsIssueStep step = threeRecordsDefaultIssueWorkFlowEngine
+				.getFullIssueStepById(stepId);
+		autoFillIssueLogProperty(log, ThreeRecordsIssueOperate.PROGRAM_COMPLETE);
+		validateOperationLog(ThreeRecordsIssueOperate.PROGRAM_COMPLETE, log,
+				files);
+		BaseWorking baseWork = getFullIssueByStepId(stepId);
+		ThreeRecordsIssueStep newStep = threeRecordsDefaultIssueWorkFlowEngine
+				.periodComplete(baseWork, step, log, files);
+		baseWork = getFullIssueByStepId(stepId);
+		return createIssueViewObject(baseWork, newStep);
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject programComplete(Long stepId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		ThreeRecordsIssueStep step = threeRecordsDefaultIssueWorkFlowEngine
+				.getFullIssueStepById(stepId);
+		autoFillIssueLogProperty(log, ThreeRecordsIssueOperate.PROGRAM_COMPLETE);
+		validateOperationLog(ThreeRecordsIssueOperate.PROGRAM_COMPLETE, log,
+				files);
+		BaseWorking baseWork = getFullIssueByStepId(stepId);
+		ThreeRecordsIssueStep newStep = threeRecordsDefaultIssueWorkFlowEngine
+				.programComplete(baseWork, step, log, files);
+		baseWork = getFullIssueByStepId(stepId);
+		return createIssueViewObject(baseWork, newStep);
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsAssgin(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgId == null) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		Organization org = organizationDubboService.getSimpleOrgById(orgId);
+		Organization currentOrg = ThreadVariable.getOrganization();
+		if (ThreeRecordsIssueOperationUtil.orgIsFunctional(currentOrg)) {
+			org = ThreadVariable.getOrganization();
+		}
+		List<Long> childOrg = ComparisonAttribute
+				.getOrgIds(organizationDubboService
+						.findOrganizationsByParentId(org.getId()));
+		PageInfo<LedgerPoorPeopleVo> pageInfo = ledgerPoorPeopleDao
+				.findJurisdictionsAssgin(seachValue, org, childOrg, page, rows,
+						sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsFeedBack(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgId == null) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		Organization org = organizationDubboService.getSimpleOrgById(orgId);
+		Organization currentOrg = ThreadVariable.getOrganization();
+		if (ThreeRecordsIssueOperationUtil.orgIsFunctional(currentOrg)) {
+			org = ThreadVariable.getOrganization();
+		}
+		List<Long> childOrg = ComparisonAttribute
+				.getOrgIds(organizationDubboService
+						.findOrganizationsByParentId(org.getId()));
+		PageInfo<LedgerPoorPeopleVo> pageInfo = ledgerPoorPeopleDao
+				.findJurisdictionsFeedBack(seachValue, org, childOrg, page,
+						rows, sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsFollow(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgId == null) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		Organization org = organizationDubboService.getSimpleOrgById(orgId);
+		Organization currentOrg = ThreadVariable.getOrganization();
+		if (ThreeRecordsIssueOperationUtil.orgIsFunctional(currentOrg)) {
+			org = ThreadVariable.getOrganization();
+		}
+		List<Long> childOrg = ComparisonAttribute
+				.getOrgIds(organizationDubboService
+						.findOrganizationsByParentId(org.getId()));
+		PageInfo<LedgerPoorPeopleVo> pageInfo = ledgerPoorPeopleDao
+				.findJurisdictionsFollow(seachValue, org, childOrg, page, rows,
+						sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsPeriodDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgId == null) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		Organization org = organizationDubboService.getSimpleOrgById(orgId);
+		Organization currentOrg = ThreadVariable.getOrganization();
+		if (ThreeRecordsIssueOperationUtil.orgIsFunctional(currentOrg)) {
+			org = ThreadVariable.getOrganization();
+		}
+		List<Long> childOrg = ComparisonAttribute
+				.getOrgIds(organizationDubboService
+						.findOrganizationsByParentId(org.getId()));
+		PageInfo<LedgerPoorPeopleVo> pageInfo = ledgerPoorPeopleDao
+				.findJurisdictionsPeriodDone(seachValue, org, childOrg, page,
+						rows, sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsSubstanceDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgId == null) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		Organization org = organizationDubboService.getSimpleOrgById(orgId);
+		Organization currentOrg = ThreadVariable.getOrganization();
+		if (ThreeRecordsIssueOperationUtil.orgIsFunctional(currentOrg)) {
+			org = ThreadVariable.getOrganization();
+		}
+		List<Long> childOrg = ComparisonAttribute
+				.getOrgIds(organizationDubboService
+						.findOrganizationsByParentId(org.getId()));
+		PageInfo<LedgerPoorPeopleVo> pageInfo = ledgerPoorPeopleDao
+				.findJurisdictionsSubStanceDone(seachValue, org, childOrg,
+						page, rows, sidx, sord, issueType, orgLevel,
+						leaderView, functionalOrgType, viewProcess, sourceType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsSubmit(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgId == null) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		Organization org = organizationDubboService.getSimpleOrgById(orgId);
+		Organization currentOrg = ThreadVariable.getOrganization();
+		if (ThreeRecordsIssueOperationUtil.orgIsFunctional(currentOrg)) {
+			org = ThreadVariable.getOrganization();
+		}
+		List<Long> childOrg = ComparisonAttribute
+				.getOrgIds(organizationDubboService
+						.findOrganizationsByParentId(org.getId()));
+		PageInfo<LedgerPoorPeopleVo> pageInfo = ledgerPoorPeopleDao
+				.findJurisdictionsSubmit(seachValue, org, childOrg, page, rows,
+						sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+	@Override
+	public ThreeRecordsIssueViewObject tmpComment(Long keyId,
+			ThreeRecordsIssueLogNew log, List<ThreeRecordsIssueAttachFile> files) {
+		autoFillIssueLogProperty(log, ThreeRecordsIssueOperate.TMPCOMMENT);
+		validateOperationLog(ThreeRecordsIssueOperate.TMPCOMMENT, log, files);
+		BaseWorking baseWork = getFullIssueByStepId(keyId);
+		ThreeRecordsIssueStep step = threeRecordsDefaultIssueWorkFlowEngine
+				.getFullIssueStepById(keyId);
+		ThreeRecordsIssueStep newStep = threeRecordsDefaultIssueWorkFlowEngine
+				.tmpComment(baseWork, step, log, files);
+		baseWork = getFullIssueByStepId(keyId);
+		return createIssueViewObject(baseWork, newStep);
+	}
+
+	private void setLedgerPoorPeopleNameChinesePinyin(
+			LedgerPoorPeople ledgerPoorPeople) {
+		Map<String, String> pinyin = Chinese2pinyin
+				.changeChinese2Pinyin(ledgerPoorPeople.getName());
+		ledgerPoorPeople.setFullPinyin(pinyin.get("fullPinyin"));
+		ledgerPoorPeople.setSimplePinyin(pinyin.get("simplePinyin"));
+	}
+
+	/******************** 标记 ****************************************/
+	private void autoFillIssueLogProperty(ThreeRecordsIssueLogNew log,
+			ThreeRecordsIssueOperate operate) {
+		log.setDealType(Long.valueOf(operate.getCode()));
+		log.setDealOrg(ThreadVariable.getSession().getOrganization());
+		log.setDealTime(CalendarUtil.now());
+	}
+
+	private ThreeRecordsIssueViewObject createIssueViewObject(
+			BaseWorking baseWork, ThreeRecordsIssueStep step) {
+		ThreeRecordsIssueViewObject issueViewObject = new ThreeRecordsIssueViewObject();
+		copyPropertyFromIssue(baseWork, issueViewObject);
+		issueViewObject.setDealTime(step.getLastDealDate());
+		issueViewObject.setSuperviseLevel(step.getSuperviseLevel());
+		issueViewObject.setIssueStepId(step.getId());
+		issueViewObject.setSupervisionState(step.getSuperviseLevel());
+		issueViewObject.setTargetOrg(step.getTarget());
+		issueViewObject.setDealState(Long.valueOf(step.getStateCode()));
+		return issueViewObject;
+	}
+
+	private void copyPropertyFromIssue(BaseWorking baseWork,
+			ThreeRecordsIssueViewObject issueViewObject) {
+		issueViewObject.setIssueId(baseWork.getId());
+		issueViewObject.setSerialNumber(baseWork.getSerialNumber());
+		issueViewObject.setSubject(baseWork.getSubject());
+		issueViewObject.setStatus(baseWork.getStatus());
+		issueViewObject.setCurrentOrg(baseWork.getCurrentStep() == null ? null
+				: baseWork.getCurrentStep().getTarget());
+		issueViewObject.setOccurDate(baseWork.getOccurDate());
+		issueViewObject.setOccurOrg(baseWork.getOccurOrg());
+		issueViewObject.setSourceKind(baseWork.getSourceKind());
+
+	}
+
+	@Override
+	public LedgerPoorPeople createTemporaryLedgerPoorPeople(Long orgId) {
+		if (orgId == null) {
+			throw new BusinessValidationException("组织机构编号不能为空");
+		}
+		LedgerPoorPeople ledgerPoorPeople = new LedgerPoorPeople();
+		try {
+			String serialNumber = threeRecordsKeyGeneratorService.getNextKey(
+					LedgerConstants.PRE_KEY_POOR_PEOPLE, ThreadVariable
+							.getOrganization().getId());
+			ledgerPoorPeople.setSerialNumber(serialNumber);
+			ledgerPoorPeople.setOrganization(organizationDubboService
+					.getSimpleOrgById(orgId));
+			ledgerPoorPeople.setBookingUnit(organizationDubboService
+					.getOrganizationRelativeNameByRootOrgIdAndOrgId(orgId,
+							OrganizationServiceHelper.getRootOrg(
+									organizationDubboService).getId()));
+
+		} catch (Exception e) {
+			throw new ServiceValidationException(
+					"createTemporaryLedgerPoorPeople方法出现异常，原因：",
+					"创建临时台账信息出现错误", e);
+		}
+		return ledgerPoorPeople;
+	}
+
+	/* 数据导入时不对数据进行校验* */
+	@Override
+	public LedgerPoorPeople saveLedgerPoorPeople(
+			LedgerPoorPeople ledgerPoorPeople) {
+		if (ledgerPoorPeople == null
+				|| ledgerPoorPeople.getOrganization() == null
+				|| ledgerPoorPeople.getOrganization().getId() == null
+				|| ledgerPoorPeople.getHistoryId() == null) {
+			throw new BusinessValidationException("新增失败，组织机构或者历史编号信息为空");
+		}
+		Organization organization = organizationDubboService
+				.getSimpleOrgById(ledgerPoorPeople.getOrganization().getId());
+		if (organization == null) {
+			throw new BusinessValidationException("新增失败，组织机构信息为空");
+		}
+		setOldLederIdAndType(ledgerPoorPeople);
+		ledgerPoorPeople.setOrganization(organization);
+		ledgerPoorPeople.setOrgInternalCode(organization.getOrgInternalCode());
+		ledgerPoorPeople.setLedgerType(LedgerConstants.POORPEOPLE);
+		if (ledgerPoorPeople.getOccurOrg() != null
+				&& ledgerPoorPeople.getOccurOrg().getId() != null) {
+			ledgerPoorPeople.setOccurOrgInternalCode(organizationDubboService
+					.getOrgInternalCodeById(ledgerPoorPeople.getOccurOrg()
+							.getId()));
+		}
+		setLedgerPoorPeopleNameChinesePinyin(ledgerPoorPeople);
+		try {
+			Long id = ledgerPoorPeopleDao.addLedgerPoorPeople(ledgerPoorPeople);
+			return getFullLedgerPoorPeopleById(id);
+		} catch (Exception e) {
+			throw new ServiceValidationException("困难群众新增失败!", e);
+		}
+	}
+
+	@Override
+	public void registerProcess(LedgerPoorPeople ledgerPoorPeople) {
+		try {
+			threeRecordsIssueWorkFlowEngine.register(ledgerPoorPeople);
+		} catch (Exception e) {
+			throw new ServiceValidationException("困难群众流程启动失败!", e);
+		}
+
+	}
+
+	/*
+	 * 更新事件转入状态
+	 */
+	private void updateLedgerConvertStatus(LedgerPoorPeople ledgerPoorPeople) {
+		if (ledgerPoorPeople == null || ledgerPoorPeople.getConvertId() == null) {
+			return;
+		}
+		LedgerConvert ledgerConvert = ledgerConvertService
+				.getSimpleLedgerConvertById(ledgerPoorPeople.getConvertId());
+		if (ledgerConvert == null) {
+			return;
+		}
+		ledgerConvert.setStatus(LedgerConstants.LEDGER_CONVERT_STATUS_YES);
+		ledgerConvert.setLedgerSerialNumber(ledgerPoorPeople.getSerialNumber());
+		ledgerConvert.setLedgerId(ledgerPoorPeople.getId());
+		ledgerConvert.setLedgerType(ledgerPoorPeople.getLedgerType());
+		ledgerConvertService.updateLedgerConvert(ledgerConvert);
+	}
+
+	@Override
+	public List<LedgerPoorPeople> getLedgerPoorPeopleByHistoryId(String id) {
+		if (!StringUtil.isStringAvaliable(id)) {
+			return null;
+		}
+		return ledgerPoorPeopleDao.getLedgerPoorPeopleByHistoryId(id);
+	}
+
+	private void setOldLederIdAndType(LedgerPoorPeople ledgerPoorPeople) {
+		if (ledgerPoorPeople == null
+				|| !StringUtil.isStringAvaliable(ledgerPoorPeople
+						.getOldHistoryId())) {
+			return;
+		}
+		List<LedgerPoorPeople> history = getLedgerPoorPeopleByHistoryId(ledgerPoorPeople
+				.getOldHistoryId());
+		if (history == null || history.size() == 0) {
+			return;
+		}
+		LedgerPoorPeople poorPeople = history.get(0);
+		ledgerPoorPeople.setOldLedgerId(poorPeople.getId());
+		ledgerPoorPeople.setOldLedgerType(poorPeople.getLedgerType());
+	}
+
+	@Override
+	public void updateFeedBackStatus(Long ledgerId, int isFeedBack) {
+
+		if (ledgerId == null) {
+			throw new BusinessValidationException("参数错误！");
+		}
+		try {
+			ledgerPoorPeopleDao.updateFeedBackStatus(ledgerId, isFeedBack);
+		} catch (Exception e) {
+			throw new ServiceValidationException("更新台账反馈状态失败！", e);
+		}
+
+	}
+
+	@Override
+	public PageInfo<LedgerPoorPeopleVo> findJurisdictionsCreateAndDone(
+			String seachValue, Long orgId, Integer page, Integer rows,
+			String sidx, String sord, Long issueType, Long orgLevel,
+			String leaderView, Long functionalOrgType, Integer viewProcess,
+			Long sourceType) {
+		if (orgId == null) {
+			throw new BusinessValidationException("机构未获得，查询参数错误");
+		}
+		Organization org = organizationDubboService.getSimpleOrgById(orgId);
+		Organization currentOrg = ThreadVariable.getOrganization();
+		if (ThreeRecordsIssueOperationUtil.orgIsFunctional(currentOrg)) {
+			org = ThreadVariable.getOrganization();
+		}
+		List<Long> childOrg = ComparisonAttribute
+				.getOrgIds(organizationDubboService
+						.findOrganizationsByParentId(org.getId()));
+		PageInfo<LedgerPoorPeopleVo> pageInfo = ledgerPoorPeopleDao
+				.findJurisdictionsCreateAndDone(seachValue, org, childOrg, page,
+						rows, sidx, sord, issueType, orgLevel, leaderView,
+						functionalOrgType, viewProcess, sourceType);
+		if (ThreeRecordsIssueViewType.VIEWPROCESS.equals(viewProcess)) {
+			loadIssueOccurOrgAndCurrentOrgAndIssueTypes(pageInfo);
+		}
+		return pageInfo;
+	}
+
+}

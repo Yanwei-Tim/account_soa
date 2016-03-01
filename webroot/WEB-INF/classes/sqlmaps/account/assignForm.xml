@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="assignForm">
+	<typeAlias alias="assignForm" type="com.tianque.plugin.account.domain.AssignForm" />
+	<resultMap class="assignForm" id="assignFormMap">
+		<result property="id" column="id"/>
+		<result property="stepId" column="stepId"/>
+		<result property="ledgerId" column="ledgerId"/>
+		<result property="ledgerType" column="ledgerType"/>
+		<result property="sourceOrg.id" column="sourceOrg"/>
+		<result property="reason" column="reason"/>
+		<result property="handleContent" column="handleContent"/>
+		<result property="serialNumber" column="serialNumber"/>
+		<result property="periods" column="periods"/>
+		<result property="type.id" column="type"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+		<result property="handleStartDate" column="handleStartDate"/>
+		<result property="handleEndDate" column="handleEndDate"/>
+		<result property="assignType" column="assignType"/>
+		<result property="ledgerSerialNumber" column="ledgerSerialNumber"/>
+		
+	</resultMap>
+	<insert id="addAssignForm" parameterClass="assignForm">
+		<selectKey keyProperty="id" resultClass="long">
+			<![CDATA[SELECT S_accountAssignForm.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into accountAssignForm(id ,stepId ,ledgerId ,ledgerType ,sourceOrg ,reason ,handleContent ,serialNumber ,periods ,assignType , CREATEUSER , UPDATEUSER ,CREATEDATE , UPDATEDATE,ledgerSerialNumber,type,handleStartDate,handleEndDate )
+		values(#id# ,#stepId# ,#ledgerId# ,#ledgerType# ,#sourceOrg.id# ,#reason# ,#handleContent# ,#serialNumber# ,#periods# ,#assignType#, #createUser#, #updateUser#,  #createDate#, #updateDate#,#ledgerSerialNumber#,#type.id#,#handleStartDate#,#handleEndDate# )
+	</insert>
+		
+	<update id="updateAssignForm" parameterClass="assignForm">
+		update accountAssignForm set id=#id#
+		  <isNotNull property="stepId" prepend=",">
+			  stepId = #stepId#
+		  </isNotNull>
+		  <isNotNull property="ledgerId" prepend=",">
+			  ledgerId = #ledgerId#
+		  </isNotNull>
+		  <isNotNull property="ledgerType" prepend=",">
+			  ledgerType = #ledgerType#
+		  </isNotNull>
+		  <isNotNull property="sourceOrg" prepend=",">
+			  sourceOrg = #sourceOrg.id#
+		  </isNotNull>
+		  <isNotNull property="reason" prepend=",">
+			  reason = #reason#
+		  </isNotNull>
+		  <isNotNull property="handleContent" prepend=",">
+			  handleContent = #handleContent#
+		  </isNotNull>
+		  <isNotNull property="serialNumber" prepend=",">
+			  serialNumber = #serialNumber#
+		  </isNotNull>
+		  <isNotNull property="handleStartDate" prepend=",">
+			  handleStartDate = #handleStartDate#
+		  </isNotNull>
+		  <isNotNull property="handleEndDate" prepend=",">
+			  handleEndDate = #handleEndDate#
+		  </isNotNull>
+		  <isNotNull prepend="," property="updateUser">
+			 UPDATEUSER = #updateUser#
+		  </isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				UPDATEDATE = #updateDate#
+		  </isNotNull>
+		  <isNotNull prepend="," property="periods">
+				periods = #periods#
+		  </isNotNull>
+		   <isNotNull prepend="," property="type">
+				type = #type.id#
+		  </isNotNull>
+		  <isNotNull prepend="," property="assignType">
+				assignType = #assignType#
+		  </isNotNull>
+		  
+	   
+		where id=#id#
+	</update>
+	
+	<select id="getSimpleAssignFormById" parameterClass="java.lang.Long"
+		resultMap="assignFormMap">
+		<![CDATA[select * from accountAssignForm where id=#value#]]>
+	</select>
+	
+	<select id="getSimpleAssignFormByStepId" parameterClass="java.lang.Long"
+		resultMap="assignFormMap">
+		<![CDATA[select * from accountAssignForm where stepId=#value#]]>
+	</select>
+	
+</sqlMap>

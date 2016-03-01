@@ -1,0 +1,215 @@
+package com.tianque.plugin.account.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tianque.core.base.AbstractBaseService;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.exception.base.BusinessValidationException;
+import com.tianque.plugin.account.constants.CompleteType;
+import com.tianque.plugin.account.dao.ThreeRecordsComprehensiveDao;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueLogNew;
+import com.tianque.plugin.account.service.ThreeRecordsComprehensiveService;
+import com.tianque.plugin.account.service.ThreeRecordsIssueLogService;
+import com.tianque.plugin.account.util.ComparisonAttribute;
+import com.tianque.plugin.account.util.ThreeRecordsIssueOperationUtil;
+import com.tianque.plugin.account.vo.SearchComprehensiveVo;
+import com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject;
+import com.tianque.userAuth.api.OrganizationDubboRemoteService;
+import com.tianque.userAuth.api.PropertyDictDubboService;
+
+@Service("threeRecordsComprehensiveService")
+@Transactional
+public class ThreeRecordsComprehensiveServiceImpl extends AbstractBaseService implements
+		ThreeRecordsComprehensiveService {
+
+	@Autowired
+	protected ThreeRecordsComprehensiveDao comprehensiveDao;
+	@Autowired
+	private OrganizationDubboRemoteService organizationDubboService;
+	@Autowired
+	private ThreeRecordsIssueLogService issueLogService;
+	@Autowired
+	private PropertyDictDubboService propertyDictDubboService;
+	
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsNeedDo(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows, Integer isSupported) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		return comprehensiveDao.findJurisdictionsNeedDo(searchVo, orgs, childOrg, page, rows, isSupported);
+	}
+	
+	private List<Organization> getOrgs(List<Long> orgIds){
+		List<Organization> orgs = new ArrayList<Organization>();
+		for(Long orgId : orgIds){
+			Organization org = organizationDubboService.getFullOrgById(orgId);
+			orgs.add(org);
+		}
+		return orgs;
+	}
+	
+	private List<Long> getChildIds(List<Organization> orgs){
+		List<Long> childOrg = new ArrayList<Long>();
+		for(Organization org : orgs){
+			List<Long> childIds = ComparisonAttribute.getOrgIds(organizationDubboService.findOrganizationsByParentId(org.getId()));
+			if(childIds != null && !childIds.isEmpty()){
+				childOrg.addAll(childIds);
+			}
+		}
+		return childOrg;
+	}
+	
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<ThreeRecordsIssueViewObject> result = comprehensiveDao.findJurisdictionsDone(searchVo, orgs, childOrg, page, rows);
+		
+		if(StringUtil.isStringAvaliable(searchVo.getDetailDoneType()) && !searchVo.getDetailDoneType().equals(CompleteType.ALL_QUERY)){
+			return getDeatilIssues(searchVo, page, rows, result);
+		}else{
+			return result;
+		}
+	}
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsPeriodDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<ThreeRecordsIssueViewObject> result = comprehensiveDao.findJurisdictionsPeriodDone(searchVo, orgs, childOrg, page, rows);
+		
+		if(StringUtil.isStringAvaliable(searchVo.getDetailDoneType()) && !searchVo.getDetailDoneType().equals(CompleteType.ALL_QUERY)){
+			return getDeatilIssues(searchVo, page, rows, result);
+		}else{
+			return result;
+		}
+	}
+	
+	private PageInfo<ThreeRecordsIssueViewObject> createIssueVoPageInfoInstance(
+			int totalRecord, int pageSize, int pageIndex) {
+		PageInfo<ThreeRecordsIssueViewObject> result = new PageInfo<ThreeRecordsIssueViewObject>();
+		result.setTotalRowSize(totalRecord);
+		result.setCurrentPage(pageIndex);
+		result.setPerPageSize(pageSize);
+		return result;
+	}
+	
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubStanceDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		PageInfo<ThreeRecordsIssueViewObject> result = comprehensiveDao.findJurisdictionsSubStanceDone(searchVo, orgs, childOrg, page, rows);
+		
+		if(StringUtil.isStringAvaliable(searchVo.getDetailDoneType()) && !searchVo.getDetailDoneType().equals(CompleteType.ALL_QUERY)){
+			return getDeatilIssues(searchVo, page, rows, result);
+		}else{
+			return result;
+		}
+	}
+	
+	private PageInfo<ThreeRecordsIssueViewObject> getDeatilIssues(SearchComprehensiveVo searchVo, Integer page, Integer rows, 
+			PageInfo<ThreeRecordsIssueViewObject> result){
+		List<ThreeRecordsIssueViewObject> list = new ArrayList<ThreeRecordsIssueViewObject>();
+		for(ThreeRecordsIssueViewObject issue : result.getResult()){
+			List<ThreeRecordsIssueLogNew> logs = issueLogService.getLogsByStepId(issue.getIssueStepId());
+			for(ThreeRecordsIssueLogNew log : logs){
+				if(log.getDealDescription().contains(searchVo.getDetailDoneType())){
+					list.add(issue);
+					break;
+				}
+			}
+		}
+		PageInfo<ThreeRecordsIssueViewObject> results = createIssueVoPageInfoInstance(list.size(), rows, page);
+		results.setResult(list);
+		return results;
+	}
+	
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsFeedBack(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		return comprehensiveDao.findJurisdictionsFeedBack(searchVo, orgs, childOrg, page, rows);
+	}
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsAssgin(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		return comprehensiveDao.findJurisdictionsAssgin(searchVo, orgs, childOrg, page, rows);
+	}
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubmit(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		return comprehensiveDao.findJurisdictionsSubmit(searchVo, orgs, childOrg, page, rows);
+	}
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsCreateAndDone(
+			SearchComprehensiveVo searchVo, List<Long> orgIds, Integer page,
+			Integer rows) {
+		if (orgIds.isEmpty()) {
+			throw new BusinessValidationException("参数未获得！");
+		}
+		List<Organization> orgs = getOrgs(orgIds);
+		List<Long> childOrg = getChildIds(orgs);
+		orgIsFun(orgs, searchVo);
+		return comprehensiveDao.findJurisdictionsCreateAndDone(searchVo, orgs, childOrg, page, rows);
+	}
+	
+	private void orgIsFun(List<Organization> orgs, SearchComprehensiveVo searchVo){
+		for(Organization org : orgs){
+			org.setOrgType(propertyDictDubboService.getPropertyDictById(org.getOrgType().getId()));
+			if(ThreeRecordsIssueOperationUtil.orgIsFunctional(org)){
+				searchVo.setSearchValue("present");
+				break;
+			}
+		}
+	}
+	
+}

@@ -1,0 +1,406 @@
+package com.tianque.plugin.account.dao.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.util.DateUtil;
+import com.tianque.core.util.StringUtil;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.plugin.account.constants.LedgerConstants;
+import com.tianque.plugin.account.constants.LedgerPeopleTableName;
+import com.tianque.plugin.account.constants.ThreeRecordsIssueTag;
+import com.tianque.plugin.account.dao.ThreeRecordsComprehensiveDao;
+import com.tianque.plugin.account.domain.ThreeRecordsIssueStep;
+import com.tianque.plugin.account.state.ThreeRecordsIssueOperate;
+import com.tianque.plugin.account.state.ThreeRecordsIssueSourceState;
+import com.tianque.plugin.account.state.ThreeRecordsIssueState;
+import com.tianque.plugin.account.vo.LedgerAgricultureDetail;
+import com.tianque.plugin.account.vo.LedgerEducationDetail;
+import com.tianque.plugin.account.vo.LedgerEnergyDetail;
+import com.tianque.plugin.account.vo.LedgerEnvironmentDetail;
+import com.tianque.plugin.account.vo.LedgerLaborDetail;
+import com.tianque.plugin.account.vo.LedgerMedicalDetail;
+import com.tianque.plugin.account.vo.LedgerOtherDetail;
+import com.tianque.plugin.account.vo.LedgerPeopleSubstanceDesc;
+import com.tianque.plugin.account.vo.LedgerScienceDetail;
+import com.tianque.plugin.account.vo.LedgerTownDetail;
+import com.tianque.plugin.account.vo.LedgerTrafficDetail;
+import com.tianque.plugin.account.vo.LedgerWaterDetail;
+import com.tianque.plugin.account.vo.ThreeRecordsIssueViewObject;
+import com.tianque.plugin.account.vo.SearchComprehensiveVo;
+
+@Repository("threeRecordsComprehensiveDao")
+public class ThreeRecordsComprehensiveDaoImpl extends AbstractBaseDao<Object> implements ThreeRecordsComprehensiveDao {
+	
+	@Override
+	public List<LedgerPeopleSubstanceDesc> countSubstanceDoneByDesc(Map<String, Object> map){
+		return getSqlMapClientTemplate()
+				.queryForList("threeRecordsComprehensive.countSubstanceDoneByDesc", map);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsNeedDo(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows, Integer isSupported) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("isSupported", isSupported);
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		initMap(map, searchVo, orgs, childOrg);
+		PageInfo<ThreeRecordsIssueViewObject> result = createIssueVoPageInfoInstance(countfindJurisdictionsNeedDo(map), rows, page);
+		List<ThreeRecordsIssueViewObject> list = getSqlMapClientTemplate().queryForList(
+				"threeRecordsComprehensive.findJurisdictionsNeedDo", map, (page - 1) * rows, rows);
+		result.setResult(list);
+		return result;
+	}
+	
+	@Override
+	public Integer countfindJurisdictionsNeedDo(Map<String, Object> map){
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"threeRecordsComprehensive.countfindJurisdictionsNeedDo", map);
+	}
+	
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		map.put("substanceCode", ThreeRecordsIssueState.SUBSTANCE_CODE);
+		map.put("issueTag", ThreeRecordsIssueTag.DONE_ISSUE);
+		map.put("complete", ThreeRecordsIssueOperate.COMPLETE_CODE);
+		initMap(map, searchVo, orgs, childOrg);
+		PageInfo<ThreeRecordsIssueViewObject> result = createIssueVoPageInfoInstance(cuntfindJurisdictionsDone(map), rows, page);
+		List<ThreeRecordsIssueViewObject> list = getSqlMapClientTemplate().queryForList(
+				"threeRecordsComprehensive.findJurisdictionsDone", map, (page - 1) * rows, rows);
+		result.setResult(list);
+		return result;
+	}
+	
+	@Override
+	public Integer cuntfindJurisdictionsDone(Map<String, Object> map){
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"threeRecordsComprehensive.countfindJurisdictionsDone", map);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsPeriodDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.PERIOD_CODE);
+		initMap(map, searchVo, orgs, childOrg);
+		PageInfo<ThreeRecordsIssueViewObject> result = createIssueVoPageInfoInstance(countfindJurisdictionsPeriodDone(map), rows, page);
+		List<ThreeRecordsIssueViewObject> list = getSqlMapClientTemplate().queryForList(
+				"threeRecordsComprehensive.findJurisdictionsPeriodDone", map, (page - 1) * rows, rows);
+		result.setResult(list);
+		return result;
+	}
+	
+	private Integer countfindJurisdictionsPeriodDone(Map<String, Object> map){
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"threeRecordsComprehensive.countfindJurisdictionsPeriodDone", map);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubStanceDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.SUBSTANCE_CODE);
+		initMap(map, searchVo, orgs, childOrg);
+		PageInfo<ThreeRecordsIssueViewObject> result = createIssueVoPageInfoInstance(countfindJurisdictionsSubstanceDone(map), rows, page);
+		List<ThreeRecordsIssueViewObject> list = getSqlMapClientTemplate().queryForList(
+				"threeRecordsComprehensive.findJurisdictionsSubstanceDone", map, (page - 1) * rows, rows);
+		result.setResult(list);
+		return result;
+	}
+	
+	private Integer countfindJurisdictionsSubstanceDone(Map<String, Object> map){
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"threeRecordsComprehensive.countfindJurisdictionsSubstanceDone", map);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsFeedBack(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("verification", ThreeRecordsIssueState.VERIFICATION);// 台账表中已验证状态，值为300
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);// 台账流程表中办理中的状态，值为500
+		map.put("periodCode", ThreeRecordsIssueState.PERIOD_CODE);// 台账流程表中阶段办结的状态，值为600
+		map.put("issueCompleteCode", ThreeRecordsIssueState.SUBSTANCE_CODE);// 台账流程表中已实质办结的状态，值为700
+		map.put("issueTag", ThreeRecordsIssueTag.DONE_ISSUE);
+		initMap(map, searchVo, orgs, childOrg);
+		PageInfo<ThreeRecordsIssueViewObject> result = createIssueVoPageInfoInstance(countfindJurisdictionsFeedBack(map), rows, page);
+		List<ThreeRecordsIssueViewObject> list = getSqlMapClientTemplate().queryForList(
+				"threeRecordsComprehensive.findJurisdictionsFeedBack", map, (page - 1) * rows, rows);
+		result.setResult(list);
+		return result;
+	}
+	
+	private Integer countfindJurisdictionsFeedBack(Map<String, Object> map){
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"threeRecordsComprehensive.countfindJurisdictionsFeedBack", map);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsAssgin(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		map.put("assgin", ThreeRecordsIssueSourceState.assign);
+		map.put("issueTag", ThreeRecordsIssueTag.ASSIGN_ISSUE);
+		initMap(map, searchVo, orgs, childOrg);
+		PageInfo<ThreeRecordsIssueViewObject> result = createIssueVoPageInfoInstance(countfindJurisdictionsAssgin(map), rows, page);
+		List<ThreeRecordsIssueViewObject> list = getSqlMapClientTemplate().queryForList(
+				"threeRecordsComprehensive.findJurisdictionsAssgin", map, (page-1) * rows, rows);
+		result.setResult(list);
+		return result;
+	}
+	
+	private Integer countfindJurisdictionsAssgin(Map<String, Object> map){
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"threeRecordsComprehensive.countfindJurisdictionsAssgin", map);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsSubmit(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("completeCode", ThreeRecordsIssueState.STEPCOMPLETE_CODE);
+		map.put("submit", ThreeRecordsIssueSourceState.submit);
+		map.put("issueTag", ThreeRecordsIssueTag.SUBMIT_ISSUE);
+		initMap(map, searchVo, orgs, childOrg);
+		PageInfo<ThreeRecordsIssueViewObject> result = createIssueVoPageInfoInstance(countfindJurisdictionsSubmit(map), rows, page);
+		List<ThreeRecordsIssueViewObject> list = getSqlMapClientTemplate().queryForList(
+				"threeRecordsComprehensive.findJurisdictionsSubmit", map, (page - 1) * rows, rows);
+		result.setResult(list);
+		return result;
+	}
+	
+	private Integer countfindJurisdictionsSubmit(Map<String, Object> map){
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"threeRecordsComprehensive.countfindJurisdictionsSubmit", map);
+	}
+
+	@Override
+	public PageInfo<ThreeRecordsIssueViewObject> findJurisdictionsCreateAndDone(
+			SearchComprehensiveVo searchVo, List<Organization> orgs,
+			List<Long> childOrg, Integer page, Integer rows) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("issueTag", ThreeRecordsIssueTag.DONE_ISSUE);
+		initMap(map, searchVo, orgs, childOrg);
+		PageInfo<ThreeRecordsIssueViewObject> result = createIssueVoPageInfoInstance(countfindJurisdictionsCreateAndDone(map), rows, page);
+		List<ThreeRecordsIssueViewObject> list = getSqlMapClientTemplate().queryForList(
+				"threeRecordsComprehensive.findJurisdictionsCreateAndDone", map, (page - 1) * rows, rows);
+		result.setResult(list);
+		return result;
+	}
+	
+	private Integer countfindJurisdictionsCreateAndDone(Map<String, Object> map){
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"threeRecordsComprehensive.countfindJurisdictionsCreateAndDone", map);
+	}
+
+	private PageInfo<ThreeRecordsIssueViewObject> createIssueVoPageInfoInstance(
+			int totalRecord, int pageSize, int pageIndex) {
+		PageInfo<ThreeRecordsIssueViewObject> result = new PageInfo<ThreeRecordsIssueViewObject>();
+		result.setTotalRowSize(totalRecord);
+		result.setCurrentPage(pageIndex);
+		result.setPerPageSize(pageSize);
+		return result;
+	}
+	
+	private void initMap(Map<String, Object> map, SearchComprehensiveVo searchVo, List<Organization> orgs, List<Long> childOrg){
+		List<String> codeList = new ArrayList<String>();
+		List<Long> idList = new ArrayList<Long>();
+		for(Organization org : orgs){
+			codeList.add(org.getOrgInternalCode());
+			idList.add(org.getId());
+		}
+		if (!codeList.isEmpty()) {
+			map.put("orgCode", codeList);
+		}
+		if (!idList.isEmpty()) {
+			map.put("orgId", idList);
+		}
+		if (childOrg != null && childOrg.size() > 0) {
+			map.put("targetOrgs", childOrg);
+		}
+		if(searchVo.getSearchValue() != null){
+			map.put("seachValue", searchVo.getSearchValue());
+		}
+		if(searchVo.getLedgerType() != null){
+			map.put("issueType", searchVo.getLedgerType());
+			map.put("tableName", LedgerPeopleTableName.getLedgerTableName(Integer.parseInt(searchVo.getLedgerType()+"")));
+		}
+		if(searchVo.getProjectCategory() != null){
+			map.put("projectCategory", searchVo.getProjectCategory());
+		}
+		if(searchVo.getLedgerType() != LedgerConstants.PEOPLEASPIRATION_LABOR){
+			if(StringUtil.isStringAvaliable(searchVo.getBuildAddress())){
+				map.put("buildAddress", searchVo.getBuildAddress());
+			}
+			if(searchVo.getBuildType() != null){
+				map.put("buildType", searchVo.getBuildType());
+			}
+			if(searchVo.getIsGtPlannedInvestment() != null){
+				map.put("isGtPlannedInvestment", searchVo.getIsGtPlannedInvestment());
+			}
+			if(searchVo.getPlannedInvestment() != null){
+				map.put("plannedInvestment", searchVo.getPlannedInvestment());
+			}
+			if(searchVo.getIsGtbeneficiaryNumber() != null){
+				map.put("isGtbeneficiaryNumber", searchVo.getIsGtbeneficiaryNumber());
+			}
+			if(searchVo.getBeneficiaryNumber() != null){
+				map.put("beneficiaryNumber", searchVo.getBeneficiaryNumber());
+			}
+			if(searchVo.getIsGtSelfFund() != null){
+				map.put("isGtSelfFund", searchVo.getIsGtSelfFund());
+			}
+			if(searchVo.getSelfFund() != null){
+				map.put("selfFund", searchVo.getSelfFund());
+			}
+			if(searchVo.getIsGtGapFund() != null){
+				map.put("isGtGapFund", searchVo.getIsGtGapFund());
+			}
+			if(searchVo.getGapFund() != null){
+				map.put("gapFund", searchVo.getGapFund());
+			}
+		}
+		if(searchVo.getBeginCreateDate() != null){
+			map.put("beginCreateDate", searchVo.getBeginCreateDate());
+		}
+		if(searchVo.getEndCreateDate() != null){
+			map.put("endCreateDate",  DateUtil.getEndTime(searchVo.getEndCreateDate()));
+		}
+		if(StringUtil.isStringAvaliable(searchVo.getAppealContent())){
+			map.put("appealContent", searchVo.getAppealContent());
+		}
+	}
+
+	@Override
+	public List<LedgerWaterDetail> getAllWaterResult(Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getAllWaterResult", map);
+	}
+	@Override
+	public List<LedgerWaterDetail> getBuildWaterResult(Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getBuildWaterResult", map);
+	}
+
+	@Override
+	public List<LedgerTrafficDetail> getAllTrafficResult(Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getAllTrafficResult", map);
+	}
+	@Override
+	public List<LedgerTrafficDetail> getBuildTrafficResult(Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getBuildTrafficResult", map);
+	}
+	@Override
+	public List<LedgerTrafficDetail> getSubCategoryTrafficResult(Map<String, Object> map) {
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getSubCategoryTrafficResult", map);
+	}
+	@Override
+	public List<LedgerTrafficDetail> getPassSubCategoryTrafficResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getPassSubCategoryTrafficResult", map);
+	}
+	
+	@Override
+	public List<LedgerEducationDetail> getAllEductionResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getAllEductionResult", map);
+	}
+	@Override
+	public List<LedgerEducationDetail> getBuildEductionResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getBuildEductionResult", map);
+	}
+	@Override
+	public List<LedgerEducationDetail> getBuildEductionAreaResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getBuildEductionAreaResult", map);
+	}
+	@Override
+	public List<LedgerEducationDetail> getSubBuildEducationResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getSubBuildEducationResult", map);
+	}
+	@Override
+	public List<LedgerEducationDetail> getDisEducationResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getDisEducationResult", map);
+	}
+	@Override
+	public List<LedgerEducationDetail> getRoadEducationResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getRoadEducationResult", map);
+	}
+	
+	@Override
+	public List<LedgerEnergyDetail> getAllEnergyResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getAllEnergyResult", map);
+	}
+	@Override
+	public List<LedgerEnergyDetail> getSubEnergyResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getSubEnergyResult", map);
+	}
+	@Override
+	public List<LedgerEnergyDetail> getSubSecEnergyResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getSubSecEnergyResult", map);
+	}
+	
+	@Override
+	public List<LedgerScienceDetail> getAllScienceResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getAllScienceResult", map);
+	}
+	
+	@Override
+	public List<LedgerMedicalDetail> getAllMedicalResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getAllMedicalResult", map);
+	}
+	
+	@Override
+	public List<LedgerLaborDetail> getAllLaborResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getAllLaborResult", map);
+	}
+	@Override
+	public List<LedgerLaborDetail> getSubLaborResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getSubLaborResult", map);
+	}
+	@Override
+	public List<LedgerLaborDetail> getSubCotentLaborResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getSubCotentLaborResult", map);
+	}
+	
+	@Override
+	public List<LedgerEnvironmentDetail> getAllEnvironmentResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getAllEnvironmentResult", map);
+	}
+	@Override
+	public List<LedgerEnvironmentDetail> getSubEnvironmentResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getSubEnvironmentResult", map);
+	}
+	
+	@Override
+	public List<LedgerTownDetail> getAllTownResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getAllTownResult", map);
+	}
+	
+	@Override
+	public List<LedgerAgricultureDetail> getAllAgricultureResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getAllAgricultureResult", map);
+	}
+	@Override
+	public List<LedgerAgricultureDetail> getSubAgricultureResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getSubAgricultureResult", map);
+	}
+	
+	@Override
+	public List<LedgerOtherDetail> getAllOtherResult(Map<String, Object> map){
+		return getSqlMapClientTemplate().queryForList("ledgerPeopleDetailCount.getAllOtherResult", map);
+	}
+
+}

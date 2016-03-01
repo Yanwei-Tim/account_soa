@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+	
+<sqlMap namespace="threeAccountReport">
+	
+	<typeAlias alias="threeRecordsReportStatisticalVo"	type="com.tianque.plugin.account.vo.ThreeRecordsReportStatisticalVo" />
+	<typeAlias alias="accountResultVo"	type="com.tianque.plugin.account.vo.AccountResultVo" />	
+	
+	<resultMap id="accountResultVoResult" class="accountResultVo">
+		<result property="data" column="data" />
+		<result property="dealType" column="dealType" />
+		<result property="accountType" column="accountType" />
+	</resultMap>
+	
+	<resultMap id="threeReportByStableResult" class="threeRecordsReportStatisticalVo">
+		<result property="lifeCount" column="lifeCount" />
+		<result property="medicalCount" column="medicalCount" />
+		<result property="housingCount" column="housingCount" />
+		<result property="goSchoolCount" column="goSchoolCount" />
+		<result property="employmentCount" column="employmentCount" />
+		<result property="ledgerPoorPeopleOtherCount" column="ledgerPoorPeopleOtherCount" />
+	</resultMap>
+	
+	<resultMap id="threeRecordsReportStatisticalVoResult" class="threeRecordsReportStatisticalVo" extends="threeReportByStableResult">
+		<result property="waterResourceCount" column="waterResourceCount" />
+		<result property="trafficCount" column="trafficCount" />
+		<result property="educationCount" column="educationCount" />
+		<result property="healthMedicalCount" column="healthMedicalCount" />
+		<result property="resourcesAgriculturalCount" column="resourcesAgriculturalCount" />
+		<result property="energyCount" column="energyCount" />
+		<result property="socialLaborCount" column="socialLaborCount" />
+		<result property="environmentalProtectionCount" column="environmentalProtectionCount" />
+		<result property="planningAdviceManagementCount" column="planningAdviceManagementCount" />
+		<result property="scienceTechnologyCount" column="scienceTechnologyCount" />
+		<result property="otherResourcesCount" column="otherResourcesCount" />
+		
+		<result property="visitsCount" column="visitsCount" />
+		<result property="forestSoilCount" column="forestSoilCount" />
+		<result property="favorablePoliciesCount" column="favorablePoliciesCount" />
+		<result property="civilAdministrationIssuesCount" column="civilAdministrationIssuesCount" />
+		<result property="populationMedicalCount" column="populationMedicalCount" />
+		<result property="laborSocialSecurityCount" column="laborSocialSecurityCount" />
+		<result property="transportationCount" column="transportationCount" />
+		<result property="urbanConstructionAndCLECount" column="urbanConstructionAndCLECount" />
+		<result property="cpcPartyDisciplinesCount" column="cpcPartyDisciplinesCount" />
+		<result property="steadyRecordWorkEducationCount" column="steadyRecordWorkEducationCount" />
+		<result property="enterpriseRestructuringCount" column="enterpriseRestructuringCount" />
+		<result property="environmentalConservationCount" column="environmentalConservationCount" />
+		<result property="organizationPersonnelCount" column="organizationPersonnelCount" />
+		<result property="steadyRecordWorkOtherCount" column="steadyRecordWorkOtherCount" />
+		<result property="keyPersonnelCount" column="keyPersonnelCount" />
+	</resultMap>
+	
+<!--累计/本月 办结数/办理中数/上报数 民生-->
+	<select id="threeReportByPeopleLivelihoodForList" parameterClass="java.util.Map" resultMap="accountResultVoResult">
+	select count(id) data,dealtype dealType,ledgertype accountType from platformaccountlogs where id in(
+		select max(p.id) pid from platformaccountlogs p where 
+			p.ledgerid in(
+			select id from ledgerpeopleaspirations l where l.createDate<![CDATA[<]]>#endDate#
+			<isPropertyAvailable property="startDate" prepend="and">
+				l.createDate >= #startDate#
+			</isPropertyAvailable>
+			)
+			 <isPropertyAvailable property="endCode">
+			 	<isEqual property="currentStatistics" compareValue="true">
+			 		<iterate prepend=" and dealtype not in"  property="endCode" conjunction="," open="(" close=")">
+							$endCode[]$
+					</iterate>
+			 	</isEqual>
+			 	<isEqual property="currentStatistics" compareValue="false">
+					<iterate prepend=" and dealtype in"  property="endCode" conjunction="," open="(" close=")">
+								$endCode[]$
+					</iterate>
+			 	</isEqual>
+			 </isPropertyAvailable>
+			and dealorgid = #orgId# group by p.ledgerid) group by dealorgid,dealtype,ledgertype
+	</select>
+<!--累计/本月 办结数/办理中数/上报数  稳定-->
+<select id="threeReportByStableForList" parameterClass="java.util.Map" resultMap="accountResultVoResult">
+select count(s.id) data,dealtype dealType,steadyworktype accountType from platformaccountlogs s left join ledgersteadywork p on s.ledgerid= p.id
+ 	where s.id in(select max(p.id) pid from platformaccountlogs p where p.ledgerid in(
+ 			select id from ledgersteadywork l where l.createDate<![CDATA[<]]>#endDate#
+ 			<isPropertyAvailable property="startDate" prepend="and">
+				l.createDate >= #startDate#
+			</isPropertyAvailable>
+				 ) 
+			<isPropertyAvailable property="endCode">
+			 	<isEqual property="currentStatistics" compareValue="true">
+			 		<iterate prepend=" and dealtype not in"  property="endCode" conjunction="," open="(" close=")">
+							$endCode[]$
+					</iterate>
+			 	</isEqual>
+			 	<isEqual property="currentStatistics" compareValue="false">
+					<iterate prepend=" and dealtype in"  property="endCode" conjunction="," open="(" close=")">
+								$endCode[]$
+					</iterate>
+			 	</isEqual>
+			 </isPropertyAvailable>
+and dealorgid = #orgId# group by p.ledgerid) group by dealtype,p.steadyworktype
+</select>	
+<!--累计/本月 办结数/办理中数/上报数  困难-->
+<select id="threeReportByDifficultForList" parameterClass="java.util.Map"  resultMap="threeReportByStableResult">
+select ( select count(s.id) from platformaccountlogs s left join ledgerpoorpeople p on s.ledgerid= p.id where s.id in(
+	select max(p.id) pid from platformaccountlogs p where p.ledgerid in(select id from ledgerpoorpeople l where
+		 l.createDate<![CDATA[<]]>#endDate#	and l.poortype like '%' ||#housingCount#|| '%'
+			<isPropertyAvailable property="startDate" prepend="and">
+				l.createDate >= #startDate#
+			</isPropertyAvailable>) 
+			<isPropertyAvailable property="endCode">
+			 	<isEqual property="currentStatistics" compareValue="true">
+			 		<iterate prepend=" and dealtype not in"  property="endCode" conjunction="," open="(" close=")">
+							$endCode[]$
+					</iterate>
+			 	</isEqual>
+			 	<isEqual property="currentStatistics" compareValue="false">
+					<iterate prepend=" and dealtype in"  property="endCode" conjunction="," open="(" close=")">
+								$endCode[]$
+					</iterate>
+			 	</isEqual>
+			</isPropertyAvailable>
+and dealorgid = org.id group by p.ledgerid) ) housingCount,
+( select count(s.id) from platformaccountlogs s left join ledgerpoorpeople p on s.ledgerid= p.id where s.id in(
+	select max(p.id) pid from platformaccountlogs p where p.ledgerid in(select id from ledgerpoorpeople l where
+		 l.createDate<![CDATA[<]]>#endDate#	and l.poortype like '%' ||#lifeCount#|| '%'
+			<isPropertyAvailable property="startDate" prepend="and">
+				l.createDate >= #startDate#
+			</isPropertyAvailable>) 
+			<isPropertyAvailable property="endCode">
+			 	<isEqual property="currentStatistics" compareValue="true">
+			 		<iterate prepend=" and dealtype not in"  property="endCode" conjunction="," open="(" close=")">
+							$endCode[]$
+					</iterate>
+			 	</isEqual>
+			 	<isEqual property="currentStatistics" compareValue="false">
+					<iterate prepend=" and dealtype in"  property="endCode" conjunction="," open="(" close=")">
+								$endCode[]$
+					</iterate>
+			 	</isEqual>
+			</isPropertyAvailable>
+and dealorgid = org.id group by p.ledgerid) ) lifeCount,
+( select count(s.id) from platformaccountlogs s left join ledgerpoorpeople p on s.ledgerid= p.id where s.id in(
+	select max(p.id) pid from platformaccountlogs p where p.ledgerid in(select id from ledgerpoorpeople l where
+		 l.createDate<![CDATA[<]]>#endDate#	and l.poortype like '%' ||#medicalCount#|| '%'
+			<isPropertyAvailable property="startDate" prepend="and">
+				l.createDate >= #startDate#
+			</isPropertyAvailable>) 
+			<isPropertyAvailable property="endCode">
+			 	<isEqual property="currentStatistics" compareValue="true">
+			 		<iterate prepend=" and dealtype not in"  property="endCode" conjunction="," open="(" close=")">
+							$endCode[]$
+					</iterate>
+			 	</isEqual>
+			 	<isEqual property="currentStatistics" compareValue="false">
+					<iterate prepend=" and dealtype in"  property="endCode" conjunction="," open="(" close=")">
+								$endCode[]$
+					</iterate>
+			 	</isEqual>
+			</isPropertyAvailable>
+and dealorgid = org.id group by p.ledgerid) ) medicalCount,
+( select count(s.id) from platformaccountlogs s left join ledgerpoorpeople p on s.ledgerid= p.id where s.id in(
+	select max(p.id) pid from platformaccountlogs p where p.ledgerid in(select id from ledgerpoorpeople l where
+		 l.createDate<![CDATA[<]]>#endDate#	and l.poortype like '%' ||#employmentCount#|| '%'
+			<isPropertyAvailable property="startDate" prepend="and">
+				l.createDate >= #startDate#
+			</isPropertyAvailable>) 
+			<isPropertyAvailable property="endCode">
+			 	<isEqual property="currentStatistics" compareValue="true">
+			 		<iterate prepend=" and dealtype not in"  property="endCode" conjunction="," open="(" close=")">
+							$endCode[]$
+					</iterate>
+			 	</isEqual>
+			 	<isEqual property="currentStatistics" compareValue="false">
+					<iterate prepend=" and dealtype in"  property="endCode" conjunction="," open="(" close=")">
+								$endCode[]$
+					</iterate>
+			 	</isEqual>
+			</isPropertyAvailable>
+and dealorgid = org.id group by p.ledgerid) ) employmentCount,
+( select count(s.id) from platformaccountlogs s left join ledgerpoorpeople p on s.ledgerid= p.id where s.id in(
+	select max(p.id) pid from platformaccountlogs p where p.ledgerid in(select id from ledgerpoorpeople l where
+		 l.createDate<![CDATA[<]]>#endDate#	and l.poortype like '%' ||#goSchoolCount#|| '%'
+			<isPropertyAvailable property="startDate" prepend="and">
+				l.createDate >= #startDate#
+			</isPropertyAvailable>) 
+			<isPropertyAvailable property="endCode">
+			 	<isEqual property="currentStatistics" compareValue="true">
+			 		<iterate prepend=" and dealtype not in"  property="endCode" conjunction="," open="(" close=")">
+							$endCode[]$
+					</iterate>
+			 	</isEqual>
+			 	<isEqual property="currentStatistics" compareValue="false">
+					<iterate prepend=" and dealtype in"  property="endCode" conjunction="," open="(" close=")">
+								$endCode[]$
+					</iterate>
+			 	</isEqual>
+			</isPropertyAvailable>
+and dealorgid = org.id group by p.ledgerid) ) goSchoolCount,
+( select count(s.id) from platformaccountlogs s left join ledgerpoorpeople p on s.ledgerid= p.id where s.id in(
+	select max(p.id) pid from platformaccountlogs p where p.ledgerid in(select id from ledgerpoorpeople l where
+		 l.createDate<![CDATA[<]]>#endDate#	and l.poortype like '%' ||#ledgerPoorPeopleOtherCount#|| '%'
+			<isPropertyAvailable property="startDate" prepend="and">
+				l.createDate >= #startDate#
+			</isPropertyAvailable>) 
+			<isPropertyAvailable property="endCode">
+			 	<isEqual property="currentStatistics" compareValue="true">
+			 		<iterate prepend=" and dealtype not in"  property="endCode" conjunction="," open="(" close=")">
+							$endCode[]$
+					</iterate>
+			 	</isEqual>
+			 	<isEqual property="currentStatistics" compareValue="false">
+					<iterate prepend=" and dealtype in"  property="endCode" conjunction="," open="(" close=")">
+								$endCode[]$
+					</iterate>
+			 	</isEqual>
+			</isPropertyAvailable>
+and dealorgid = org.id group by p.ledgerid) ) ledgerPoorPeopleOtherCount
+from organizations org where org.id=#orgId#
+</select>
+
+<sql id="historyType_sql">
+	l.CREATETABLETYPE = #historyType#
+</sql>
+
+<select id="getCumulativeRecord" parameterClass="java.util.Map" resultMap="threeRecordsReportStatisticalVoResult">
+select 
+(select count(l.id) from ledgerpeopleaspirations l where l.ledgertype=#water# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id 
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql"/>   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) waterResourceCount,
+(select count(l.id) from ledgerpeopleaspirations l where l.ledgertype=#traffic# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) trafficCount,
+(select count(l.id) from ledgerpeopleaspirations l where l.ledgertype=#energy# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) energyCount,
+(select count(l.id) from ledgerpeopleaspirations l where l.ledgertype=#education# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) educationCount,
+(select count(l.id) from ledgerpeopleaspirations l where l.ledgertype=#science# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) scienceTechnologyCount,
+(select count(l.id) from ledgerpeopleaspirations l where l.ledgertype=#medical# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) healthMedicalCount,
+(select count(l.id) from ledgerpeopleaspirations l where l.ledgertype=#labor# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) socialLaborCount,
+(select count(l.id) from ledgerpeopleaspirations l where l.ledgertype=#environment# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) environmentalProtectionCount,
+(select count(l.id) from ledgerpeopleaspirations l where l.ledgertype=#town# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) planningAdviceManagementCount,
+(select count(l.id) from ledgerpeopleaspirations l where l.ledgertype=#agriculture# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) resourcesAgriculturalCount,
+(select count(l.id) from ledgerpeopleaspirations l where l.ledgertype=#other# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) otherResourcesCount,
+    
+(select count(l.id) from ledgerpoorpeople l where l.poortype like '%'|| #housingCount# ||'%' and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) housingCount,
+(select count(l.id) from ledgerpoorpeople l where l.poortype like '%'|| #lifeCount# ||'%' and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) lifeCount,
+(select count(l.id) from ledgerpoorpeople l where l.poortype like '%'|| #medicalCount# ||'%' and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) medicalCount,
+(select count(l.id) from ledgerpoorpeople l where l.poortype like '%'|| #employmentCount# ||'%' and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) employmentCount,
+(select count(l.id) from ledgerpoorpeople l where l.poortype like '%'|| #goSchoolCount# ||'%' and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) goSchoolCount,
+(select count(l.id) from ledgerpoorpeople l where l.poortype like '%'|| #ledgerPoorPeopleOtherCount# ||'%' and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) ledgerPoorPeopleOtherCount,
+
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#visits# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) visitsCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#forestSoil# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) forestSoilCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#favorablePolicies# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) favorablePoliciesCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#civilAdministrationIssues# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) civilAdministrationIssuesCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#populationMedical# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) populationMedicalCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#laborSocialSecurity# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) laborSocialSecurityCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#transportation# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) transportationCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#urbanConstructionAndCLE# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) urbanConstructionAndCLECount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#cpcPartyDisciplines# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) cpcPartyDisciplinesCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#steadyRecordWorkEducation# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) steadyRecordWorkEducationCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#enterpriseRestructuring# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) enterpriseRestructuringCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#steadyRecordWorkEnvironmentalProtection# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) environmentalConservationCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#organizationPersonnel# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) organizationPersonnelCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#steadyRecordWorkOther# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) steadyRecordWorkOtherCount,
+(select count(l.id) from ledgersteadywork l where l.steadyworktype=#keyPersonnel# and l.createdate<![CDATA[<]]>#endDate# and l.orgid=o.id
+	 <isPropertyAvailable property="historyType" prepend="and">
+	 		<isNotNull property="historyType">
+	 			 <include refid="historyType_sql" />   
+	 		</isNotNull>
+	 </isPropertyAvailable>
+	 <isPropertyAvailable property="startDate" prepend="and">
+	 	l.createdate >= #startDate#
+	 </isPropertyAvailable>
+) keyPersonnelCount
+
+from organizations o where o.id = #orgId# 
+</select>
+
+
+</sqlMap>

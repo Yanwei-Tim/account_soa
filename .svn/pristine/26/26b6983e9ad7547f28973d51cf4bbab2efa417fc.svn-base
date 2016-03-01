@@ -1,0 +1,64 @@
+package com.tianque.account.api.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.tianque.account.api.ReplyFormDubboService;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.plugin.account.domain.ReplyForm;
+import com.tianque.plugin.account.service.ReplyFormService;
+import com.tianque.plugin.account.vo.ReplyFormVo;
+
+@Component
+public class ReplyFormDubboServiceImpl implements ReplyFormDubboService {
+
+	@Autowired
+	private ReplyFormService replyFormService;
+
+	@Override
+	public ReplyForm addReplyForm(ReplyForm replyForm) {
+		return replyFormService.addReplyForm(replyForm);
+	}
+
+	public PageInfo<ReplyForm> findReplyForms(ReplyFormVo replyFormVo,
+			Integer page, Integer rows) {
+		PageInfo<ReplyForm> pageInfo = replyFormService.findReplyForms(
+				replyFormVo, page, rows);
+		return pageInfo;
+	}
+
+	@Override
+	public ReplyForm updateReplyForm(ReplyForm replyForm) {
+		return replyFormService.updateReplyForm(replyForm);
+	}
+
+	@Override
+	public ReplyForm getSimpleReplyFormById(Long id) {
+		return replyFormService.getSimpleReplyFormById(id);
+	}
+
+	@Override
+	public List<ReplyForm> getSimpleReplyFormByLedgerIdAndType(Long id, int type) {
+		return replyFormService.getSimpleReplyFormByLedgerIdAndType(id, type);
+	}
+
+	@Override
+	public ReplyForm addReplyForm(ReplyForm replyForm, String[] attachFiles) {
+		return replyFormService.addReplyForm(replyForm, attachFiles);
+	}
+
+	@Override
+	public List<ReplyForm> getReplyFormAndFilesByLedgerIdAndType(Long id,
+			int type) {
+		return replyFormService.getReplyFormAndFilesByLedgerIdAndType(id, type);
+	}
+
+	@Override
+	public ReplyForm getReplyFormAndFilesByReplyId(Long id) {
+		
+		return replyFormService.getReplyFormAndFilesByReplyId(id);
+	}
+
+}

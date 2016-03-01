@@ -1,0 +1,26 @@
+package com.tianque.plugin.account.vo;
+
+import java.util.Date;
+
+import com.tianque.plugin.account.domain.LedgerConvert;
+
+@SuppressWarnings("serial")
+public class LedgerConvertVo extends LedgerConvert {
+	/** 发生时间 从 */
+	private Date occurFrom;
+	/** 发生时间 到 */
+	private Date occurEnd;
+	public Date getOccurFrom() {
+		return occurFrom;
+	}
+	public void setOccurFrom(Date occurFrom) {
+		this.occurFrom = occurFrom;
+	}
+	public Date getOccurEnd() {
+		return occurEnd;
+	}
+	public void setOccurEnd(Date occurEnd) {
+		this.occurEnd = occurEnd;
+	}
+
+}

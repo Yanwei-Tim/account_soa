@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="common">
+	<sql id="sql_count">select count(*)</sql>
+	<sql id="sql_select">select *</sql>
+	
+	<sql id="sql_page_start">
+		<dynamic>
+			<isPropertyAvailable property="startRow">
+				<isNotNull property="startRow">
+					select * from (select rownum row_num,t1.* from (
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	<sql id="sql_page_end">
+		<dynamic>
+			<isPropertyAvailable property="startRow">
+				<isNotNull property="startRow">
+					) t1 where rownum<![CDATA[<=]]>#endRow# ) where row_num<![CDATA[>]]>#startRow#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_select_page_start">select * from (select info.* , rownum as rn from ( </sql>
+	<sql id="sql_select_page_end">
+		)info
+		<isPropertyAvailable property="pageTo">
+				<isNotEmpty property="pageTo">
+					where rownum &lt;= #pageTo#
+			  </isNotEmpty>
+		</isPropertyAvailable>
+		
+		)
+		<isPropertyAvailable property="pageFrom">
+				<isNotEmpty property="pageFrom">
+					where rn &gt; #pageFrom#
+			  </isNotEmpty>
+		</isPropertyAvailable>
+		
+	</sql>
+	
+	<sql id="query_start"> SELECT * FROM (SELECT ROW_.*, ROWNUM ROWNUM_ FROM (   </sql>
+	<sql id="query_end"> ) ROW_ 
+		<dynamic prepend=" WHERE ">
+			<isPropertyAvailable property="pageTo">
+				<isNotNull property="pageTo"> ROWNUM <![CDATA[ <= ]]> #pageTo# ) </isNotNull>
+				<isNotNull property="pageFrom"> WHERE ROWNUM_ <![CDATA[ >= ]]> #pageFrom# </isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<isNotPropertyAvailable property="pageTo"> ) </isNotPropertyAvailable>
+	</sql>
+</sqlMap>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+	
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath*:**/applicationContext.xml,
+		             classpath*:**/applicationContext-production.xml
+		</param-value>
+	</context-param>
+
+	<distributable />
+
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<!-- 主要负责处理由 JavaBeans Introspector的使用而引起的缓冲泄露 -->
+	<listener>
+		<listener-class>org.springframework.web.util.IntrospectorCleanupListener</listener-class>
+	</listener>
+
+	<filter>
+		<filter-name>LoginValidateFilter</filter-name>
+		<filter-class>com.tianque.web.filter.LoginValidateFilter</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>LoginValidateFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<filter>
+		<filter-name>characterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+	</filter>
+
+
+	<filter-mapping>
+		<filter-name>characterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<filter>
+		<filter-name>ParametersTrimFilter</filter-name>
+		<filter-class>com.tianque.core.web.filter.ParametersTrimFilter</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>ParametersTrimFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<filter>
+		<filter-name>ClearThreadVariable</filter-name>
+		<filter-class>com.tianque.core.web.filter.ClearThreadVariable</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>ClearThreadVariable</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<filter>
+		<filter-name>jettyGzipFilter</filter-name>
+		<filter-class>org.mortbay.servlet.GzipFilter</filter-class>
+		<init-param>
+			<param-name>mimeTypes</param-name>
+			<param-value>text/javascript,application/x-javascript,text/html,text/css</param-value>
+		</init-param>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>jettyGzipFilter</filter-name>
+		<url-pattern>*.js</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>jettyGzipFilter</filter-name>
+		<url-pattern>*.css</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>jettyGzipFilter</filter-name>
+		<url-pattern>*.jsp</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>jettyGzipFilter</filter-name>
+		<url-pattern>*.action</url-pattern>
+	</filter-mapping>
+
+
+	<welcome-file-list>
+		<welcome-file>login.jsp</welcome-file>
+		<welcome-file>loginView.jsp</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+
+</web-app>

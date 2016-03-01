@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="moduelClicks">
+	<typeAlias alias="moduelClick" type="com.tianque.workBench.moduelClickCount.domain.ModuelClick"/>
+	<typeAlias alias="Permission" type="com.tianque.domain.Permission" />
+	<resultMap id="moduelClickResult" class="moduelClick">
+		<result property="id" column="id"/>
+		<result property="userId" column="userId"/>
+		<result property="permissionId" column="permissionId"/>
+		<result property="clickTimes" column="clickTimes"/>
+		<result property="permission" column="permissionId" select="permission.findPermissionsByIdFetchParent"/>
+	</resultMap>
+	
+	<select id="countModuelClickCountByPermissionIdAndUserId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT count(*) FROM moduelClickCounts WHERE permissionId = #permissionId# and userId = #userId#
+		]]>	
+	</select>
+	
+	<select id="findModuelClickCountByPermissionIdAndUserId" parameterClass="java.util.Map" resultMap="moduelClickResult">
+		<![CDATA[
+			SELECT * FROM moduelClickCounts WHERE permissionId = #permissionId# and userId = #userId#
+		]]>
+	</select>
+	
+	<insert id="addModuelClickCount" parameterClass="moduelClick">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_moduelClickCounts.NEXTVAL AS ID FROM DUAL ]]>
+		</selectKey>
+		INSERT INTO moduelClickCounts
+		(id,
+			userId,
+			permissionId,
+			clickTimes
+		)
+		VALUES
+		(#id#,
+			#userId#,
+			#permissionId#,
+			#clickTimes#
+		)
+	</insert>
+	<select id="findModuelClickCountById" parameterClass="java.lang.Long" resultMap="moduelClickResult">
+		<![CDATA[
+			SELECT * FROM moduelClickCounts WHERE id = #value#
+		]]>
+	</select>
+	<update id="updateModuelClickCount" parameterClass="moduelClick">
+		update moduelClickCounts set
+			userId=#userId#,
+			permissionId=#permissionId#,
+			clickTimes=#clickTimes#
+		where id=#id#
+	</update>
+	<select id="countModuelClickCountByUserId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT count(*) FROM moduelClickCounts WHERE userId = #value#
+		]]>	
+	</select>
+	
+	<select id="findModuelClickCountByUserId" parameterClass="map" resultMap="moduelClickResult">
+		<![CDATA[
+			SELECT  rownum,m.* FROM moduelClickCounts m WHERE m.userId = #userId# and rownum<=#nums#  order by m.clicktimes desc
+		]]>
+	</select>
+	
+</sqlMap>

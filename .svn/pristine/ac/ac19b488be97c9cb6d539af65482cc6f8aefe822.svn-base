@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="ledgerPeopleAspirations">
+
+	<typeAlias alias="education"
+		type="com.tianque.plugin.account.domain.Education" />
+
+	<resultMap id="educationResult" class="education">
+		<result property="id" column="id" />
+		<result property="beneficiaryNumber" column="beneficiaryNumber" />
+		<result property="buildType.id" column="buildType" />
+		<result property="projectName" column="projectName" />
+		<result property="projectCategory.id" column="projectCategory" />
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="buildCompanyName" column="buildCompanyName" />
+		<result property="buildArea" column="buildArea" />
+		<result property="studentName" column="studentName" />
+		<result property="schoolName" column="schoolName" />
+		<result property="plannedInvestment" column="plannedInvestment" />
+		<result property="selfFund" column="selfFund" />
+		<result property="gapFund" column="gapFund" />
+		<result property="fromAddress" column="fromAddress" />
+		<result property="toAddress" column="toAddress" />
+		<result property="otherContent" column="otherContent" />
+		<result property="peopleAspiration.id" column="ledgerPeopleAspirationsId" />
+		<result property="studyDate" column="studyDate" />
+		<result property="scopeCategory.id" column="scopeCategory" />
+		<result property="modeCategory.id" column="modeCategory" />
+		<result property="itemCategory.id" column="itemCategory" />
+		<result property="roadCategory.id" column="roadCategory" />
+		<result property="distanceCategory.id" column="distanceCategory" />
+		<result property="roadConditionCategory.id" column="roadConditionCategory" />
+		<result property="degreeCategory.id" column="degreeCategory" />
+		<result property="addressCategory.id" column="addressCategory" />
+	</resultMap>
+
+
+	<select id="getEducationByAspirationsId" parameterClass="java.lang.Long"
+		resultMap="educationResult">
+		select * from ledgerEducation where ledgerPeopleAspirationsId=#value#
+	</select>
+
+	<select id="getEducationById" parameterClass="java.lang.Long"
+		resultMap="educationResult">
+		select * from ledgerEducation where id=#value#
+	</select>
+
+	<insert id="addEducation" parameterClass="education">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_ledgerEducation.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerEducation (  ID,ledgerPeopleAspirationsId,beneficiaryNumber  ,buildType  ,projectName  ,projectCategory    ,projectSubCategory ,plannedInvestment  ,selfFund     ,gapFund      ,fromAddress  ,toAddress    ,createUser   ,updateUser   ,createDate   ,updateDate ,buildCompanyName,buildArea,studentName,schoolName
+		,otherContent,addressCategory,degreeCategory,roadConditionCategory,distanceCategory,roadCategory,studyDate,itemCategory,modeCategory,scopeCategory)
+		values( #id#,#peopleAspiration.id#,#beneficiaryNumber#,#buildType.id#,#projectName#,#projectCategory.id#,#projectSubCategory.id#,#plannedInvestment#,#selfFund#,#gapFund#,#fromAddress#,#toAddress#,#createUser#,#updateUser#,#createDate#,#updateDate# ,#buildCompanyName#,#buildArea#,#studentName#,#schoolName#
+		,#otherContent#,#addressCategory.id#,#degreeCategory.id#,#roadConditionCategory.id#,#distanceCategory.id#,#roadCategory.id#,#studyDate#,#itemCategory.id#,#modeCategory.id#,#scopeCategory.id#)
+	</insert>
+
+	<update id="updateEducation" parameterClass="education">
+		update ledgerEducation set
+			beneficiaryNumber = #beneficiaryNumber#,
+			projectCategory = #projectCategory.id#,
+			buildType = #buildType.id#,
+			projectName = #projectName#,
+			projectSubCategory = #projectSubCategory.id#,
+			buildCompanyName = #buildCompanyName#,
+			buildArea = #buildArea#,
+			studentName = #studentName#,
+			schoolName = #schoolName#,
+			plannedInvestment = #plannedInvestment#,
+			 selfFund  = #selfFund#,
+			gapFund = #gapFund#,
+			fromAddress = #fromAddress#,
+			toAddress = #toAddress#,
+			updateDate = #updateDate#,
+			UPDATEUSER = #updateUser#,
+			otherContent = #otherContent#,
+			studyDate = #studyDate#,
+			scopeCategory = #scopeCategory.id#,
+			modeCategory = #modeCategory.id#,
+			itemCategory = #itemCategory.id#,
+			roadCategory = #roadCategory.id#,
+			distanceCategory = #distanceCategory.id#,
+			roadConditionCategory = #roadConditionCategory.id#,
+			degreeCategory = #degreeCategory.id#,
+			addressCategory= #addressCategory.id#
+				
+		where id = #id#
+	</update>
+
+	<delete id="deleteEducationByAspirationId" parameterClass="java.lang.Long">
+		delete from ledgerEducation where ledgerPeopleAspirationsId = #value#	
+	</delete>
+
+
+</sqlMap>

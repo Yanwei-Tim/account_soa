@@ -1,0 +1,367 @@
+package com.tianque.core.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
+public class CalendarUtil {
+
+	private static final String DEFAULT_FORMAT = "yyyy-MM-dd";
+
+	/***
+	 *默认格式的现在日期
+	 * 
+	 * @return
+	 */
+	public static Date now() {
+		return new Date();
+	}
+
+	/***
+	 * 返回指定格式的现在日期
+	 * 
+	 * @return
+	 */
+	public static Date now(String format) {
+		return formatDate(format, now());
+	}
+
+	/***
+	 * yyyy-MM-dd 格式的现在日期
+	 * 
+	 * @return
+	 */
+	public static Date today() {
+		return formatDate(DEFAULT_FORMAT, now());
+	}
+
+	/***
+	 * yyyy-MM-dd 格式的日期
+	 * 
+	 * @return
+	 */
+	public static Date getTomorrow() {
+		Calendar c = convertToCalendar(today());
+		c.add(Calendar.DAY_OF_MONTH, 1);
+		return c.getTime();
+	}
+
+	/***
+	 * 按照指定的格式解析日期字符串
+	 * 
+	 * @return
+	 */
+	public static Date parseDate(String dateString, String format) {
+		SimpleDateFormat formater = new SimpleDateFormat();
+		formater.applyPattern(format);
+		formater.setLenient(false);
+		try {
+			return formater.parse(dateString);
+		} catch (ParseException e) {
+			return null;
+		}
+	}
+
+	/***
+	 * 按照指定的格式格式化日期
+	 * 
+	 * @return
+	 */
+	private static Date formatDate(String format, Date date) {
+		SimpleDateFormat formater = new SimpleDateFormat();
+		formater.applyPattern(format);
+		formater.setLenient(false);
+		try {
+			return formater.parse(formater.format(date));
+		} catch (ParseException e) {
+			return now();
+		}
+	}
+
+	/***
+	 * 返回yyyy-MM-dd 格式的日期字符串
+	 * 
+	 * @return
+	 */
+	public static String format(Date date) {
+		return format(DEFAULT_FORMAT, date);
+	}
+
+	/***
+	 * 返回指定格式的日期字符串
+	 * 
+	 * @return
+	 */
+	public static String format(String format, Date date) {
+		if (date == null) {
+			return "";
+		}
+		SimpleDateFormat formater = new SimpleDateFormat();
+		formater.applyPattern(format);
+		return formater.format(date);
+	}
+
+	/***
+	 * 返回今天是星期几 例如：星期一
+	 * 
+	 * @return
+	 */
+	public static String getWeekDay() {
+		return format("EEEE", today());
+	}
+
+	/***
+	 * 返回指定的日期是星期几 例如：星期一
+	 * 
+	 * @return
+	 */
+	public static String getWeekDay(Date date) {
+		return format("EEEE", date);
+	}
+
+	/***
+	 * 返回现在日期的年份
+	 * 
+	 * @return
+	 */
+	public static int getNowYear() {
+		return Calendar.getInstance().get(Calendar.YEAR);
+	}
+
+	/***
+	 * 返回现在日期的月份
+	 * 
+	 * @return
+	 */
+	public static int getNowMonth() {
+		return Calendar.getInstance().get(Calendar.MONTH) + 1;
+	}
+
+	/***
+	 * 返回现在日期的天
+	 * 
+	 * @return
+	 */
+	public static int getNowDay() {
+		return Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+	}
+
+	public static int getLastYear() {
+		return Calendar.getInstance().get(Calendar.YEAR) - 1;
+	}
+
+	public static int getLastMonth() {
+		Calendar temp = Calendar.getInstance();
+		temp.add(Calendar.MONTH, -1);
+		return temp.get(Calendar.MONTH) + 1;
+	}
+
+	public static int getLastMonthYearValue() {
+		Calendar temp = Calendar.getInstance();
+		temp.add(Calendar.MONTH, -1);
+		return temp.get(Calendar.YEAR);
+	}
+
+	public static Date getMonthStart(int year, int month) {
+		return parseDate(String.valueOf(year) + month, "yyyyM");
+	}
+
+	public static Date getNextMonthStart(int year, int month) {
+		Calendar temp = getMonthEndCalendar(year, month);
+		temp.add(Calendar.DAY_OF_MONTH, 1);
+		return temp.getTime();
+	}
+
+	public static Date getLastMonthEnd(int year, int month) {
+		Calendar temp = getMonthEndCalendar(year, month);
+		temp.add(Calendar.MONTH, -1);
+		return temp.getTime();
+	}
+
+	public static Date getLastMonthStart(int year, int month) {
+		Calendar result = Calendar.getInstance();
+		result.setTime(getMonthStart(year, month));
+		result.add(Calendar.MONTH, -1);
+		return result.getTime();
+	}
+
+	public static Date getMonthEnd(int year, int month) {
+//		return getMonthEndCalendar(year, month).getTime();
+		 	Calendar calendar = Calendar.getInstance();
+	        calendar.set(Calendar.YEAR, year);
+			calendar.set(Calendar.MONTH, month-1);
+			calendar.set(Calendar.HOUR_OF_DAY, 23);
+			calendar.set(Calendar.MINUTE, 59);
+			calendar.set(Calendar.SECOND, 59);
+	        calendar.set(Calendar.DATE, calendar.getActualMaximum(Calendar.DATE));
+	        return calendar.getTime();
+	}
+
+	private static Calendar getMonthEndCalendar(int year, int month) {
+		Calendar result = Calendar.getInstance();
+		result.setTime(getMonthStart(year, month));
+		result.set(Calendar.DAY_OF_MONTH, result
+				.getActualMaximum(Calendar.DAY_OF_MONTH));
+		return result;
+	}
+
+	/***
+	 * 返回指定日期的年份
+	 * 
+	 * @return
+	 */
+	public static int getYear(Date date) {
+		Calendar c = convertToCalendar(date);
+		return c.get(Calendar.YEAR);
+	}
+
+	/***
+	 * 返回指定日期的月份
+	 * 
+	 * @return
+	 */
+	public static int getMonth(Date date) {
+		Calendar c = convertToCalendar(date);
+		return c == null ? 1 : c.get(Calendar.MONTH) + 1;
+	}
+
+	/***
+	 * 返回指定日期的天
+	 * 
+	 * @return
+	 */
+	public static int getDay(Date date) {
+		Calendar c = convertToCalendar(date);
+		return c == null ? 1 : c.get(Calendar.DAY_OF_MONTH);
+	}
+
+	public static Calendar convertToCalendar(Date date) {
+		if (date == null) {
+			return null;
+		}
+		Calendar result = Calendar.getInstance();
+		result.setTime(date);
+		return result;
+	}
+	
+	
+	public static String calculateCurrentCycle(String period, String val) {
+		Integer year = null, month = null, quarter = null, date = null;
+		String ret = null;
+		if (period.equals("year")) {
+			year = Integer.parseInt(val) + 1;
+			ret = year.toString();
+		} else if (period.equals("month")) {
+			year = Integer.parseInt(val.substring(0, 4));
+			month = Integer.parseInt(val.substring(4, val.length()));
+			if (month == 12) {
+				month = 1;
+				year = year + 1;
+			} else {
+				month = month + 1;
+			}
+			ret = year.toString() + (month < 10 ? ("0" + month) : month);
+		} else if (period.equals("day")) {
+			year = Integer.parseInt(val.substring(0, 4));
+			month = Integer.parseInt(val.substring(4, 6));
+			date = Integer.parseInt(val.substring(6, val.length()));
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+			Calendar cal = Calendar.getInstance();
+			cal.set(year, month - 1, date);
+			cal.add(Calendar.DATE, 1);
+			return sdf.format(cal.getTime());
+		} else if (period.equals("quarter")) {
+			year = Integer.parseInt(val.substring(0, 4));
+			quarter = Integer.parseInt(val.substring(4, val.length()));
+			if (quarter == 4) {
+				quarter = 1;
+				year = year + 1;
+			} else {
+				quarter = quarter + 1;
+			}
+			ret = year.toString() + quarter.toString();
+		}
+		return ret;
+	}
+	
+	/**
+	 * 根据当前时间获取当前月的第一天精确到00:00:00
+	 * 
+	 * @param date
+	 * @return
+	 */
+	public static Date getBeforeMonthFirstDayByTime(int year, int month) {
+		Date date = getDateByYearAndMonth(year, month);
+		if (date == null) {
+			return null;
+		}
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.DAY_OF_MONTH,
+				calendar.getMaximum(Calendar.DAY_OF_MONTH));
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		String dateFormat = "yyyy-MM-dd HH:mm:ss";
+		return formatDate(dateFormat, calendar.getTime());
+	}
+
+	public static Date getDateByYearAndMonth(int year, int month) {
+		if (year <= 0 || month <= 0) {
+			return null;
+		}
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(Calendar.YEAR, year);
+		calendar.set(Calendar.MONTH, month);
+		calendar.add(Calendar.MONTH, -1);
+		String dateFormat = "yyyy-MM-dd HH:mm:ss";
+		return formatDate(dateFormat, calendar.getTime());
+	}
+	
+	public static Date getLastYearBegin(int year){
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(Calendar.YEAR, year-1);
+		calendar.set(Calendar.MONTH, 0);
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		return calendar.getTime();
+	}
+	
+	public static Date getLastYearEnd(int year){
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(Calendar.YEAR, year-1);
+		calendar.set(Calendar.MONTH, 11);
+		calendar.set(Calendar.DAY_OF_MONTH, 31);
+		calendar.set(Calendar.HOUR_OF_DAY, 23);
+		calendar.set(Calendar.MINUTE, 59);
+		calendar.set(Calendar.SECOND, 59);
+		return calendar.getTime();
+	}
+
+	public static Date getCurrentYearBegin(int year){
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(Calendar.YEAR, year);
+		calendar.set(Calendar.MONTH, 0);
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		return calendar.getTime();
+	}
+	
+	public static Date getCurrentYearEnd(int year){
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(Calendar.YEAR, year);
+		calendar.set(Calendar.MONTH, 11);
+		calendar.set(Calendar.DAY_OF_MONTH, 31);
+		calendar.set(Calendar.HOUR_OF_DAY, 23);
+		calendar.set(Calendar.MINUTE, 59);
+		calendar.set(Calendar.SECOND, 59);
+		return calendar.getTime();
+	}
+
+}

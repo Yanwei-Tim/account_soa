@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ledgerFeedBack">
+	<typeAlias alias="ledgerFeedBack" type="com.tianque.plugin.account.domain.LedgerFeedBack" />
+	<resultMap class="ledgerFeedBack" id="ledgerFeedBackMap">
+		<result property="id" column="ID"/>
+		<result property="stepId" column="stepId"/>
+		<result property="ledgerId" column="ledgerId"/>
+		<result property="ledgerType" column="ledgerType"/>
+		<result property="evaluateOrganization.id" column="ORGID"/>
+		<result property="evaluateOrganization.orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="evaluateUser" column="EVALUATEUSER"/>
+		<result property="feedBackType" column="feedBackType"/>
+		<result property="feedBackOpinion" column="feedBackOpinion"/>
+		<result property="remark" column="REMARK"/>
+		<result property="createUser" column="CREATEUSER"/>
+		<result property="updateUser" column="UPDATEUSER"/>
+		<result property="createDate" column="CREATEDATE"/>
+		<result property="updateDate" column="UPDATEDATE"/>
+	</resultMap>
+	<insert id="addFeedBack" parameterClass="ledgerFeedBack">
+		<selectKey keyProperty="id" resultClass="long">
+			<![CDATA[SELECT S_LEDGERFEEDBACK.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerFeedBack(
+			id,ledgerId,ledgerType,orgId,orgInternalCode,evaluateUser,feedBackType,feedBackOpinion,remark,createuser,createdate,stepId) 
+		values
+		(#id#,#ledgerId#,#ledgerType#,#evaluateOrganization.id#,#evaluateOrganization.orgInternalCode#,#evaluateUser#,#feedBackType#,#feedBackOpinion#,#remark#,#createUser#,#createDate#,#stepId#)
+	</insert>
+	<sql id="search_sql_where">
+		<dynamic>
+		  	<isNotNull prepend="and" property="ledgerId">
+		  		ledgerId=#ledgerId#
+		 	</isNotNull>
+		  	<isNotEmpty prepend="and" property="stepId">
+		  		stepId=#stepId#
+		  	</isNotEmpty>
+		  	<isNotEmpty prepend="and" property="ledgerType">
+		  		ledgerType=#ledgerType#
+		  	</isNotEmpty>
+		</dynamic>
+	</sql>
+	<select id="countFeedBack" parameterClass="map" resultClass="java.lang.Integer">
+		select count(id) from ledgerFeedBack where 1=1
+		<include refid="search_sql_where"/>
+	</select>
+	<select id="getFeedBackByledgerIdAndType" parameterClass="map" resultMap="ledgerFeedBackMap">
+		select * from ledgerFeedBack where 1=1
+		<include refid="search_sql_where"/>
+		order by id desc
+	</select>
+</sqlMap>

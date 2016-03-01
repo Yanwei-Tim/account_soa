@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="globalSetting">
+	<insert id="addGlobalSetting" parameterClass="java.lang.String">
+	INSERT INTO globalSettings(globalvalue)
+	VALUES(#value#)
+	</insert>
+	<update id="updateGlobalSetting" parameterClass="java.lang.String">
+		update globalSettings set globalvalue=#value#
+	</update>
+	<select id="getGlobalSetting" resultClass="java.lang.String">
+	<![CDATA[select globalvalue from globalSettings ]]>
+	</select>
+	
+</sqlMap>

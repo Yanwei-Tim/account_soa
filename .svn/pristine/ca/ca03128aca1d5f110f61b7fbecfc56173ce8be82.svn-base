@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="ledgerPeopleAspirations">
+
+	<typeAlias alias="medical"
+		type="com.tianque.plugin.account.domain.Medical" />
+
+	<resultMap id="medicalResult" class="medical">
+		<result property="id" column="id" />
+		<result property="beneficiaryNumber" column="beneficiaryNumber" />
+		<result property="buildType.id" column="buildType" />
+		<result property="projectName" column="projectName" />
+		<result property="projectCategory.id" column="projectCategory" />
+		<result property="projectSubCategory.id" column="projectSubCategory" />
+		<result property="plannedInvestment" column="plannedInvestment" />
+		<result property="selfFund" column="selfFund" />
+		<result property="gapFund" column="gapFund" />
+		<result property="fromAddress" column="fromAddress" />
+		<result property="toAddress" column="toAddress" />
+		<result property="peopleAspiration.id" column="ledgerPeopleAspirationsId" />
+		<result property="buildArea" column="buildArea" />
+		<result property="equipment" column="equipment" />
+		<result property="otherContent" column="otherContent" />
+		
+		
+	</resultMap>
+
+
+	<select id="getMedicalByAspirationsId" parameterClass="java.lang.Long"
+		resultMap="medicalResult">
+		select * from ledgerMedical where ledgerPeopleAspirationsId=#value#
+	</select>
+
+	<select id="getMedicalById" parameterClass="java.lang.Long"
+		resultMap="medicalResult">
+		select * from ledgerMedical where id=#value#
+	</select>
+
+	<insert id="addMedical" parameterClass="medical">
+		<selectKey keyProperty="id" resultClass="java.lang.Long">
+			<![CDATA[SELECT S_ledgerMedical.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into ledgerMedical (  ID,ledgerPeopleAspirationsId,beneficiaryNumber  ,buildType  ,projectName  ,projectCategory    ,projectSubCategory ,plannedInvestment  ,selfFund     ,gapFund      ,fromAddress  ,toAddress    ,createUser   ,updateUser   ,createDate   ,updateDate ,buildArea,equipment ,otherContent     )
+		values( #id#,#peopleAspiration.id#,#beneficiaryNumber#,#buildType.id#,#projectName#,#projectCategory.id#,#projectSubCategory.id#,#plannedInvestment#,#selfFund#,#gapFund#,#fromAddress#,#toAddress#,#createUser#,#updateUser#,#createDate#,#updateDate# ,#buildArea#,#equipment#,#otherContent#)
+	</insert>
+
+	<update id="updateMedical" parameterClass="medical">
+		update ledgerMedical set 
+			beneficiaryNumber = #beneficiaryNumber#,
+			projectCategory = #projectCategory.id#,
+			buildType = #buildType.id#,
+			projectName = #projectName#,
+			projectSubCategory = #projectSubCategory.id#,
+			plannedInvestment = #plannedInvestment#,
+			selfFund  = #selfFund#,
+			gapFund = #gapFund#,
+			fromAddress = #fromAddress#,
+			toAddress = #toAddress#,
+			updateDate = #updateDate#,
+			UPDATEUSER = #updateUser#,
+			equipment = #equipment#,
+			buildArea = #buildArea#,
+			otherContent = #otherContent#
+
+		where id = #id#
+	</update>
+
+	<delete id="deleteMedicalByAspirationId" parameterClass="java.lang.Long">
+		delete from ledgerMedical where ledgerPeopleAspirationsId = #value#	
+	</delete>
+
+
+</sqlMap>
